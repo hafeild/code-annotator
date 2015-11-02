@@ -1,42 +1,47 @@
 Rails.application.routes.draw do
 
 
+  root    'static_pages#home'
+  get     'home'   => 'static_pages#home'
+  get     'info'   => 'static_pages#information'
+  get     'login'  => 'sessions#new'
+  post    'login'  => 'sessions#create'
+  delete  'logout' => 'sessions#destroy'
+  get     'signup' => 'users#new'
+
+  resources :users,         only: [:create,:update,:edit,:destroy]
+  resources :projects,      only: [:index,:show]
+
+
   ## For the JSON api.
   namespace :api do
     ## Projects.
     resources :projects 
 
     ## Files (by project).
-    get 'projects/:project_id/files' => 'files#index'
-    get 'projects/:project_id/download' => 'files#download'
-    get 'projects/:project_id/print' => 'files#print'
-    post 'projects/:project_id/files' => 'files#create'
+    get   'projects/:project_id/files'    => 'files#index'
+    get   'projects/:project_id/download' => 'files#download'
+    get   'projects/:project_id/print'    => 'files#print'
+    post  'projects/:project_id/files'    => 'files#create'
     resources :files,       only: [:show,:update,:destroy]
 
     ## Permissions (by project).
-    get 'projects/:project_id/permissions' => 'permissions#index'
-    post 'projects/:project_id/permissions' => 'permissions#create'
+    get   'projects/:project_id/permissions' => 'permissions#index'
+    post  'projects/:project_id/permissions' => 'permissions#create'
     resources :permissions, only: [:show,:update,:destroy]
 
     ## Annotations (by project and files).
-    post 'projects/:project_id/comments' => 'comments#create'
-    get 'projects/:project_id/comments' => 'comments#index'
-    get 'projects/:project_id/files/:file_id/comments' => 'comments#index'
+    post  'projects/:project_id/comments'                => 'comments#create'
+    get   'projects/:project_id/comments'                => 'comments#index'
+    get   'projects/:project_id/files/:file_id/comments' => 'comments#index'
     resources :comments,    only: [:show,:update,:destroy]
 
-    post 'projects/:project_id/altcode' => 'altcode#create'
-    get 'projects/:project_id/altcode' => 'altcode#index'
-    get 'projects/:project_id/files/:file_id/altcode' => 'altcode#index'
+    post  'projects/:project_id/altcode'                => 'altcode#create'
+    get   'projects/:project_id/altcode'                => 'altcode#index'
+    get   'projects/:project_id/files/:file_id/altcode' => 'altcode#index'
     resources :altcode,     only: [:show,:update,:destroy]
   end
 
-
-  # The priority is based upon order of creation: first created -> highest priority.
-  # See how all your routes lay out with "rake routes".
-
-  # You can have the root of your site routed with "root"
-  # root 'welcome#index'
-  root 'application#hello'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
