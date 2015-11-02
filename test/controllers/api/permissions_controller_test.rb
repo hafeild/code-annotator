@@ -1,21 +1,16 @@
 require 'test_helper'
 
-class AltcodeControllerTest < ActionController::TestCase
+class Api::PermissionsControllerTest < ActionController::TestCase
   def setup
   end
 
   test "should return success message on create" do
-    @response = post :create, project_id: 1, altcode: {}
+    @response = post :create, project_id: 1, permission: {}
     assert JSON.parse(@response.body)['success']
   end
 
-  test "should return success message on index by project" do
+  test "should return success message on index" do
     @response = get :index, project_id: 1
-    assert JSON.parse(@response.body)['success']
-  end
-
-  test "should return success message on index by file" do
-    @response = get :index, project_id: 1, file_id: 1
     assert JSON.parse(@response.body)['success']
   end
 

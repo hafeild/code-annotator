@@ -1,4 +1,4 @@
-class FilesController < ApplicationController
+class Api::FilesController < ApplicationController
   def index
     render json: "", serializer: SuccessSerializer
   end

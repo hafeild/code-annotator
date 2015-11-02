@@ -1,4 +1,4 @@
-class AltcodeController < ApplicationController
+class Api::PermissionsController < ApplicationController
   def index
     render json: "", serializer: SuccessSerializer
   end

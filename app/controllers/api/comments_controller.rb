@@ -1,4 +1,4 @@
-class CommentsController < ApplicationController
+class Api::CommentsController < ApplicationController
   def index
     render json: "", serializer: SuccessSerializer
   end

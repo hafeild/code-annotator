@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class CommentsControllerTest < ActionController::TestCase
+class Api::CommentsControllerTest < ActionController::TestCase
   def setup
   end
 

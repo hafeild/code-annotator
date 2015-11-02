@@ -1,31 +1,34 @@
 Rails.application.routes.draw do
 
-  ## Projects.
-  resources :projects 
 
-  ## Files (by project).
-  get 'projects/:project_id/files' => 'files#index'
-  get 'projects/:project_id/download' => 'files#download'
-  get 'projects/:project_id/print' => 'files#print'
-  post 'projects/:project_id/files' => 'files#create'
-  resources :files,       only: [:show,:update,:destroy]
+  ## For the JSON api.
+  namespace :api do
+    ## Projects.
+    resources :projects 
 
-  ## Permissions (by project).
-  get 'projects/:project_id/permissions' => 'permissions#index'
-  post 'projects/:project_id/permissions' => 'permissions#create'
-  resources :permissions, only: [:show,:update,:destroy]
+    ## Files (by project).
+    get 'projects/:project_id/files' => 'files#index'
+    get 'projects/:project_id/download' => 'files#download'
+    get 'projects/:project_id/print' => 'files#print'
+    post 'projects/:project_id/files' => 'files#create'
+    resources :files,       only: [:show,:update,:destroy]
 
-  ## Annotations (by project and files).
-  post 'projects/:project_id/comments' => 'comments#create'
-  get 'projects/:project_id/comments' => 'comments#index'
-  get 'projects/:project_id/files/:file_id/comments' => 'comments#index'
-  resources :comments,    only: [:show,:update,:destroy]
+    ## Permissions (by project).
+    get 'projects/:project_id/permissions' => 'permissions#index'
+    post 'projects/:project_id/permissions' => 'permissions#create'
+    resources :permissions, only: [:show,:update,:destroy]
 
-  post 'projects/:project_id/altcode' => 'altcode#create'
-  get 'projects/:project_id/altcode' => 'altcode#index'
-  get 'projects/:project_id/files/:file_id/altcode' => 'altcode#index'
-  resources :altcode,     only: [:show,:update,:destroy]
+    ## Annotations (by project and files).
+    post 'projects/:project_id/comments' => 'comments#create'
+    get 'projects/:project_id/comments' => 'comments#index'
+    get 'projects/:project_id/files/:file_id/comments' => 'comments#index'
+    resources :comments,    only: [:show,:update,:destroy]
 
+    post 'projects/:project_id/altcode' => 'altcode#create'
+    get 'projects/:project_id/altcode' => 'altcode#index'
+    get 'projects/:project_id/files/:file_id/altcode' => 'altcode#index'
+    resources :altcode,     only: [:show,:update,:destroy]
+  end
 
 
   # The priority is based upon order of creation: first created -> highest priority.
