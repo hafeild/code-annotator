@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+cl1:
+  comment: comment1
+  project_file: file1
+  start_line: 1
+  start_column: 1
+  end_line: 2
+  end_column: 80
+
+cl2:
+  comment: comment2
+  project_file: file2
+  start_line: 1
+  start_column: 1
+  end_line: 1
+  end_column: 80

@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+altcode1:
+  content: "int x = 10;"
+  project_file: file1
+  start_line: 1
+  start_column: 1
+  end_line: 10
+  end_column: 80
+
+altcode2:
+  content: "// What?"
+  project_file: file2
+  start_line: 1
+  start_column: 1
+  end_line: 5
+  end_column: 5

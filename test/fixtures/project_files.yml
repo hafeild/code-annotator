@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+file1:
+  name: "main.cpp"
+  added_by: 1
+  project: p1
+
+file2:
+  name: "project.cpp"
+  added_by: 2
+  project: p2

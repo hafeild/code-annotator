@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+p1:
+  name: "Project Alpha"
+  created_by: 1
+
+p2:
+  name: "Second project"
+  created_by: 2
