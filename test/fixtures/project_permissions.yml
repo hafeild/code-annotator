@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+pp1:
+  project: p1
+  user: foo
+  can_author: true
+  can_view: true
+  can_annotate: false
+
+pp2:
+  project: p2
+  user: bar
+  can_author: true
+  can_view: true
+  can_annotate: true
