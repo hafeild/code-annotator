@@ -12,7 +12,7 @@ class User < ActiveRecord::Base
   validates :name, presence: true, length: {maximum: 50}
 
   ## Validate email -- can't be longer than 255 characters, must be unique,
-  ## an must be in the correct format.
+  ## and must be in the correct format.
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   validates :email, presence: true, length: {maximum: 255},
       format: {with: VALID_EMAIL_REGEX},
