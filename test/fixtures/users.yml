@@ -3,7 +3,7 @@
 foo:
   name: Foo Bar
   email: foo@mail.com
-  password_digest: MyString
+  password_digest: <%= User.digest('MyString') %>
   activation_digest: MyString
   activated: true
   activated_at: 2015-11-02 16:00:00
@@ -12,7 +12,7 @@ foo:
 bar:
   name: Bar Foo
   email: bar@gmail.com
-  password_digest: MyString
+  password_digest:  <%= User.digest('MyString') %>
   activation_digest: MyString
   activated: false
   activated_at: 2015-11-02 16:00:00

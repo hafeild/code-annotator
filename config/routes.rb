@@ -11,7 +11,7 @@ Rails.application.routes.draw do
 
   resources :users,         only: [:create,:update,:edit,:destroy]
   resources :projects,      only: [:index,:show]
-
+  resources :account_activations, only: [:edit]
 
   ## For the JSON api.
   namespace :api do
