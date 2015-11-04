@@ -3,17 +3,17 @@
 foo:
   name: Foo Bar
   email: foo@mail.com
-  password_digest: <%= User.digest('MyString') %>
-  activation_digest: MyString
+  password_digest: <%= User.digest('password') %>
+  activation_digest:
   activated: true
   activated_at: 2015-11-02 16:00:00
-  remember_digest: MyString
+  remember_digest:
 
 bar:
   name: Bar Foo
   email: bar@gmail.com
-  password_digest:  <%= User.digest('MyString') %>
-  activation_digest: MyString
+  password_digest:  <%= User.digest('password') %>
+  activation_digest:
   activated: false
   activated_at: 2015-11-02 16:00:00
-  remember_digest: MyString
+  remember_digest:

@@ -9,11 +9,6 @@ class SessionsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "should accept create" do
-    post :create, session: {}
-    assert_redirected_to :root
-  end
-
   test "should accept logout" do
     delete :destroy, id: 1
     assert_redirected_to :root
