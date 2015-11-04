@@ -2,6 +2,21 @@ class User < ActiveRecord::Base
   has_many :projects, through: :project_permissions
   has_many :project_permissions
   has_many :created_projects, class_name: "Project", foreign_key: "created_by"
+
+  attr_accessor :remember_token, :activation_token
+  ## Emails will be stored as lowercase.
+  before_save   :downcase_email
+  before_create :create_activation_digest
+
+  ## Validate name -- must be there and can't be longer than 50 chars.
+  validates :name, presence: true, length: {maximum: 50}
+
+  ## Validate email -- can't be longer than 255 characters, must be unique,
+  ## an must be in the correct format.
+  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  validates :email, presence: true, length: {maximum: 255},
+      format: {with: VALID_EMAIL_REGEX},
+      uniqueness: {case_sensitive: false}
   
   ## Validate the password -- must be present and between 8--50 characters.
   has_secure_password
@@ -26,9 +41,28 @@ class User < ActiveRecord::Base
     update_attribute(:remember_digest, User.digest(remember_token))
   end
 
+  ## Checks if the digest of the given token matches the stored attribute 
+  ## digest.
+  def authenticated?(attribute, token)
+    digest = send("#{attribute}_digest")
+    return false if digest.nil?
+    BCrypt::Password.new(digest).is_password?(token)
+  end
+
   # Forgets a user (removes the remember token).
   def forget
     update_attribute(:remember_digest, nil)
+  end
+
+  # Activates an account.
+  def activate
+    update_attribute(:activated,    true)
+    update_attribute(:activated_at, Time.zone.now)
+  end
+
+  # Sends activation email.
+  def send_activation_email
+    UserMailer.account_activation(self).deliver_now
   end
 
   private
