@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151102212455) do
+ActiveRecord::Schema.define(version: 20151106180704) do
 
   create_table "alternative_codes", force: :cascade do |t|
     t.text     "content"
@@ -51,8 +51,10 @@ ActiveRecord::Schema.define(version: 20151102212455) do
     t.integer  "added_by"
     t.integer  "project_id"
     t.integer  "size"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.text     "content"
+    t.boolean  "is_directory"
   end
 
   add_index "project_files", ["project_id"], name: "index_project_files_on_project_id"
