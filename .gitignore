@@ -15,3 +15,9 @@
 /log/*
 !/log/.keep
 /tmp
+
+# Compiled stuff.
+/public/assets
+
+# Secrets.
+/secrets
