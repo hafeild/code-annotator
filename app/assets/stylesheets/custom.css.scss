@@ -11,7 +11,6 @@ $gray-medium-light: #eaeaea;
   box-sizing:         border-box;
 }
 
-
 /* universal */
 
 body {
@@ -200,4 +199,74 @@ input {
   width: auto;
   margin-left: 0;
 }
+
+/* Projects */
+#projects-page {
+  height: 100%;
+
+  .list-group-item {
+    margin-right: 2px;
+    @include box_sizing;
+  }
+
+  .project-set {
+    .name {
+      width: 50%;
+    }
+
+    tbody tr {
+      cursor: pointer;
+    }
+  }
+
+  /*.project-set {
+    .project, .project-main {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      align-content: stretch;
+    }
+    .project-main {
+      flex-grow: 1;
+      margin-right: 5px;
+
+      .name { width: 70%;}
+      .email { width: 20%;}
+      .date { width: 15%;}
+    }
+  }*/
+
+
+
+/*  .project-set .project {
+    .name { width: 70%; }
+    .email { width: 10%; }
+    .date { width: 10%; }
+    .trash { width: 30px;}
+  }
+*/
+  .project-set {
+    padding: 5px;
+    @include box_sizing;
+  }
+
+  h2 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 0;
+    font-size: 2em;
+  }
+
+  ul {
+    margin-top: .5em;
+  }
+
+  li {
+
+  }
+
+}
+
 

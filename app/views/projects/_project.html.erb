@@ -1,0 +1,24 @@
+
+<% if false %>
+<div class="list-group-item project" id="<%= project.id %>">
+  <a href="<%= project_url(project) %>" class="project-main">
+    <span class="name"><%= project.name %></span>
+    <span class="email"><%= project.creator.email %></span> 
+    <span class="date"><%= project.created_at.strftime("%d-%b-%Y") %></span> 
+  </a>
+  <a href="#" class="trash project-trash">
+    <span class="glyphicon glyphicon-trash"></span>
+  </a>
+</div>
+<% end %>
+
+<tr class="clickable-row project" data-href="<%= project_url(project) %>" class="project-main" id="<%= project.id %>">
+  <td class="name"><%= project.name %></td>
+  <td class="email"><%= project.creator.email %></td> 
+  <td class="date"><%= project.created_at.strftime("%d-%b-%Y") %></td> 
+  <td>
+    <a href="#" class="trash project-trash">
+      <span class="glyphicon glyphicon-trash"></span>
+    </a>
+  </td>
+</tr>      

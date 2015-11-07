@@ -11,6 +11,7 @@ gem 'turbolinks',   '2.3.0'
 gem 'jbuilder',     '2.2.3'
 gem 'sdoc',         '0.4.0', group: :doc
 gem 'active_model_serializers', '0.8.3'
+gem 'faker',        '1.4.2'
 
 group :development, :test do
   # Use sqlite3 as the database for Active Record

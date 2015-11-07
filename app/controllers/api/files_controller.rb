@@ -1,4 +1,6 @@
 class Api::FilesController < ApplicationController
+  before_action :logged_in_user_api
+  
   def index
     render json: "", serializer: SuccessSerializer
   end

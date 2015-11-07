@@ -1,4 +1,6 @@
 class Api::AltcodeController < ApplicationController
+  before_action :logged_in_user_api
+  
   def index
     render json: "", serializer: SuccessSerializer
   end

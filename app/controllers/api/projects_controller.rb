@@ -1,6 +1,9 @@
 class Api::ProjectsController < ApplicationController
+  before_action :logged_in_user_api
+
   def index
-    render json: "", serializer: SuccessSerializer
+    render json: current_user.project_permissions, 
+      each_serializer: ProjectPermissionSerializer, :root => "projects"
   end
 
   def update
