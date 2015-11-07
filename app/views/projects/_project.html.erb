@@ -12,7 +12,7 @@
 </div>
 <% end %>
 
-<tr class="clickable-row" data-href="<%= project_url(project) %>" class="project-main">
+<tr class="clickable-row project" data-href="<%= project_url(project) %>" class="project-main" id="<%= project.id %>">
   <td class="name"><%= project.name %></td>
   <td class="email"><%= project.creator.email %></td> 
   <td class="date"><%= project.created_at.strftime("%d-%b-%Y") %></td> 
