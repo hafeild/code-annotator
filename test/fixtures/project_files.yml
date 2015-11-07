@@ -2,10 +2,10 @@
 
 file1:
   name: "main.cpp"
-  added_by: 1
+  creator: foo
   project: p1
 
 file2:
   name: "project.cpp"
-  added_by: 2
+  creator: bar
   project: p2

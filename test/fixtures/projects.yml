@@ -2,8 +2,8 @@
 
 p1:
   name: "Project Alpha"
-  created_by: 1
+  creator: foo
 
 p2:
   name: "Second project"
-  created_by: 2
+  creator: bar

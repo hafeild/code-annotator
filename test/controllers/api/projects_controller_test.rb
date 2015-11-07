@@ -2,6 +2,8 @@ require 'test_helper'
 
 class Api::ProjectsControllerTest < ActionController::TestCase
   def setup
+    @user = users(:foo)
+    @project = @user.projects.first
   end
 
   test "should return success message on create" do
@@ -10,8 +12,9 @@ class Api::ProjectsControllerTest < ActionController::TestCase
   end
 
   test "should return success message on index" do
+    log_in_as @user
     @response = get :index
-    assert JSON.parse(@response.body)['success']
+    assert JSON.parse(@response.body)['projects'].size > 0
   end
 
   test "should return success message on show" do
