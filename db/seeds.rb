@@ -6,14 +6,14 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 
-users = (0..4).to_a
-projects = (0..49).to_a
-files = (0..10).to_a
+users = (1..5).to_a
+projects = (1..50).to_a
+files = (1..10).to_a
 
 ## Create users.
-users.each do |n|
+users.each do |uid|
   name  = Faker::Name.name
-  email = "example-#{n+1}@mail.com"
+  email = "example-#{uid}@mail.com"
   password = "password"
   User.create!(name:  name,
                email: email,
@@ -59,8 +59,10 @@ projects.each do |pid|
       can_annotate = false
     end
 
-    ProjectPermission.create!(project_id: pid, user_id: uid,
-      can_author: can_author, can_view: can_view, can_annotate: can_annotate )
+    if can_annotate or can_author or can_view
+      ProjectPermission.create!(project_id: pid, user_id: uid,
+        can_author: can_author, can_view: can_view, can_annotate: can_annotate )
+    end
   end
 end
 
