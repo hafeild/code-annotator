@@ -4,5 +4,5 @@ class Project < ActiveRecord::Base
   has_many :project_permissions
 
   validates :created_by, presence: true
-  validates :name, presence: true
+  validates :name, presence: true, length: {maximum: 255}
 end
