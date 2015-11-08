@@ -8,7 +8,13 @@
 
 users = (1..5).to_a
 projects = (1..50).to_a
-files = (1..10).to_a
+files = (1..20).to_a
+
+fileContents = [
+  "def f():\n\tprint \"Hello!\"\n\treturn 0\n\nprint f()",
+  "def s(x, y):\n\treturn x**y\n\ndef main():\n\tprint s(1,30.5)"
+]
+
 
 ## Create users.
 users.each do |uid|
@@ -28,14 +34,40 @@ projects.each do |pid|
   name = Faker::Company.catch_phrase
   project = Project.create!(name: name, created_by: owner_id)
 
+  ## Preset directories. Files will be distributed across these.
+  directories = [
+    "",
+    "src",
+    "src/main",
+    "src/main/util",
+    "src/test",
+    "lib"
+  ]
+
+  ## Every directory is part of every project.
+  directories.each do |d|
+    unless d == ""
+      ProjectFile.create!(
+        name: d, 
+        content: "",
+        size: 0,
+        added_by: owner_id,
+        project_id: pid,
+        is_directory: true)
+    end
+  end
+
   ## Files.
   files.each do |fid|
-    ProjectFile.create!(name: "file-#{fid}.py", 
-      content: "This is my file\nblah\nblah\nblah",
+    dir = directories.shuffle.first
+
+    ProjectFile.create!(name: "#{dir}/file-#{fid}.py", 
+      content: fileContents.shuffle.first,
       size: 1000,
       added_by: owner_id,
       project_id: pid,
-      is_directory: rand(10)>1)
+      is_directory: false
+    )
 
     ## TODO -- add annotations to file.
   end
@@ -43,6 +75,8 @@ projects.each do |pid|
   ## Project permissions.
   users.each do |uid|
     type_of_user = rand(10)
+
+    can_author = can_view = can_annotate = true
 
     if uid == owner_id
       can_author = can_view = can_annotate = true
