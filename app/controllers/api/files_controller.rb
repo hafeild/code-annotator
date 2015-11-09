@@ -14,7 +14,15 @@ class Api::FilesController < ApplicationController
   end
 
   def show
-    render json: "", serializer: SuccessSerializer
+    file = ProjectFile.find_by(id: params[:id])
+
+    ## Only provide the file to the user if they have authorization to view
+    ## it.
+    if not file.nil? and user_can_access_project(file.project.id, [:can_view])
+      render json: file, serializer: FileSerializer, :root => "file"
+    else
+      render json: JSONError.new, serializer: ErrorSerializer
+    end
   end
 
   def destroy

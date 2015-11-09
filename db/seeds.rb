@@ -10,10 +10,16 @@ users = (1..5).to_a
 projects = (1..50).to_a
 files = (1..20).to_a
 
+cur_file_id = 0
+cur_comment_id = 0
+
+
 fileContents = [
-  "def f():\n\tprint \"Hello!\"\n\treturn 0\n\nprint f()",
+   "def f():\n\tprint \"Hello!\"\n\treturn 0\n\nprint f()",
   "def s(x, y):\n\treturn x**y\n\ndef main():\n\tprint s(1,30.5)"
 ]
+
+
 
 
 ## Create users.
@@ -57,8 +63,14 @@ projects.each do |pid|
     end
   end
 
+  cur_comment_id += 1
+  Comment.create!(
+    content: "This needs to be indented.",
+  )
+
   ## Files.
   files.each do |fid|
+    cur_file_id += 1
     dir = directories.shuffle.first
 
     ProjectFile.create!(name: "#{dir}file-#{fid}.py", 
@@ -70,7 +82,27 @@ projects.each do |pid|
     )
 
     ## TODO -- add annotations to file.
+    AlternativeCode.create!(
+      content: "def div(a, b):\n\ta.to_f / b",
+      project_file_id: cur_file_id,
+      start_line: 0,
+      start_column: 0,
+      end_line: 2,
+      end_column: 0
+    )
+
+    CommentLocation.create!(
+      comment_id: cur_comment_id,
+      project_file_id: cur_file_id,
+      start_line: 2,
+      start_column: 2,
+      end_line: 2,
+      end_column: 10
+    )
+
   end
+
+
 
   ## Project permissions.
   users.each do |uid|
