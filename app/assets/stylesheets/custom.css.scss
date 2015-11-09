@@ -11,6 +11,14 @@ $gray-medium-light: #eaeaea;
   box-sizing:         border-box;
 }
 
+@mixin no_select {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: -moz-none;
+  -o-user-select: none;
+  user-select: none;
+}
+
 /* universal */
 
 body {
@@ -269,7 +277,24 @@ input {
 
 }
 
+.project-view {
+  .file {
 
+  }
+  .entry, .directory {
+    @include box_sizing;
+    cursor: pointer;
+    font-size: 12pt;
+    @include no_select;
+  }
+  .entry .directory {
+    margin-left: 25px;
+  }
+
+  .collapsed {
+    display: none;
+  }
+}
 
 /*
  * Sidebar
@@ -288,12 +313,15 @@ input {
     z-index: 1000;
     display: block;
     padding: 20px;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
     background-color: #f5f5f5;
     border-right: 1px solid #eee;
   }
 }
+
+
+
 
 /* Sidebar navigation */
 .nav-sidebar {
@@ -301,13 +329,20 @@ input {
   margin-bottom: 20px;
   margin-left: -20px;
 }
-.nav-sidebar > li > a {
+
+.nav-sidebar li {
+  list-style: none;
+  display: block;
+  position: relative;
+}
+
+.nav-sidebar li a {
   padding-right: 20px;
   padding-left: 20px;
 }
-.nav-sidebar > .active > a,
-.nav-sidebar > .active > a:hover,
-.nav-sidebar > .active > a:focus {
+.nav-sidebar .active a,
+.nav-sidebar .active a:hover,
+.nav-sidebar .active a:focus {
   color: #fff;
   background-color: #428bca;
 }

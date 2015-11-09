@@ -1,0 +1,26 @@
+<% files.each do |file| %>
+  <% if file.is_directory %>
+    <div class="entry directory-entry" data-directory-id="<%= file.project_file.id %>" data-expand-state="expanded">
+      <div class="directory-name">
+        <span class="collapsed">
+          <span class="glyphicon glyphicon-triangle-right aria-hidden="true""></span>
+        </span>
+        <span class="expanded">
+          <span class="glyphicon glyphicon-triangle-bottom aria-hidden="true""></span>
+        </span>
+        <%= file.name %>
+      </div>
+      <div class="directory">
+        <%= render template: "projects/_project_file_listing", 
+                   locals: { :files => file.files } %>
+      </div>
+    </div>
+  <% else %>
+    <div class="entry file-entry">
+      <a href="#<%= file.project_file.id %>"
+        data-file-id="<%= file.project_file.id %>" class="file-entry"
+        ><%= file.name %></a>
+    </div>
+  <% end %>
+</li>
+<% end %>

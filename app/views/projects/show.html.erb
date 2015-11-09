@@ -1,11 +1,13 @@
 <% provide(:title, @project.name) %>
 <% provide(:no_footer, true) %>
-<div class="container-fluid">
+<div class="container-fluid project-view">
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
-      <ul class="nav nav-sidebar">
-        <%= render @project.project_files %>
-      </ul>
+      <div class="root-directory directory">
+      <%= render template: "projects/_project_file_listing", 
+                 locals: { :files => @project.getFilesAsDirectories.files } %>
+        <% #render @project.project_files.sort{|x,y| x.name <=> y.name} %>
+      </div>
     </div>
 
 

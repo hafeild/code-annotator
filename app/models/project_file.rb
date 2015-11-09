@@ -4,5 +4,4 @@ class ProjectFile < ActiveRecord::Base
   has_many :comments, through: :comment_locations
   has_many :alternative_code
   
-
 end
