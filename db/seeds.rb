@@ -37,11 +37,11 @@ projects.each do |pid|
   ## Preset directories. Files will be distributed across these.
   directories = [
     "",
-    "src",
-    "src/main",
-    "src/main/util",
-    "src/test",
-    "lib"
+    "src/",
+    "src/main/",
+    "src/main/util/",
+    "src/test/",
+    "lib/"
   ]
 
   ## Every directory is part of every project.
@@ -61,7 +61,7 @@ projects.each do |pid|
   files.each do |fid|
     dir = directories.shuffle.first
 
-    ProjectFile.create!(name: "#{dir}/file-#{fid}.py", 
+    ProjectFile.create!(name: "#{dir}file-#{fid}.py", 
       content: fileContents.shuffle.first,
       size: 1000,
       added_by: owner_id,
