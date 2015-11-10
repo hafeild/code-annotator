@@ -12,8 +12,8 @@
  *
  *= require_tree .
  *= require sortable-theme-bootstrap
- *= require syntax-highlighter-rails/shCore
- *= require syntax-highlighter-rails/shThemeDefault
+ *= require syntax-highlighter/shCore
+ *= require syntax-highlighter/shThemeDefault
  *= require_self
  */
 

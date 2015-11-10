@@ -12,7 +12,7 @@ gem 'jbuilder',     '2.2.3'
 gem 'sdoc',         '0.4.0', group: :doc
 gem 'active_model_serializers', '0.8.3'
 gem 'faker',        '1.4.2'
-gem 'syntax-highlighter-rails', '3.0.83.1.1'
+gem 'xregexp-rails', '2.0.0'
 
 group :development, :test do
   # Use sqlite3 as the database for Active Record
