@@ -2,7 +2,8 @@
 <% provide(:no_footer, true) %>
 <div class="container-fluid project-view">
   <div class="row">
-    <div class="col-sm-3 col-md-2 sidebar">
+    <div class="col-sm-3 col-md-2 sidebar sidebar-collapse">
+      <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-remove-circle"></span> Hide file list</span>
       <div class="root-directory directory">
       <%= render template: "projects/_project_file_listing", 
                  locals: { :files => @project.getFilesAsDirectories.files } %>
@@ -12,6 +13,7 @@
 
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
       <div class="button-bar">
+        <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
         <% if @projectPermission.can_author %>
           <button type="button" class="btn btn-default"><span 
             class="glyphicon glyphicon-cloud-upload"></span> 
@@ -36,6 +38,7 @@
           </button>
         <% end %>
       </div>
+
 
       <h2 class="page-header"></h2>
 

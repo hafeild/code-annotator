@@ -139,6 +139,11 @@ jQuery(document).ready(function($) {
     });
   };
 
+  // Toggles the sidebar and file contents area.
+  var toggleFileView = function(){
+    $('.sidebar').toggleClass('sidebar-collapse');
+    $('.main').toggleClass('main-collapse');
+  }
 
   // LISTENERS
 
@@ -180,8 +185,15 @@ jQuery(document).ready(function($) {
     // Wait for any changes to the location hash.
     $(window).on('hashchange', function(){
       displayFile(stripHash(location.hash));
+      if($('.main').hasClass('main-collapse')){
+        toggleFileView();
+      }
     });
   }
+
+  $(document).on('click', '.sidebar-toggle', function(){
+    toggleFileView();
+  })
 
 });
 
