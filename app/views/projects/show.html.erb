@@ -3,6 +3,8 @@
 <div class="container-fluid project-view">
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
+      
+
       <div class="root-directory directory">
       <%= render template: "projects/_project_file_listing", 
                  locals: { :files => @project.getFilesAsDirectories.files } %>
@@ -10,8 +12,11 @@
       </div>
     </div>
 
-
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+      <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-print"></span> Print</button>
+      <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span> Download</button>
+      <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+
       <h2 class="page-header"></h2>
 
       <div id="file-display">
