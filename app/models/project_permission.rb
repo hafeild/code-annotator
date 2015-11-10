@@ -4,8 +4,8 @@ class ProjectPermission < ActiveRecord::Base
 
   validates :user_id, presence: true
   validates :project_id, presence: true
-  validates :can_author, presence: true
-  validates :can_view, presence: true
-  validates :can_annotate, presence: true
+  validates :can_author, inclusion: { in: [true, false] }
+  validates :can_view, inclusion: { in: [true, false] }
+  validates :can_annotate, inclusion: { in: [true, false] }
 
 end

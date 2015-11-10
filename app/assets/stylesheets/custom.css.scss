@@ -1,6 +1,7 @@
 @import "bootstrap-sprockets";
 @import "bootstrap";
 
+
 /* mixins, variables, etc. */
 
 $gray-medium-light: #eaeaea;
@@ -9,6 +10,14 @@ $gray-medium-light: #eaeaea;
   -moz-box-sizing:    border-box;
   -webkit-box-sizing: border-box;
   box-sizing:         border-box;
+}
+
+@mixin no_select {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: -moz-none;
+  -o-user-select: none;
+  user-select: none;
 }
 
 /* universal */
@@ -68,7 +77,7 @@ p {
   margin-right: 10px;
   font-size: 1.7em;
   color: #fff;
-  text-transform: uppercase;
+  /*text-transform: uppercase;*/
   letter-spacing: -1px;
   padding-top: 9px;
   font-weight: bold;
@@ -77,6 +86,11 @@ p {
 #logo:hover {
   color: #fff;
   text-decoration: none;
+}
+
+.header {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 /* footer */
@@ -204,6 +218,10 @@ input {
 #projects-page {
   height: 100%;
 
+  padding-left: 40px;
+  padding-right: 40px;
+  @include box_sizing;
+
   .list-group-item {
     margin-right: 2px;
     @include box_sizing;
@@ -267,6 +285,130 @@ input {
 
   }
 
+}
+
+.project-view {
+  .file {
+
+  }
+  .entry, .directory {
+    @include box_sizing;
+    cursor: pointer;
+    font-size: 12pt;
+    @include no_select;
+  }
+  .entry .directory {
+    margin-left: 25px;
+  }
+
+  .collapsed {
+    display: none;
+  }
+
+  .directory-name {
+    .collapsed, .expanded {
+      color: #888;
+      margin-right: 3px;
+    }
+  }
+
+  .button-bar {
+    margin-bottom: 5px;
+  }
+}
+
+/*
+ * Sidebar
+ */
+
+/* Hide for mobile, show later */
+.sidebar-collapse {
+  display: none;
+}
+
+.main-collapse {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 51px;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    display: block;
+    padding: 20px;
+    overflow-x: auto;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    background-color: #f5f5f5;
+    border-right: 1px solid #eee;
+  }
+
+  .sidebar-collapse {
+    display: block;
+  }
+
+  .main-collapse {
+    display: block;
+  }
+}
+/* Sidebar toggles only display when the screen is small. */
+@media (min-width: 768px) {
+  .sidebar-toggle {
+    display: none;
+  }
+}
+
+
+
+
+/* Sidebar navigation */
+.nav-sidebar {
+  margin-right: -21px; /* 20px padding + 1px border */
+  margin-bottom: 20px;
+  margin-left: -20px;
+}
+
+.nav-sidebar li {
+  list-style: none;
+  display: block;
+  position: relative;
+}
+
+.nav-sidebar li a {
+  padding-right: 20px;
+  padding-left: 20px;
+}
+.nav-sidebar .active a,
+.nav-sidebar .active a:hover,
+.nav-sidebar .active a:focus {
+  color: #fff;
+  background-color: #428bca;
+}
+
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 5px;
+}
+/*@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}*/
+.main .page-header {
+  margin-top: 0;
+}
+
+.information-page {
+  padding-left: 40px;
+  padding-right: 40px;
+  h1 { text-align: left;}
 }
 
 

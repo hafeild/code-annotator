@@ -1,0 +1,16 @@
+<li>
+<% if project_file.is_directory? %>
+  <%  %>
+  <span class="collapsed">
+    <span class="glyphicon glyphicon-triangle-right aria-hidden="true""></span>
+  </span>
+  <span class="expanded hidden">
+    <span class="glyphicon glyphicon-triangle-bottom aria-hidden="true""></span>
+  </span>
+  <span class="directory" data-directory-id="<%= project_file.id %>"
+    ><%= project_file.name %></span>
+<% else %>
+  <a href="#" data-file-id="<%= project_file.id %>" class=".file"
+    ><%= project_file.name %></a>
+<% end %>
+</li>
