@@ -17,9 +17,13 @@ cur_comment_id = 0
 fileContents = [
   [".py", "def f():\n\tprint \"Hello!\"\n\treturn 0\n\nprint f()"],
   [".py", "def s(x, y):\n\treturn x**y\n\ndef main():\n\tprint s(1,30.5)"],
-  [".rb", "def s(x, y)\n\treturn x**y\nend\n\ndef main()\n\tprint s(1,30.5)\nend"],
-  [".txt", "This is a demonstration of a text file with a .txt\n\n\nfile extension."],
-  ["", "This file should\nappear\nas\t\tplain text."]
+  [".rb", "def s(x, y)\n\treturn x**y\nend\n\ndef main()\n\t"+
+    "print s(1,30.5)\nend"],
+  [".txt", "This is a demonstration of a text file with a .txt\n\n\nfile "+
+    "extension."],
+  ["", "This file should\nappear\nas\t\tplain text."],
+  [".html", "<html>\n<body>\n\t<p>This is an html file.</p>\n<pre>\n   This"+
+    " is preset text\n</pre>\n</body>\n</html>"]
 ]
 
 

@@ -41,12 +41,34 @@ jQuery(document).ready(function($) {
     xml:  'xml',
     html: 'xml',
     xhtml:'xml'
-  }
+  };
+
+  // Lifted from Mustache 
+  // (https://github.com/janl/mustache.js/blob/master/mustache.js)
+  const ENTITY_MAP = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;',
+    "/": '&#x2F;'
+  };
 
   var curFileInfo;
 
 
   // FUNCTIONS
+
+  // Escapes an HTML string.
+  // Lifted from Mustache 
+  // (https://github.com/janl/mustache.js/blob/master/mustache.js)
+  // @param {string} html The HTML string to escape.
+  // @return The escaped HTML string.
+  function escapeHtml(html) {
+    return String(html).replace(/[&<>"'\/]/g, function (s) {
+      return ENTITY_MAP[s];
+    });
+  }
 
   // Extracts the extension from a file name.
   // @param {string} filename The name of the file.
@@ -66,7 +88,12 @@ jQuery(document).ready(function($) {
   //         corresponding highlighter is found.
   var getHighlighterClass = function(filename){
     var extension = extractExtension(filename);
-    return KNOWN_FILE_EXTENSIONS[extension] || KNOWN_FILE_EXTENSIONS['txt'];
+    var returnClass = 'brush: '+ 
+      KNOWN_FILE_EXTENSIONS[extension] || KNOWN_FILE_EXTENSIONS['txt'];;
+    if(extension === 'erb' || extension === 'rb'){
+      returnClass += "; html-script: true";
+    }
+    return returnClass;
   };
 
   // Remove the leading # on a hash.
@@ -96,8 +123,8 @@ jQuery(document).ready(function($) {
           $('.page-header').html(data.file.name);
           $('#file-display');
           $('#file-display').html(
-            '<pre class="brush: '+ getHighlighterClass(data.file.name) +'">\n'+
-                data.file.content + 
+            '<pre class="'+ getHighlighterClass(data.file.name) +'">\n'+
+                escapeHtml(data.file.content) + 
             '\n</pre>'
           );
           SyntaxHighlighter.highlight();
