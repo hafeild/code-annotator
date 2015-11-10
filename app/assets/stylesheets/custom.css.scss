@@ -300,6 +300,17 @@ input {
   .collapsed {
     display: none;
   }
+
+  .directory-name {
+    .collapsed, .expanded {
+      color: #888;
+      margin-right: 3px;
+    }
+  }
+
+  .button-bar {
+    margin-bottom: 5px;
+  }
 }
 
 /*
