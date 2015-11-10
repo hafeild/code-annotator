@@ -3,8 +3,6 @@
 <div class="container-fluid project-view">
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar">
-      
-
       <div class="root-directory directory">
       <%= render template: "projects/_project_file_listing", 
                  locals: { :files => @project.getFilesAsDirectories.files } %>
@@ -13,11 +11,32 @@
     </div>
 
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-      <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-print"></span> Print</button>
-      <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download"></span> Download</button>
-      <% if ProjectPermission.find_by(project_id: @project.id, user_id: current_user.id).can_author %>
-        <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-trash"></span> Delete</button>
-      <% end %>
+      <div class="button-bar">
+        <% if @projectPermission.can_author %>
+          <button type="button" class="btn btn-default"><span 
+            class="glyphicon glyphicon-cloud-upload"></span> 
+            Upload files
+          </button>
+        <% end %>
+        <button type="button" class="btn btn-default"><span 
+          class="glyphicon glyphicon-print"></span> 
+          Print files
+        </button>
+        <button type="button" class="btn btn-default"><span 
+          class="glyphicon glyphicon-cloud-download"></span> 
+          Download files
+        </button>
+        <% if @projectPermission.can_author %>
+          <button type="button" class="btn btn-default"><span 
+            class="glyphicon glyphicon-remove-circle"></span> 
+            Remove files
+          </button>
+          <button type="button" class="btn btn-default"><span 
+            class="glyphicon glyphicon-trash"></span> Delete project
+          </button>
+        <% end %>
+      </div>
+
       <h2 class="page-header"></h2>
 
       <div id="file-display">
