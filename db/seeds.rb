@@ -123,14 +123,13 @@ projects.each do |pid|
     elsif type_of_user == 0
       can_author = can_view = can_annotate = true
     elsif type_of_user == 1
-      can_view = can_author = false
-      can_annotate = true
+      can_author = false
+      can_view = can_annotate = true
     elsif type_of_user < 5
       can_view = true
       can_author = can_annotate = false
     else
-      can_author = can_view = false
-      can_annotate = false
+      can_author = can_view = can_annotate = false
     end
 
     if can_annotate or can_author or can_view
