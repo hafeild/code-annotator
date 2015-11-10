@@ -1,11 +1,73 @@
 jQuery(document).ready(function($) {
   // CONSTANTS / GLOBAL VARIABLES
   const FILES_API = '/api/files/';
+  const KNOWN_FILE_EXTENSIONS = {
+    as3:  'as3',
+    sh:   'bash',
+    cf:   'coldfusion',
+    cs:   'csharp',
+    cpp:  'cpp',
+    h:    'cpp',
+    hpp:  'cpp',
+    c:    'cpp',
+    cc:   'cpp',
+    cxx:  'cpp',
+    hxx:  'cpp',
+    css:  'css',
+    scss: 'css',
+    dpk:  'delphi',
+    diff: 'diff',
+    patch:'patch',
+    erl:  'erlang',
+    gy:   'groovy',
+    gsh:  'groovy',
+    gvy:  'groovy',
+    groovy:'groovy',
+    js:   'javascript',
+    json: 'javascript',
+    java: 'java',
+    jfx:  'javafx',
+    pl:   'perl',
+    php:  'php',
+    txt:  'text',
+    ps:   'powershell',
+    py:   'python',
+    rb:   'ruby',
+    erb:  'ruby',
+    scala:'scala',
+    sql:  'sql',
+    vb:   'vb',
+    vbnet:'vb',
+    xml:  'xml',
+    html: 'xml',
+    xhtml:'xml'
+  }
 
   var curFileInfo;
 
 
   // FUNCTIONS
+
+  // Extracts the extension from a file name.
+  // @param {string} filename The name of the file.
+  // @return The extension (last .XXX) or undefined if no extension is found.
+  var extractExtension = function(filename){
+    var parts = filename.split('.');
+    if(parts.length > 1){
+      return parts[parts.length-1];
+    }
+    return undefined;
+  };
+
+  // Figures out the highlighter class for the given file.
+  // @param {string} filename The name of the file.
+  // @return The highlighter class corresponding to the extension; defaults to
+  //         the plain text highligher if no extension is found, or no 
+  //         corresponding highlighter is found.
+  var getHighlighterClass = function(filename){
+    var extension = extractExtension(filename);
+    return KNOWN_FILE_EXTENSIONS[extension] || KNOWN_FILE_EXTENSIONS['txt'];
+  };
 
   // Remove the leading # on a hash.
   // @param [string] hash The hash.
@@ -34,7 +96,7 @@ jQuery(document).ready(function($) {
           $('.page-header').html(data.file.name);
           $('#file-display');
           $('#file-display').html(
-            '<pre class="brush: python">\n'+
+            '<pre class="brush: '+ getHighlighterClass(data.file.name) +'">\n'+
                 data.file.content + 
             '\n</pre>'
           );

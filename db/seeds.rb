@@ -15,8 +15,11 @@ cur_comment_id = 0
 
 
 fileContents = [
-   "def f():\n\tprint \"Hello!\"\n\treturn 0\n\nprint f()",
-  "def s(x, y):\n\treturn x**y\n\ndef main():\n\tprint s(1,30.5)"
+  [".py", "def f():\n\tprint \"Hello!\"\n\treturn 0\n\nprint f()"],
+  [".py", "def s(x, y):\n\treturn x**y\n\ndef main():\n\tprint s(1,30.5)"],
+  [".rb", "def s(x, y)\n\treturn x**y\nend\n\ndef main()\n\tprint s(1,30.5)\nend"],
+  [".txt", "This is a demonstration of a text file with a .txt\n\n\nfile extension."],
+  ["", "This file should\nappear\nas\t\tplain text."]
 ]
 
 
@@ -73,8 +76,9 @@ projects.each do |pid|
     cur_file_id += 1
     dir = directories.shuffle.first
 
-    ProjectFile.create!(name: "#{dir}file-#{fid}.py", 
-      content: fileContents.shuffle.first,
+    file = fileContents.shuffle.first
+    ProjectFile.create!(name: "#{dir}file-#{fid}#{file[0]}", 
+      content: file[1],
       size: 1000,
       added_by: owner_id,
       project_id: pid,
