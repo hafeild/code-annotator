@@ -77,7 +77,7 @@ p {
   margin-right: 10px;
   font-size: 1.7em;
   color: #fff;
-  text-transform: uppercase;
+  /*text-transform: uppercase;*/
   letter-spacing: -1px;
   padding-top: 9px;
   font-weight: bold;
@@ -86,6 +86,11 @@ p {
 #logo:hover {
   color: #fff;
   text-decoration: none;
+}
+
+.header {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 /* footer */
@@ -354,14 +359,14 @@ input {
  */
 
 .main {
-  padding: 20px;
+  padding: 5px;
 }
-@media (min-width: 768px) {
+/*@media (min-width: 768px) {
   .main {
     padding-right: 40px;
     padding-left: 40px;
   }
-}
+}*/
 .main .page-header {
   margin-top: 0;
 }
