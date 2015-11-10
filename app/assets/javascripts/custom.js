@@ -89,8 +89,8 @@ jQuery(document).ready(function($) {
   var getHighlighterClass = function(filename){
     var extension = extractExtension(filename);
     var returnClass = 'brush: '+ 
-      KNOWN_FILE_EXTENSIONS[extension] || KNOWN_FILE_EXTENSIONS['txt'];;
-    if(extension === 'erb' || extension === 'rb'){
+      (KNOWN_FILE_EXTENSIONS[extension] || KNOWN_FILE_EXTENSIONS['txt']);
+    if(extension === 'erb' || extension === 'php'){
       returnClass += "; html-script: true";
     }
     return returnClass;
