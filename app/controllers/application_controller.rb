@@ -29,7 +29,8 @@ class ApplicationController < ActionController::Base
     class JSONError
       attr_accessor :error
 
-      def initialize(error="Resource not available.")
+      def initialize(error=nil)
+        error = error.nil? ? "Resource not available." : error
         @error = error
       end
     end

@@ -18,7 +18,7 @@ class Api::CommentsController < ApplicationController
       render json: comments, each_serializer: CommentSerializer, 
         :root => "comments"
     else
-      render json: JSONError.new, serializer: ErrorSerializer
+      render_error
     end
   end
 
@@ -28,9 +28,26 @@ class Api::CommentsController < ApplicationController
     render json: "", serializer: SuccessSerializer
   end
 
+
+
   def create
-    render json: "", serializer: SuccessSerializer
+    project = Project.find_by(id: params[:project_id])
+
+    ## Make sure the user can annotate this project.
+    if project.nil? or not user_can_access_project(project.id, [:can_annotate])
+      render_error
+      return
+    end
+
+    comment = Comment.new(comment_params(project.id))
+    if comment.save
+      render json: comment.id, serializer: SuccessWithIdSerializer
+    else
+      render_error("There was a problem saving the comment.")
+    end
   end
+
+
 
   def show
     render json: "", serializer: SuccessSerializer
@@ -39,4 +56,19 @@ class Api::CommentsController < ApplicationController
   def destroy
     render json: "", serializer: SuccessSerializer
   end
+
+
+  private
+
+    ## Defines valid comment parameters.
+    def comment_params(project_id)
+      ps = params.require(:comment).permit(:content)
+      ps[:project_id] = project_id
+      ps
+    end
+
+    def render_error(message=nil)
+      render json: JSONError.new(message), serializer: ErrorSerializer
+    end
+
 end

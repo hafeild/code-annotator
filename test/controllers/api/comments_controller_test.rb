@@ -6,10 +6,41 @@ class Api::CommentsControllerTest < ActionController::TestCase
     @user = users(:foo)
   end
 
-  test "should return success message on create" do
+  test "should fail and return error message when not logged in" do
+    project = projects(:p1)
+    assert_no_difference 'Comment.count', "Comment added." do 
+      response = post :create, project_id: project.id, 
+        comment: {content: "Blah blah blah"}
+      message = JSON.parse(response.body)
+      assert message['error'] == "You are not logged in."
+    end
+  end
+
+  test "should fail and return error message with bad permissions on create" do
     log_in_as @user
-    response = post :create, project_id: 1, comment: {}
-    assert JSON.parse(response.body)['success']
+    project = projects(:p2)
+    assert_no_difference 'Comment.count', "Comment added." do 
+      response = post :create, project_id: project.id, 
+        comment: {content: "Blah blah blah"}
+      message = JSON.parse(response.body)
+      assert message['error'] == "Resource not available."
+    end
+  end
+
+
+  test "should create comment and return success message with id on create" do
+    log_in_as @user
+    project = projects(:p1)
+    assert_difference 'Comment.count', 1, "Comment not added." do 
+      response = post :create, project_id: project.id, 
+        comment: {content: "Blah blah blah"}
+      message = JSON.parse(response.body)
+      assert message['success'], "Response not successful: #{response.body}"
+      assert message['id'] == Comment.last.id, 
+        "Comment id doesn't match response."
+      assert Comment.last.content == "Blah blah blah", 
+        "Comment content doesn't match."
+    end
   end
 
   test "should return correct messages on index by project" do
