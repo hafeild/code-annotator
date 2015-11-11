@@ -73,6 +73,7 @@ projects.each do |pid|
   cur_comment_id += 1
   Comment.create!(
     content: "This needs to be indented.",
+    project_id: pid
   )
 
   ## Files.
