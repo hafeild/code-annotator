@@ -36,6 +36,12 @@ Rails.application.routes.draw do
     get   'projects/:project_id/files/:file_id/comments' => 'comments#index'
     resources :comments,    only: [:show,:update,:destroy]
 
+    post 'comments/:comment_id/locations' => 'comment_locations#create'
+    patch 'comments/:comment_id/locations/:location_id' => 
+      'comment_locations#update'
+    delete 'comments/:comment_id/locations/:location_id' => 
+      'comment_locations#destroy'
+
     post  'projects/:project_id/altcode'                => 'altcode#create'
     get   'projects/:project_id/altcode'                => 'altcode#index'
     get   'projects/:project_id/files/:file_id/altcode' => 'altcode#index'
