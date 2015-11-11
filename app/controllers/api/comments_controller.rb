@@ -23,9 +23,31 @@ class Api::CommentsController < ApplicationController
   end
 
   def update
-    ## Should be coming in as: projects/:project_id/comments
-    ## with the necessary fields.
-    render json: "", serializer: SuccessSerializer
+    comment = Comment.find_by(id: params[:id])
+    if comment.nil?
+      render_error
+      return
+    end
+
+    project = Project.find_by(id: comment.project_id)
+
+    ## Make sure the user can annotate this project.
+    if project.nil? or not user_can_access_project(project.id, [:can_annotate])
+      render_error
+      return
+    end
+
+    p = comment_params
+    if not p.has_key?(:content)
+      render_error("Error: not content provided to update.")
+      return
+    end
+
+    if comment.update(content: p[:content])
+      render json: "", serializer: SuccessSerializer
+    else
+      render_error("There was a problem updating the comment.")
+    end
   end
 
 
@@ -61,7 +83,7 @@ class Api::CommentsController < ApplicationController
   private
 
     ## Defines valid comment parameters.
-    def comment_params(project_id)
+    def comment_params(project_id=nil)
       ps = params.require(:comment).permit(:content)
       ps[:project_id] = project_id
       ps

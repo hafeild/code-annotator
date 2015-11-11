@@ -6,6 +6,9 @@ class Api::CommentsControllerTest < ActionController::TestCase
     @user = users(:foo)
   end
 
+
+  ## CREATE
+
   test "should fail and return error message when not logged in" do
     project = projects(:p1)
     assert_no_difference 'Comment.count', "Comment added." do 
@@ -27,7 +30,6 @@ class Api::CommentsControllerTest < ActionController::TestCase
     end
   end
 
-
   test "should create comment and return success message with id on create" do
     log_in_as @user
     project = projects(:p1)
@@ -42,6 +44,10 @@ class Api::CommentsControllerTest < ActionController::TestCase
         "Comment content doesn't match."
     end
   end
+
+
+
+  ## INDEX
 
   test "should return correct messages on index by project" do
     log_in_as @user
@@ -116,7 +122,6 @@ class Api::CommentsControllerTest < ActionController::TestCase
       comment_location.end_column, "Incorrect end column."
   end
 
-
   test "should return error message on index when not logged in" do
     project = projects(:p1)
     response = get :index, project_id: project.id
@@ -130,18 +135,48 @@ class Api::CommentsControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['error'] == "Resource not available."
   end
 
+
+
+  ## SHOW
+
   test "should return success message on show" do
     log_in_as @user
     response = get :show, id: 1
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on update" do
+
+
+  ## UPDATE
+
+  test "should update comment and return success message on update" do
     log_in_as @user
-    response = patch :update, id: 1
-    assert JSON.parse(response.body)['success']
+    comment = comments(:comment1)
+    response = patch :update, id: comment.id, comment: {content: "New content"}
+    message = JSON.parse(response.body)
+    assert message['success'], "Response not successful: #{response.body}"
+    assert Comment.find(comment.id).content == "New content",
+      "Comment content not updated."
   end
 
+  test "should return error message on update when not logged in" do
+    comment = comments(:comment1)
+    response = patch :update, id: comment.id, comment: {content: "New content"}
+    message = JSON.parse(response.body)
+    assert message['error'] == "You are not logged in.", "Error not reported"
+  end
+
+  test "should return error message on unauthorized update" do
+    log_in_as @user
+    comment = comments(:comment2)
+    response = patch :update, id: comment.id, comment: {content: "New content"}
+    message = JSON.parse(response.body)
+    assert message['error'] == "Resource not available.", "Error not reported"
+  end  
+
+
+
+  ## DESTROY
 
   test "should return success message on delete" do
     log_in_as @user
