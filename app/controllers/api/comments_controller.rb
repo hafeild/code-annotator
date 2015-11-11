@@ -22,6 +22,8 @@ class Api::CommentsController < ApplicationController
     end
   end
 
+
+
   def update
     comment = Comment.find_by(id: params[:id])
     if comment.nil?
@@ -72,8 +74,23 @@ class Api::CommentsController < ApplicationController
 
 
   def show
-    render json: "", serializer: SuccessSerializer
+    comment = Comment.find_by(id: params[:id])
+
+    ## Make sure the comment exists.
+    if comment.nil?
+      render_error
+      return
+    end
+
+    ## Check the permissions.
+    if user_can_access_project(comment.project.id, [:can_view])
+      render json: comment, serializer: CommentSerializer, root: "comment"
+    else
+      render_error
+    end
   end
+
+
 
   def destroy
     render json: "", serializer: SuccessSerializer
