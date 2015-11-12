@@ -139,10 +139,49 @@ class Api::CommentsControllerTest < ActionController::TestCase
 
   ## SHOW
 
-  test "should return success message on show" do
+  test "should return comment on show" do
     log_in_as @user
-    response = get :show, id: 1
-    assert JSON.parse(response.body)['success']
+    comment = comments(:comment1)
+
+    response = get :show, id: comment.id
+    response_comment = JSON.parse(response.body)['comment']
+    assert_not response_comment.nil?, "No response."
+
+    assert response_comment['id'] == comment.id, "Incorrect comment id."
+    assert response_comment['content'] == comment.content, 
+      "Incorrect comment content."
+
+    ## Test presence of comment location.
+    comment_location = comment_locations(:cl1)
+    assert response_comment['locations'].size == 1, 
+      "Incorrect number of locations."
+    response_comment_location = response_comment['locations'][0]
+
+    assert response_comment_location['id'] == 
+      comment_location.id, "Incorrect comment location"
+    assert response_comment_location['file_id'] == 
+      comment_location.project_file_id, "Incorrect file id."
+    assert response_comment_location['start_line'] == 
+      comment_location.start_line, "Incorrect start line."
+    assert response_comment_location['start_column'] == 
+      comment_location.start_column, "Incorrect start column."
+    assert response_comment_location['end_line'] == 
+      comment_location.end_line, "Incorrect end line."
+    assert response_comment_location['end_column'] == 
+      comment_location.end_column, "Incorrect end column."
+  end
+
+  test "should return error message on show when not logged in" do
+    comment = comments(:comment1)
+    response = get :show, id: comment.id
+    assert JSON.parse(response.body)['error'] == "You are not logged in."
+  end
+
+  test "should return error message on unauthorized show" do
+    log_in_as @user
+    comment = comments(:comment2)
+    response = get :show, id: comment.id
+    assert JSON.parse(response.body)['error'] == "Resource not available."
   end
 
 
