@@ -121,8 +121,6 @@ class Api::CommentsController < ApplicationController
       ps
     end
 
-    def render_error(message=nil)
-      render json: JSONError.new(message), serializer: ErrorSerializer
-    end
+
 
 end

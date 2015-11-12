@@ -35,6 +35,12 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    ## Displays a JSON error.
+    ## @param message (OPTIONAL) The message to display. The default JSONError
+    ##                message is displayed if omitted.
+    def render_error(message=nil)
+      render json: JSONError.new(message), serializer: ErrorSerializer
+    end
 
     ## Determines if the current user has the specified permissions to the 
     ## given project. 
@@ -69,5 +75,17 @@ class ApplicationController < ActionController::Base
     ## @param comment_location A CommentLocation instance.
     def delete_comment_location(comment_location)
       comment_location.destroy!
+    end
+
+    ## Checks if every key in a list of keys is present in the given hash.
+    ## @param hash The hash map to consider.
+    ## @param keys The list of keys to check.
+    def has_keys?(hash, keys)
+      keys.each do |key|
+        unless hash.key?(key)
+          return false
+        end
+      end
+      true
     end
 end

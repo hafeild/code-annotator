@@ -220,9 +220,11 @@ class Api::CommentsControllerTest < ActionController::TestCase
   test "should return success message on delete" do
     log_in_as @user
     comment = comments(:comment1)
+    comment_location = comment_locations(:cl1)
     response = delete :destroy, id: comment.id
     assert JSON.parse(response.body)['success']
     assert Comment.find_by(id: comment.id).nil?
+    assert CommentLocation.find_by(id: comment_location.id).nil?
   end
 
   test "should return error message on delete when not logged in" do
