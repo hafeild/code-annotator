@@ -64,7 +64,7 @@ class Api::CommentsController < ApplicationController
     end
 
     comment = Comment.new(comment_params(project.id))
-    if comment.save
+    if comment.valid? and comment.save
       render json: comment.id, serializer: SuccessWithIdSerializer
     else
       render_error("There was a problem saving the comment.")
