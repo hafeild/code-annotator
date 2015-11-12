@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+var OCA = function($){
   // CONSTANTS / GLOBAL VARIABLES
   const FILES_API = '/api/files/';
   const KNOWN_FILE_EXTENSIONS = {
@@ -59,16 +59,43 @@ jQuery(document).ready(function($) {
 
   // FUNCTIONS
 
+  var getLineOffset = function(node, offset){
+    var shElm = node.parentNode;
+    var rowElm = node.parentNode.parentNode;
+    var rowNumber = parseInt(rowElm.className.split(/\s+/)[1].substr(6));
+    var colNumber = 1;
+    var children = rowElm.childNodes;
+    var i;
+    for(i = 0; i < children.length && children[i] != shElm; i++){
+      if(children[i].nodeType == 3){
+        colsNumber = children[i].NodeValue.length;
+      } else {
+        colNumber += children[i].innerText.length;
+      }
+      console.log('column: '+ colNumber +' @child-'+ i +':', children[i]);
+    }
+    colNumber += offset;
+    console.log('Row number: '+ rowNumber +'; column: '+ colNumber);
+    return colNumber;
+
+  };
+
+  var getLocation = function(){
+    var selection = window.getSelection();
+    getLineOffset(selection.anchorNode, selection.anchorOffset);
+  };
+
+
   // Escapes an HTML string.
   // Lifted from Mustache 
   // (https://github.com/janl/mustache.js/blob/master/mustache.js)
   // @param {string} html The HTML string to escape.
   // @return The escaped HTML string.
-  function escapeHtml(html) {
+  var escapeHtml = function(html) {
     return String(html).replace(/[&<>"'\/]/g, function (s) {
       return ENTITY_MAP[s];
     });
-  }
+  };
 
   // Extracts the extension from a file name.
   // @param {string} filename The name of the file.
@@ -195,5 +222,20 @@ jQuery(document).ready(function($) {
     toggleFileView();
   })
 
-});
+  // INITIALIZATIONS.
+
+  SyntaxHighlighter.defaults['toolbar'] = false;
+  SyntaxHighlighter.defaults['quick-code'] = false;
+
+  this.getLocation = getLocation;
+  return this;
+};
+
+var oca;
+
+jQuery(document).ready(function($){
+  console.log('Hello!');
+  oca = OCA($);
+  console.log(oca);
+})
 
