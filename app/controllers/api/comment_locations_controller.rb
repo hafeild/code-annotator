@@ -29,12 +29,26 @@ class Api::CommentLocationsController < ApplicationController
     end
   end
 
-  def update
-    render json: "", serializer: SuccessSerializer
-  end
-
   def destroy
-    render json: "", serializer: SuccessSerializer
+    success = false
+    error = nil
+
+    comment_location = CommentLocation.find_by(id: params[:id])
+    if comment_location and user_can_access_project(
+        comment_location.comment.project.id, [:can_annotate])
+
+      if comment_location.destroy
+        render json: "", serializer: SuccessSerializer
+        success = true
+      else
+        error = "Comment location couldn't be deleted."
+      end
+
+    end
+
+    unless success
+      render_error error
+    end
   end
 
   private
@@ -43,7 +57,9 @@ class Api::CommentLocationsController < ApplicationController
     def comment_params(comment_id=nil)
       ps = params.require(:comment_location).permit(
         :project_file_id, :start_line, :start_column, :end_line, :end_column)
-      ps[:comment_id] = comment_id
+      unless comment_id.nil?
+        ps[:comment_id] = comment_id
+      end
       ps
     end
 
