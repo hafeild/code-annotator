@@ -52,4 +52,22 @@ class ApplicationController < ActionController::Base
       checked = permissions.select{|p| project_permissions[p]}
       checked.size == permissions.size
     end
+
+    ## Deletes a comment and all of its locations. This will raise exceptions
+    ## and can be used within a transaction.
+    ## @param comment A Comment instance.
+    def delete_comment(comment)
+      ## Delete all comment locations.
+      comment.comment_locations.each do |comment_location|
+        delete_comment_location(comment_location)
+      end
+      comment.destroy!
+    end
+
+    ## Deletes a comment location. This will raise exceptions and can be used
+    ## within a transaction.
+    ## @param comment_location A CommentLocation instance.
+    def delete_comment_location(comment_location)
+      comment_location.destroy!
+    end
 end

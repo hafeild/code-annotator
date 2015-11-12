@@ -93,7 +93,22 @@ class Api::CommentsController < ApplicationController
 
 
   def destroy
-    render json: "", serializer: SuccessSerializer
+    success = false
+    comment = Comment.find(params[:id])
+
+    if comment and user_can_access_project(comment.project_id, [:can_annotate])
+      ## Destroy all comment locations, too.
+      ActiveRecord::Base.transaction do
+        delete_comment(comment)
+        success = true
+      end
+    end
+
+    if success
+      render json: "", serializer: SuccessSerializer
+    else
+      render_error
+    end
   end
 
 

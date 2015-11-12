@@ -219,7 +219,24 @@ class Api::CommentsControllerTest < ActionController::TestCase
 
   test "should return success message on delete" do
     log_in_as @user
-    response = delete :destroy, id: 1
+    comment = comments(:comment1)
+    response = delete :destroy, id: comment.id
     assert JSON.parse(response.body)['success']
+    assert Comment.find_by(id: comment.id).nil?
   end
+
+  test "should return error message on delete when not logged in" do
+    comment = comments(:comment1)
+    response = delete :destroy, id: comment.id
+    message = JSON.parse(response.body)
+    assert message['error'] == "You are not logged in.", "Error not reported"
+  end
+
+  test "should return error message on unauthorized delete" do
+    log_in_as @user
+    comment = comments(:comment2)
+    response = delete :destroy, id: comment.id
+    message = JSON.parse(response.body)
+    assert message['error'] == "Resource not available.", "Error not reported"
+  end  
 end
