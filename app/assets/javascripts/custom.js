@@ -59,32 +59,126 @@ var OCA = function($){
 
   // FUNCTIONS
 
-  var getLineOffset = function(node, offset){
-    var shElm = node.parentNode;
-    var rowElm = node.parentNode.parentNode;
-    var rowNumber = parseInt(rowElm.className.split(/\s+/)[1].substr(6));
-    var colNumber = 1;
-    var children = rowElm.childNodes;
-    var i;
-    for(i = 0; i < children.length && children[i] != shElm; i++){
-      if(children[i].nodeType == 3){
-        colsNumber = children[i].NodeValue.length;
-      } else {
-        colNumber += children[i].innerText.length;
+  // Hides all highlighted selections.
+  var hideHighlights = function(){
+    $('.code .selected').removeClass('selected');
+  };
+
+  // Highlights the given comment location. 
+  // @param {simple object} loc An object with the fields:
+  //    start_line:    The line of code to start on, base 1.
+  //    start_column:  The starting column, base 1.
+  //    end_line:      The line of code to end on, base 1.
+  //    end_column:    The final column to highlight, base 1.
+  var highlightSelection = function(loc){
+    var i, j;
+    for(i = loc.start_line; i <= loc.end_line; i++){
+      var start = (i === loc.start_line) ? loc.start_column : 1;
+      var end = (i === loc.end_line) ? loc.end_column : 
+        $('.content-line'+ i).size();
+      console.log('Line '+ i +': '+ start +' to '+ end);
+      for(j = start; j <= end; j++){
+        $('#'+ i +'_'+ j).addClass('selected');
+        // Highlight the endcap if the selection spans to lines below.
+        // if(i !== loc.end_line){
+        //   $('#'+ i +'_endcap').addClass('selected');
+        // }
       }
-      console.log('column: '+ colNumber +' @child-'+ i +':', children[i]);
     }
-    colNumber += offset;
-    console.log('Row number: '+ rowNumber +'; column: '+ colNumber);
-    return colNumber;
-
   };
 
-  var getLocation = function(){
+  // Modifies the displayed file content to make highlighting easier.
+  // @param {DOM Elmement} contentElm The element containing the file content.
+  //                                  This should already be processed by 
+  //                                  SyntaxHighlighter.
+  var addColumnsToHighlightedCode = function(contentElm){
+    $(contentElm).find('.line').each(function(i,lineElm){
+      var children = lineElm.childNodes;
+      var i, colNo = 1;
+      var lineNo = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
+      for(i = 0; i < children.length; i++){
+        if(children[i].nodeType === 3){
+          var j, newHTML = '';
+          for(j = 0; j < children[i].nodeValue.length; j++){
+            newHTML += '<span id="'+ lineNo +'_'+ colNo+'" class="content-line'+
+              lineNo +' col'+ colNo +' highlightable" data-col='+ colNo +
+              '" data-line="'+ lineNo +'">'+ 
+              children[i].nodeValue[j] +'</span>';
+            colNo++;
+          }
+          $(children[i]).replaceWith(newHTML);
+        } else {
+          var j, newHTML = '';
+          for(j = 0; j < children[i].innerText.length; j++){
+            newHTML += '<span id="'+ lineNo +'_'+ colNo +
+              '" class="content-line'+ lineNo   +
+              ' col'+ colNo +' highlightable" data-line="'+ lineNo +
+              '" data-col="'+ colNo +'">'+ children[i].innerText[j] +
+              '</span>';
+            colNo++;
+          }
+          children[i].innerHTML = newHTML;
+        }
+      }
+      lineElm.innerHTML = '<table class="line-wrapper"><tr>'+
+        '<td class="line-content">'+ lineElm.innerHTML  +
+        '</td><td class="line-endcap content-line'+ lineNo +'" '+
+        'id="'+ lineNo +'_'+ colNo +'"'+
+        // + lineNo + '_endcap"'
+        'data-line="'+ lineNo +'" data-col="'+ colNo +
+        '">&nbsp;</td></tr></table>';
+    });
+  };
+
+  // Determines the line and column offset for a text selection.
+  // @param {HTML Node} node The selected node.
+  // @param {int} offset The offset of the selected node.
+  // @return {simple object} The line and column of the selection.
+  var getSelectionOffsets = function(node, offset){
+    var parentJQ = $(node.parentNode);
+    return {
+      line: parseInt(parentJQ.data('line')),
+      col:  parseInt(parentJQ.data('col'))
+    };
+    // var shElm = node.parentNode;
+    // var lineElm = $(shElm).parents('.line')[0];
+    // var lineNumber = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
+    // var colNumber = 1;
+    // var children = lineElm.childNodes;
+    // var i;
+
+    // // Calculate the column.
+    // for(i = 0; i < children.length && children[i] != shElm; i++){
+    //   if(children[i].nodeType == 3){
+    //     colNumber += children[i].nodeValue.length;
+    //   } else {
+    //     colNumber += children[i].innerText.length;
+    //   }
+    // }
+    // colNumber += offset;
+
+    // return {line: lineNumber, col: colNumber};
+  };
+
+  // Calculates the line and column offsets for the current selection.
+  // @return {simple object} The starting column
+  var getSelectionLocation = function(){
     var selection = window.getSelection();
-    getLineOffset(selection.anchorNode, selection.anchorOffset);
-  };
+    if(!selection || selection.isCollapsed){
+      return false;
+    }
 
+    var startLocInfo = getSelectionOffsets(selection.anchorNode, 
+      selection.anchorOffset);
+    var endLocInfo = getSelectionOffsets(selection.extentNode, 
+      selection.extentOffset);
+    return {
+      start_line:   startLocInfo.line,
+      start_column: startLocInfo.col, 
+      end_line:     endLocInfo.line,
+      end_column:   endLocInfo.col
+    };
+  };
 
   // Escapes an HTML string.
   // Lifted from Mustache 
@@ -157,6 +251,7 @@ var OCA = function($){
           SyntaxHighlighter.highlight();
           // setTimeout(10, SyntaxHighlighter.highlight);
 
+          addColumnsToHighlightedCode($('#file-display .code')[0])
         }
       },
       error: function(req, status, error){
@@ -222,12 +317,24 @@ var OCA = function($){
     toggleFileView();
   })
 
+  // Listens for file content to be selected and then highlights it.
+  $(document).on('mouseup', '.code .container', function(){
+    console.log('Selection made!');
+    var location = getSelectionLocation();
+    console.log(location);
+    if(location){
+      hideHighlights();
+      highlightSelection(location);
+    }
+  });
+
   // INITIALIZATIONS.
 
   SyntaxHighlighter.defaults['toolbar'] = false;
   SyntaxHighlighter.defaults['quick-code'] = false;
 
-  this.getLocation = getLocation;
+  this.getSelectionLocation = getSelectionLocation;
+  this.highlightSelection = highlightSelection;
   return this;
 };
 

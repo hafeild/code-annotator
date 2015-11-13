@@ -315,6 +315,27 @@ input {
   .button-bar {
     margin-bottom: 5px;
   }
+
+  .highlightable {
+    display: inline-block;
+  }
+
+  .selected {
+    background-color: #ffffc4 !important;
+  }
+
+  .line-wrapper {
+    width: 100%;
+  }
+
+  .line-content {
+    width: 0 !important;
+  }
+
+  .line-endcap {
+    width: 100% !important;
+  }
+
 }
 
 /*
