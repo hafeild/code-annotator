@@ -13,38 +13,58 @@
 
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
       <div class="button-bar">
-        <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
-        <% if @projectPermission.can_author %>
-          <button type="button" class="btn btn-default"><span 
-            class="glyphicon glyphicon-cloud-upload"></span> 
-            Upload files
+        <span class="sidebar-toggle btn btn-default btn-xs"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
+        <div class="btn-group" role="group" aria-label="file operations">
+          <% if @projectPermission.can_author %>
+            <button type="button" class="btn btn-default btn-xs"><span 
+              class="glyphicon glyphicon-cloud-upload"></span> 
+              Upload files
+            </button>
+          <% end %>
+          <button type="button" class="btn btn-default btn-xs"><span 
+            class="glyphicon glyphicon-print"></span> 
+            Print files
           </button>
-        <% end %>
-        <button type="button" class="btn btn-default"><span 
-          class="glyphicon glyphicon-print"></span> 
-          Print files
-        </button>
-        <button type="button" class="btn btn-default"><span 
-          class="glyphicon glyphicon-cloud-download"></span> 
-          Download files
-        </button>
-        <% if @projectPermission.can_author %>
-          <button type="button" class="btn btn-default"><span 
-            class="glyphicon glyphicon-remove-circle"></span> 
-            Remove files
+          <button type="button" class="btn btn-default btn-xs"><span 
+            class="glyphicon glyphicon-cloud-download"></span> 
+            Download files
           </button>
-          <button type="button" class="btn btn-default"><span 
-            class="glyphicon glyphicon-trash"></span> Delete project
+          <% if @projectPermission.can_author %>
+            <button type="button" class="btn btn-default btn-xs"><span 
+              class="glyphicon glyphicon-remove-circle"></span> 
+              Remove files
+            </button>
+            <button type="button" class="btn btn-default btn-xs"><span 
+              class="glyphicon glyphicon-trash"></span> Delete project
+            </button>
+          <% end %>
+        </div>
+
+        <div class="btn-group" id="selection-menu" role="group" 
+              aria-label="selections">
+          <button id="add-comment" type="button" 
+              class="btn btn-default btn-xs disabled">
+            <span class="glyphicon glyphicon-list-alt"></span>
+            Add comment
           </button>
-        <% end %>
+          <button id="add-to-comment" type="button" 
+              class="btn btn-default btn-xs disabled">
+            <span class="glyphicon glyphicon-plus"></span>
+            Add to comment
+          </button>
+          <button id="add-alt-code" type="button" 
+              class="btn btn-default btn-xs disabled">
+            <span class="glyphicon glyphicon-random"></span>
+            Add alternate code
+          </button>
+        </div>
       </div>
-
-
       <h2 class="page-header"></h2>
 
       <div id="file-display">
 
       </div>
+
 
 
     </div>

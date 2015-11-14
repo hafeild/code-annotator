@@ -24,6 +24,11 @@ $gray-medium-light: #eaeaea;
 
 body {
   padding-top: 60px;
+  position: fixed;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 section {
@@ -316,6 +321,29 @@ input {
     margin-bottom: 5px;
   }
 
+  .main {
+    /*position: absolute;*/
+    /*overflow: hidden;*/
+    position: fixed;
+    top: 51px;
+    bottom: 0px;
+    display: box;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    box-orient: vertical;
+  }
+
+  #project-view-header{
+/*    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;*/
+  }
+
+  .button-bar .btn-group {
+    display: inline-block !important;
+  }
+
   .highlightable {
     display: inline-block;
   }
@@ -326,6 +354,10 @@ input {
 
   .line-wrapper {
     width: 100%;
+    border-collapse: collapse;
+    border: 0;
+    margin: 0;
+    padding: 0;
   }
 
   .line-content {
@@ -336,6 +368,14 @@ input {
     width: 100% !important;
   }
 
+  #selection-menu{
+  }
+
+  #file-display {
+    overflow: auto;
+    -webkit-box-flex: 1;
+    box-flex: 1;
+  }
 }
 
 /*

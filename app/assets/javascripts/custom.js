@@ -64,6 +64,23 @@ var OCA = function($){
     $('.code .selected').removeClass('selected');
   };
 
+  var normalizeLocation = function(loc){
+    var normLoc = {};
+    if(loc.start_line < loc.end_line || 
+        (loc.start_line === loc.end_line && loc.start_column < loc.end_column)){
+      normLoc.start_line    = loc.start_line;
+      normLoc.start_column  = loc.start_column;
+      normLoc.end_line      = loc.end_line;
+      normLoc.end_column    = loc.end_column;
+    } else {
+      normLoc.start_line   = loc.end_line;
+      normLoc.start_column = loc.end_column+1;
+      normLoc.end_line     = loc.start_line;
+      normLoc.end_column   = loc.start_column;
+    }
+    return normLoc;
+  };
+
   // Highlights the given comment location. 
   // @param {simple object} loc An object with the fields:
   //    start_line:    The line of code to start on, base 1.
@@ -71,6 +88,7 @@ var OCA = function($){
   //    end_line:      The line of code to end on, base 1.
   //    end_column:    The final column to highlight, base 1.
   var highlightSelection = function(loc){
+    loc = normalizeLocation(loc);
     var i, j;
     for(i = loc.start_line; i <= loc.end_line; i++){
       var start = (i === loc.start_line) ? loc.start_column : 1;
@@ -164,6 +182,9 @@ var OCA = function($){
   // @return {simple object} The starting column
   var getSelectionLocation = function(){
     var selection = window.getSelection();
+
+    console.log(selection);
+
     if(!selection || selection.isCollapsed){
       return false;
     }
@@ -323,9 +344,26 @@ var OCA = function($){
     var location = getSelectionLocation();
     console.log(location);
     if(location){
+      $('#selection-menu .btn').removeClass('disabled');
+      //hideHighlights();
+      //highlightSelection(location);
+    } else {
       hideHighlights();
-      highlightSelection(location);
+      $('#selection-menu .btn').addClass('disabled');
     }
+  });
+
+  $(document).on('click', '#selection-menu .btn', function(e){
+    var location = getSelectionLocation();
+    highlightSelection(location);
+    if(e.target.id === 'add-comment'){
+      console.log('Adding comment');
+    } else if(e.target.id === 'add-to-comment'){
+      console.log('Adding to existing comment');
+    } else if(e.target.id === 'add-alt-code'){
+      console.log('Adding alternate code');
+    }
+
   });
 
   // INITIALIZATIONS.
