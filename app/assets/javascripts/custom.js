@@ -61,6 +61,7 @@ var OCA = function($){
 
   var editComment = function(e){
     var target = $(e.target);
+    if(target.data('content') === target.html()){ return; }
     target.addClass('comment-in-edit');
     if(target.data('timeout')){
       clearTimeout(target.data('timeout'));
@@ -68,14 +69,61 @@ var OCA = function($){
     target.data('timeout', setTimeout(function(){
       target.removeClass('comment-in-edit');
       target.parent().find('.comment-saved').show().fadeOut(2000);
+      target.data('content', target.html());
     }, 2000));
   };
 
-  var createComment = function(location){
+  var compareLocations = function(loc1, loc2){
+    if(loc1.start_location === loc2.start_location){
+      return loc1.start_column - loc2.start_column;
+    }
+    return loc1.start_location - loc2.start_location;
+  }
+
+  var getFirstLocation = function(locations, fileId){
+    var sorted = locations.sort(compareLocations);
+    var i;
+    for(i = 0; i < sorted.length; i++){
+      if(sorted[i].file_id === fileId){
+        return sorted[i];
+      }
+    }
+  };
+
+  var insertComment = function(comment, container){
+    var inserted = false;
+    container.children().each(function(i, e){
+      var child = $(this);
+      console.log('Comparing '+ child.data('start-line') +' and '+
+        comment.data('start-line'));
+      if(child.data('start-line') > comment.data('start-line') ||
+          (child.data('start-line') === comment.data('start-line') &&
+            child.data('start-column') > comment.data('start-column'))){
+        console.log('Inserting comment before existing comment.');
+        comment.insertBefore(child);
+        inserted = true;
+        return;
+      }
+    });
+    // If we've reached this point, then the comment should go at the end.
+    if(!inserted){
+      console.log('Inserting comment at the end.');
+      container.append(comment);
+    }
+  }
+
+  var createComment = function(locations){
+    var firstLocation = getFirstLocation(locations, curFileInfo.id);
     var comment = $('#comment-template').clone();
     comment.attr('id', '');
     comment.find('.comment-owner').html($('#current-email').html());
-    $('#comments').append(comment);
+    comment.data('start-line', firstLocation.start_line).
+            data('start-column', firstLocation.start_column);
+    // Find the spot where this comment should be inserted.
+    insertComment(comment, $('#comments'));
+    // $('#comments').append(comment);
+
+    comment.data('locations', locations);
     comment.find('.comment-body').focus();
   };
 
@@ -378,7 +426,7 @@ var OCA = function($){
     highlightSelection(location);
     if(e.target.id === 'add-comment'){
       console.log('Adding comment');
-      createComment(location);
+      createComment([location]);
     } else if(e.target.id === 'add-to-comment'){
       console.log('Adding to existing comment');
     } else if(e.target.id === 'add-alt-code'){
