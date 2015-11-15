@@ -20,6 +20,28 @@ $gray-medium-light: #eaeaea;
   user-select: none;
 }
 
+@mixin flex_box {
+  display: box;
+  display: -webkit-box;
+}
+
+@mixin box_orient_vertical {
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+}
+
+@mixin box_orient_horizontal {
+  -webkit-box-orient: horizontal;
+  box-orient: horizontal;
+}
+
+
+@mixin box_flex_1 {
+  -webkit-box-flex: 1;
+  box-flex: 1;
+}
+
+
 /* universal */
 
 body {
@@ -327,10 +349,8 @@ input {
     position: fixed;
     top: 51px;
     bottom: 0px;
-    display: box;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    box-orient: vertical;
+    @include flex_box;
+    @include box_orient_vertical;
   }
 
   #project-view-header{
@@ -353,28 +373,78 @@ input {
   }
 
   .line-wrapper {
-    width: 100%;
-    border-collapse: collapse;
+    @include flex_box;
+    @include box_orient_horizontal;
     border: 0;
     margin: 0;
     padding: 0;
   }
 
   .line-content {
-    width: 0 !important;
+    /*display: inline-block;*/
   }
 
   .line-endcap {
-    width: 100% !important;
+    /*width: 100% !important;*/
+    @include box_flex_1;
+    /*display: inline-block;*/
   }
 
   #selection-menu{
   }
 
+  #file-and-annotations {
+    @include box_flex_1;
+    position: relative;
+  }
+
   #file-display {
+    position: absolute;
+    top: 0;
+    bottom: 0;
     overflow: auto;
-    -webkit-box-flex: 1;
-    box-flex: 1;
+  }
+
+  #comments {
+    border-left: 1px solid lightgray;
+    overflow-y: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+
+  .comment-body {
+    font-size: 10pt;
+    padding: 3px;
+  }
+
+  [placeholder]:empty:before {
+    content: attr(placeholder)  ;
+    color: gray;
+    font-style: italic; 
+  }
+
+  .comment-footer {
+    font-size: 8pt;
+    padding: 2px;
+    font-style: italic;
+  }
+
+  .comment .comment-delete {
+    display: none;
+  }
+  .comment:hover .comment-delete {
+    display: inline;
+  }
+
+  .comment-in-edit {
+    border-color: red;
+    color: red;
+  }
+
+  .comment-saved {
+    display: none;
+    color: green;
   }
 }
 

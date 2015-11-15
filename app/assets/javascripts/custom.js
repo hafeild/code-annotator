@@ -59,6 +59,26 @@ var OCA = function($){
 
   // FUNCTIONS
 
+  var editComment = function(e){
+    var target = $(e.target);
+    target.addClass('comment-in-edit');
+    if(target.data('timeout')){
+      clearTimeout(target.data('timeout'));
+    }
+    target.data('timeout', setTimeout(function(){
+      target.removeClass('comment-in-edit');
+      target.parent().find('.comment-saved').show().fadeOut(2000);
+    }, 2000));
+  };
+
+  var createComment = function(location){
+    var comment = $('#comment-template').clone();
+    comment.attr('id', '');
+    comment.find('.comment-owner').html($('#current-email').html());
+    $('#comments').append(comment);
+    comment.find('.comment-body').focus();
+  };
+
   // Hides all highlighted selections.
   var hideHighlights = function(){
     $('.code .selected').removeClass('selected');
@@ -138,13 +158,13 @@ var OCA = function($){
           children[i].innerHTML = newHTML;
         }
       }
-      lineElm.innerHTML = '<table class="line-wrapper"><tr>'+
-        '<td class="line-content">'+ lineElm.innerHTML  +
-        '</td><td class="line-endcap content-line'+ lineNo +'" '+
+      lineElm.innerHTML = '<div class="line-wrapper">'+
+        '<div class="line-content">'+ lineElm.innerHTML  +
+        '</div><div class="line-endcap content-line'+ lineNo +'" '+
         'id="'+ lineNo +'_'+ colNo +'"'+
         // + lineNo + '_endcap"'
         'data-line="'+ lineNo +'" data-col="'+ colNo +
-        '">&nbsp;</td></tr></table>';
+        '">&nbsp;</div></div>';
     });
   };
 
@@ -358,6 +378,7 @@ var OCA = function($){
     highlightSelection(location);
     if(e.target.id === 'add-comment'){
       console.log('Adding comment');
+      createComment(location);
     } else if(e.target.id === 'add-to-comment'){
       console.log('Adding to existing comment');
     } else if(e.target.id === 'add-alt-code'){
@@ -365,6 +386,17 @@ var OCA = function($){
     }
 
   });
+
+  $(document).on('click', '.comment-delete', function(e){
+    $(this).parents('.comment').remove();
+    e.preventDefault();
+  });
+
+  $(document).on('change', '.comment-body', editComment);
+  $(document).on('keyup', '.comment-body', editComment);
+  $(document).on('mouseup', '.comment-body', editComment);
+
+
 
   // INITIALIZATIONS.
 
