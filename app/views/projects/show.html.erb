@@ -85,7 +85,14 @@
     </div> -->
     <div class="panel-body comment-body" contenteditable="true"
       placeholder="Enter your comment here..."></div>
-    <div class="panel-footer comment-footer"><span class="comment-owner"></span> <span class="comment-delete"><span class="glyphicon glyphicon-trash"></span></span> <span class="comment-saved"><span class="glyphicon glyphicon-floppy-saved"></span></span></div>
+    <div class="panel-footer comment-footer">
+      <span class="comment-owner"></span> 
+
+      <% if @projectPermission.can_annotate %>
+      <span class="comment-delete"><span class="glyphicon glyphicon-trash"></span></span> 
+      <span class="comment-saved"><span class="glyphicon glyphicon-floppy-saved"></span></span>
+      <% end %>
+    </div>
   </div>
 
   <div id="current-email"><%= current_user.email %></div>
