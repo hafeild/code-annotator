@@ -54,18 +54,91 @@ var OCA = function($){
     "/": '&#x2F;'
   };
 
+  var commentIdToServerIdMap = {};
+  var commentLocIdToServerIdMap = {};
   var curFileInfo;
-
+  var commentIdCounter = 0;
+  var locationIdCounter = 0;
 
   // FUNCTIONS
+
+  var deleteComment = function(commentId){
+    var locations = $('#comment-'+ commentId).data('locations');
+    var i;
+    for(i = 0; i < locations.length; i++){
+      deleteCommentLocation(commentId, locations[i].id, true);
+    }
+  };
+
+  var deleteCommentLocation = function(commentId, locationId, removeComment){
+    $('.comment_loc_'+ locationId).each(function(){
+      var elm = $(this);
+      elm.removeClass('comment_loc_'+locationId);
+
+      removeFromDataArray(elm, 'locationIds', locationId);
+
+      if(removeComment || elm.data('locationIds').length === 0){
+        removeFromDataArray(elm, 'commentIds', commentId);
+        elm.removeClass('comment_'+ commentId);
+        elm.removeClass('selected');
+      }
+    });
+
+  };
+
+  var hideCommentLocationHighlights = function(){
+    $('.comment-location-highlight').removeClass('comment-location-highlight');
+  };
+
+  var highlightCommentLocations = function(commentId){
+    hideCommentLocationHighlights();
+    $('.comment_'+ commentId).addClass('comment-location-highlight');
+  };
+
+  var removeFromDataArray = function(elm, key, value){
+    var array =  $(this).data(key) || []; 
+    var index = array.indexOf(value);
+    if(index >= 0){
+      array.splice(index,1);
+      $(this).data(key, array);
+    }
+  };
+
+  var addToElmDataArray = function(elm, key, value){
+    var array =  $(this).data(key) || []; 
+    if(array.indexOf(value) < 0){
+      array.push(value);
+      $(this).data(key, array);
+    }
+  };
+
+  var markCommentLocations = function(comment){
+    var locations = comment.data('locations'), i;
+    for(i = 0; i < locations.length; i++){
+      if(!locations[i].file_id || locations[i].file_id === curFileInfo.id){
+        highlightSelection(locations[i], 'comment_loc_'+ locations[i].id +
+          ' comment_'+ comment.data('id'), true);
+
+        $('.comment_loc_'+ locations[i].id).each(function(){
+          var elm = $(this);
+          addToElmDataArray(elm, 'commentIds', comment.data('id'));
+          addToElmDataArray(elm, 'locationIds', locations[i].id);
+        });
+      }
+    }
+    
+  };
 
   var editComment = function(e){
     var target = $(e.target);
     if(target.data('content') === target.html()){ return; }
+
     target.addClass('comment-in-edit');
     if(target.data('timeout')){
       clearTimeout(target.data('timeout'));
     }
+
+    // TODO: This needs to actually save the comment changes.
     target.data('timeout', setTimeout(function(){
       target.removeClass('comment-in-edit');
       target.parent().find('.comment-saved').show().fadeOut(2000);
@@ -113,18 +186,22 @@ var OCA = function($){
   }
 
   var createComment = function(locations){
+    var commentId = commentIdCounter++
     var firstLocation = getFirstLocation(locations, curFileInfo.id);
     var comment = $('#comment-template').clone();
-    comment.attr('id', '');
+    comment.attr('id', 'comment-'+ commentId);
     comment.find('.comment-owner').html($('#current-email').html());
     comment.data('start-line', firstLocation.start_line).
             data('start-column', firstLocation.start_column);
     // Find the spot where this comment should be inserted.
     insertComment(comment, $('#comments'));
     // $('#comments').append(comment);
-
     comment.data('locations', locations);
     comment.find('.comment-body').focus();
+
+    comment.data('id', commentId);
+    markCommentLocations(comment);
+    highlightCommentLocations(commentId);
   };
 
   // Hides all highlighted selections.
@@ -155,16 +232,26 @@ var OCA = function($){
   //    start_column:  The starting column, base 1.
   //    end_line:      The line of code to end on, base 1.
   //    end_column:    The final column to highlight, base 1.
-  var highlightSelection = function(loc){
+  // @param {string} cssClass The CSS class to add or remove to the selected 
+  //                          elements. Defaults to 'selected'.
+  // @param {boolean} add Whether the cssClass should be added to or removed
+  //                      from the selected elements. Defaults to true.
+  var highlightSelection = function(loc, cssClass, add){
     loc = normalizeLocation(loc);
     var i, j;
+    cssClass = cssClass || 'selected';
+    add = add === undefined ? true : add;
     for(i = loc.start_line; i <= loc.end_line; i++){
       var start = (i === loc.start_line) ? loc.start_column : 1;
       var end = (i === loc.end_line) ? loc.end_column : 
         $('.content-line'+ i).size();
       console.log('Line '+ i +': '+ start +' to '+ end);
       for(j = start; j <= end; j++){
-        $('#'+ i +'_'+ j).addClass('selected');
+        if(add){
+          $('#'+ i +'_'+ j).addClass(cssClass);
+        } else {
+          $('#'+ i +'_'+ j).removeClass(cssClass);
+        }
         // Highlight the endcap if the selection spans to lines below.
         // if(i !== loc.end_line){
         //   $('#'+ i +'_endcap').addClass('selected');
@@ -262,6 +349,7 @@ var OCA = function($){
     var endLocInfo = getSelectionOffsets(selection.extentNode, 
       selection.extentOffset);
     return {
+      id: locationIdCounter++,
       start_line:   startLocInfo.line,
       start_column: startLocInfo.col, 
       end_line:     endLocInfo.line,
@@ -416,7 +504,8 @@ var OCA = function($){
       //hideHighlights();
       //highlightSelection(location);
     } else {
-      hideHighlights();
+      // hideHighlights();
+      hideCommentLocationHighlights();
       $('#selection-menu .btn').addClass('disabled');
     }
   });
@@ -436,7 +525,10 @@ var OCA = function($){
   });
 
   $(document).on('click', '.comment-delete', function(e){
-    $(this).parents('.comment').remove();
+    var comment = $(this).parents('.comment');
+    hideCommentLocationHighlights();
+    deleteComment(comment.data('id'));
+    comment.remove();
     e.preventDefault();
   });
 
@@ -444,7 +536,21 @@ var OCA = function($){
   $(document).on('keyup', '.comment-body', editComment);
   $(document).on('mouseup', '.comment-body', editComment);
 
+  $(document).on('mouseover', '.comment', function(){
+    highlightCommentLocations($(this).data('id'));
+  });
 
+  $(document).on('click', '.selected', function(){
+    var commentIds = $(this).data('commentIds');
+    if(commentIds && commentIds.length > 0){
+      highlightCommentLocations(commentIds[0]);
+      // Find the comment, scroll to it, and focus on it.
+      var comment = $('#comment-'+ commentIds[0]);
+      console.log(comment);
+      $('#comments').scrollTop(comment[0].offsetTop);
+      comment.find('.comment-body ').focus();
+    }
+  });
 
   // INITIALIZATIONS.
 

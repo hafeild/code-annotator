@@ -46,11 +46,11 @@ $gray-medium-light: #eaeaea;
 
 body {
   padding-top: 60px;
-  position: fixed;
+/*  position: fixed;
   bottom: 0;
   top: 0;
   left: 0;
-  right: 0;
+  right: 0;*/
 }
 
 section {
@@ -372,6 +372,10 @@ input {
     background-color: #ffffc4 !important;
   }
 
+  .comment-location-highlight {
+    background-color: #80ff00 !important;
+  }
+
   .line-wrapper {
     @include flex_box;
     @include box_orient_horizontal;
@@ -396,6 +400,9 @@ input {
   #file-and-annotations {
     @include box_flex_1;
     position: relative;
+    @include box_sizing;
+    margin: 0;
+    padding: 0;
   }
 
   #file-display {
@@ -403,6 +410,7 @@ input {
     top: 0;
     bottom: 0;
     overflow: auto;
+    @include box_sizing;
   }
 
   #comments {
@@ -411,6 +419,9 @@ input {
     position: absolute;
     top: 0;
     bottom: 0;
+    padding-top: 5px;
+    @include box_sizing;
+    padding-right: 20px;
   }
 
   .comment-body {
@@ -446,6 +457,26 @@ input {
     display: none;
     color: green;
   }
+
+  .comment-focused {
+    color: green;
+    border: 2px solid orange;
+  }
+
+  .comment-delete {
+    color: red;
+    cursor: pointer;
+
+    :hover {
+      color: darkred;
+    }
+
+    :active {
+      font-weight: bold;
+    }
+  }
+
+
 }
 
 /*
