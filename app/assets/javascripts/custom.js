@@ -54,8 +54,9 @@ var OCA = function($){
     "/": '&#x2F;'
   };
 
-  var commentIdToServerIdMap = {};
-  var commentLocIdToServerIdMap = {};
+  // lid = Local ID; sid = Server ID
+  var commentLidToSidMap = {};
+  var commentLocLidToSidMap = {};
   var curFileInfo;
   var commentIdCounter = 0;
   var locationIdCounter = 0;
@@ -66,7 +67,7 @@ var OCA = function($){
     var locations = $('#comment-'+ commentId).data('locations');
     var i;
     for(i = 0; i < locations.length; i++){
-      deleteCommentLocation(commentId, locations[i].id, true);
+      deleteCommentLocation(commentId, locations[i].lid, true);
     }
   };
 
@@ -96,19 +97,19 @@ var OCA = function($){
   };
 
   var removeFromDataArray = function(elm, key, value){
-    var array =  $(this).data(key) || []; 
+    var array =  elm.data(key) || []; 
     var index = array.indexOf(value);
     if(index >= 0){
       array.splice(index,1);
-      $(this).data(key, array);
+      elm.data(key, array);
     }
   };
 
   var addToElmDataArray = function(elm, key, value){
-    var array =  $(this).data(key) || []; 
+    var array =  elm.data(key) || []; 
     if(array.indexOf(value) < 0){
       array.push(value);
-      $(this).data(key, array);
+      elm.data(key, array);
     }
   };
 
@@ -116,13 +117,13 @@ var OCA = function($){
     var locations = comment.data('locations'), i;
     for(i = 0; i < locations.length; i++){
       if(!locations[i].file_id || locations[i].file_id === curFileInfo.id){
-        highlightSelection(locations[i], 'comment_loc_'+ locations[i].id +
-          ' comment_'+ comment.data('id'), true);
+        highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
+          ' comment_'+ comment.data('lid'), true);
 
-        $('.comment_loc_'+ locations[i].id).each(function(){
+        $('.comment_loc_'+ locations[i].lid).each(function(){
           var elm = $(this);
-          addToElmDataArray(elm, 'commentIds', comment.data('id'));
-          addToElmDataArray(elm, 'locationIds', locations[i].id);
+          addToElmDataArray(elm, 'commentIds', comment.data('lid'));
+          addToElmDataArray(elm, 'locationIds', locations[i].lid);
         });
       }
     }
@@ -167,12 +168,10 @@ var OCA = function($){
     var inserted = false;
     container.children().each(function(i, e){
       var child = $(this);
-      console.log('Comparing '+ child.data('start-line') +' and '+
-        comment.data('start-line'));
+        // comment.data('start-line'));
       if(child.data('start-line') > comment.data('start-line') ||
           (child.data('start-line') === comment.data('start-line') &&
             child.data('start-column') > comment.data('start-column'))){
-        console.log('Inserting comment before existing comment.');
         comment.insertBefore(child);
         inserted = true;
         return;
@@ -180,13 +179,17 @@ var OCA = function($){
     });
     // If we've reached this point, then the comment should go at the end.
     if(!inserted){
-      console.log('Inserting comment at the end.');
       container.append(comment);
     }
   }
 
-  var createComment = function(locations){
-    var commentId = commentIdCounter++
+  // Creates a comment with the given locations.
+  // @param {array of simple objects} locations A list of locations.
+  // @param {string} content The comment content. Defaults to ''.
+  // @return The comment that was created.
+  var createComment = function(locations, content){
+    content = content || '';
+    var commentId = commentIdCounter++;
     var firstLocation = getFirstLocation(locations, curFileInfo.id);
     var comment = $('#comment-template').clone();
     comment.attr('id', 'comment-'+ commentId);
@@ -197,11 +200,14 @@ var OCA = function($){
     insertComment(comment, $('#comments'));
     // $('#comments').append(comment);
     comment.data('locations', locations);
-    comment.find('.comment-body').focus();
+    var body = comment.find('.comment-body');
+    body.html(content).data('content', content);
+    body.focus();
 
-    comment.data('id', commentId);
+    comment.data('lid', commentId);
     markCommentLocations(comment);
     highlightCommentLocations(commentId);
+    return comment;
   };
 
   // Hides all highlighted selections.
@@ -245,7 +251,6 @@ var OCA = function($){
       var start = (i === loc.start_line) ? loc.start_column : 1;
       var end = (i === loc.end_line) ? loc.end_column : 
         $('.content-line'+ i).size();
-      console.log('Line '+ i +': '+ start +' to '+ end);
       for(j = start; j <= end; j++){
         if(add){
           $('#'+ i +'_'+ j).addClass(cssClass);
@@ -338,8 +343,6 @@ var OCA = function($){
   var getSelectionLocation = function(){
     var selection = window.getSelection();
 
-    console.log(selection);
-
     if(!selection || selection.isCollapsed){
       return false;
     }
@@ -349,7 +352,8 @@ var OCA = function($){
     var endLocInfo = getSelectionOffsets(selection.extentNode, 
       selection.extentOffset);
     return {
-      id: locationIdCounter++,
+      lid:          locationIdCounter++,
+      file_id:      curFileInfo.file_id,
       start_line:   startLocInfo.line,
       start_column: startLocInfo.col, 
       end_line:     endLocInfo.line,
@@ -404,6 +408,7 @@ var OCA = function($){
   // Fetch the content of the select file.
   // @param [int] fileId The id of the file to load.
   var displayFile = function(fileId){
+    $('#comments').html('');
     $('#file-display').html('Loading file '+ fileId +'...');
 
     // Convert the id to an integer (just in case someones putting something
@@ -417,7 +422,7 @@ var OCA = function($){
           $('.page-header').html('ERROR');
           $('#file-display').html(data.error);
         } else {
-          curFileInfo = data;
+          curFileInfo = data.file;
           $('.page-header').html(data.file.name);
           $('#file-display');
           $('#file-display').html(
@@ -427,8 +432,9 @@ var OCA = function($){
           );
           SyntaxHighlighter.highlight();
           // setTimeout(10, SyntaxHighlighter.highlight);
-
           addColumnsToHighlightedCode($('#file-display .code')[0])
+
+          loadFileComments(data.file.comments);
         }
       },
       error: function(req, status, error){
@@ -443,6 +449,22 @@ var OCA = function($){
     $('.sidebar').toggleClass('sidebar-collapse');
     $('.main').toggleClass('main-collapse');
   }
+
+  var loadProjectComments = function(){
+
+  };
+
+  var loadFileComments = function(comments){
+    var i, j;
+    for(i = 0; i < comments.length; i++){
+      //comments[i].lid = commentIdCounter++;
+      for(j = 0; j < comments[i].locations.length; j++){
+        comments[i].locations[j].lid = locationIdCounter++;
+        highlightSelection(comments[i].locations[j]);
+      }
+      createComment(comments[i].locations, comments[i].content);
+    }
+  };
 
   // LISTENERS
 
@@ -496,9 +518,7 @@ var OCA = function($){
 
   // Listens for file content to be selected and then highlights it.
   $(document).on('mouseup', '.code .container', function(){
-    console.log('Selection made!');
     var location = getSelectionLocation();
-    console.log(location);
     if(location){
       $('#selection-menu .btn').removeClass('disabled');
       //hideHighlights();
@@ -527,7 +547,7 @@ var OCA = function($){
   $(document).on('click', '.comment-delete', function(e){
     var comment = $(this).parents('.comment');
     hideCommentLocationHighlights();
-    deleteComment(comment.data('id'));
+    deleteComment(comment.data('lid'));
     comment.remove();
     e.preventDefault();
   });
@@ -537,22 +557,26 @@ var OCA = function($){
   $(document).on('mouseup', '.comment-body', editComment);
 
   $(document).on('mouseover', '.comment', function(){
-    highlightCommentLocations($(this).data('id'));
+    highlightCommentLocations($(this).data('lid'));
   });
 
   $(document).on('click', '.selected', function(){
     var commentIds = $(this).data('commentIds');
+    console.log(commentIds);
     if(commentIds && commentIds.length > 0){
       highlightCommentLocations(commentIds[0]);
       // Find the comment, scroll to it, and focus on it.
       var comment = $('#comment-'+ commentIds[0]);
-      console.log(comment);
       $('#comments').scrollTop(comment[0].offsetTop);
       comment.find('.comment-body ').focus();
     }
   });
 
   // INITIALIZATIONS.
+  if(window.location.pathname.match(/^\/projects\/\d+$/)){
+    // loadProjectComments();
+  }
+
 
   SyntaxHighlighter.defaults['toolbar'] = false;
   SyntaxHighlighter.defaults['quick-code'] = false;
@@ -565,8 +589,6 @@ var OCA = function($){
 var oca;
 
 jQuery(document).ready(function($){
-  console.log('Hello!');
   oca = OCA($);
-  console.log(oca);
 })
 
