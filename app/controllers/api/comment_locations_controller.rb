@@ -9,8 +9,7 @@ class Api::CommentLocationsController < ApplicationController
     if comment and user_can_access_project(comment.project_id, [:can_annotate])
 
       if params.key?(:comment_location) and has_keys?(params[:comment_location],
-            [:project_file_id, :start_line, :start_column, 
-             :end_line, :end_column])
+            [:file_id, :start_line, :start_column, :end_line, :end_column])
 
         comment_location = CommentLocation.create(comment_params(comment.id))
         if comment_location.valid? and comment_location.save
@@ -55,8 +54,17 @@ class Api::CommentLocationsController < ApplicationController
 
     ## Defines valid comment location parameters.
     def comment_params(comment_id=nil)
-      ps = params.require(:comment_location).permit(
-        :project_file_id, :start_line, :start_column, :end_line, :end_column)
+      tmp = params[:comment_location]
+      ps = {
+        project_file_id: tmp[:file_id],
+        start_line:      tmp[:start_line],
+        start_column:    tmp[:start_column],
+        end_line:        tmp[:end_line],
+        end_column:      tmp[:end_column]
+      }
+      # ps = params.require(:comment_location).permit(:lid,
+      #   :file_id, :start_line, :start_column, :end_line, :end_column)
+      # ps[:project_file_id] = params[:comment_location][:file_id]
       unless comment_id.nil?
         ps[:comment_id] = comment_id
       end

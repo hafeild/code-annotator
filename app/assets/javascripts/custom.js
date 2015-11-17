@@ -1,6 +1,8 @@
 var OCA = function($){
   // CONSTANTS / GLOBAL VARIABLES
+  const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
   const FILES_API = '/api/files/';
+  const NEW_COMMENT_API = '/api/projects/'+ PROJECT_ID +'/comments';
   const KNOWN_FILE_EXTENSIONS = {
     as3:  'as3',
     sh:   'bash',
@@ -116,7 +118,8 @@ var OCA = function($){
   var markCommentLocations = function(comment){
     var locations = comment.data('locations'), i;
     for(i = 0; i < locations.length; i++){
-      if(!locations[i].file_id || locations[i].file_id === curFileInfo.id){
+      if(locations[i].file_id === undefined || 
+          locations[i].file_id === curFileInfo.id){
         highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
           ' comment_'+ comment.data('lid'), true);
 
@@ -177,7 +180,9 @@ var OCA = function($){
         return;
       }
     });
-    // If we've reached this point, then the comment should go at the end.
+
+    // If we've reached this point without inserting, then the comment should 
+    // go at the end.
     if(!inserted){
       container.append(comment);
     }
@@ -186,8 +191,10 @@ var OCA = function($){
   // Creates a comment with the given locations.
   // @param {array of simple objects} locations A list of locations.
   // @param {string} content The comment content. Defaults to ''.
+  // @param {boolean} isNew Whether the comment is new, and therefore needs to
+  //                        be saved to the server.
   // @return The comment that was created.
-  var createComment = function(locations, content){
+  var createComment = function(locations, content, isNew){
     content = content || '';
     var commentId = commentIdCounter++;
     var firstLocation = getFirstLocation(locations, curFileInfo.id);
@@ -196,6 +203,7 @@ var OCA = function($){
     comment.find('.comment-owner').html($('#current-email').html());
     comment.data('start-line', firstLocation.start_line).
             data('start-column', firstLocation.start_column);
+
     // Find the spot where this comment should be inserted.
     insertComment(comment, $('#comments'));
     // $('#comments').append(comment);
@@ -207,8 +215,49 @@ var OCA = function($){
     comment.data('lid', commentId);
     markCommentLocations(comment);
     highlightCommentLocations(commentId);
+
+    if(isNew){
+      saveComment(commentId, content, locations);
+    }
+
     return comment;
   };
+
+  var saveComment = function(commentLid, content, locations){
+    console.log('URL: '+ NEW_COMMENT_API);
+    $.ajax(NEW_COMMENT_API, {
+      method: 'POST',
+      data: {
+        comment: {
+          content: content
+        }
+      },
+      success: function(data){
+        console.log('Heard back about new comment: ', data);
+        // Save location.
+        commentLidToSidMap[commentLid] = data.id;
+        var i;
+        for(i = 0; i < locations.length; i++){
+          console.log('locations[i]:', locations[i]);
+          $.ajax('/api/comments/'+ data.id +'/locations', {
+            method: 'POST',
+            data: {
+              comment_location: locations[i]
+            },
+            success: function(data){
+              console.log('Heard back:', data);
+            },
+            error: function(xhr, status, error){
+              console.log('ERROR:', error);
+            }
+          });
+        }
+      },
+      error: function(xhr, status, error){
+        console.log('ERROR:', error);
+      }
+    });
+  }
 
   // Hides all highlighted selections.
   var hideHighlights = function(){
@@ -352,12 +401,12 @@ var OCA = function($){
     var endLocInfo = getSelectionOffsets(selection.extentNode, 
       selection.extentOffset);
     return {
-      lid:          locationIdCounter++,
-      file_id:      curFileInfo.file_id,
-      start_line:   startLocInfo.line,
-      start_column: startLocInfo.col, 
-      end_line:     endLocInfo.line,
-      end_column:   endLocInfo.col
+      lid:              locationIdCounter++,
+      file_id:  curFileInfo.id,
+      start_line:       startLocInfo.line,
+      start_column:     startLocInfo.col, 
+      end_line:         endLocInfo.line,
+      end_column:       endLocInfo.col
     };
   };
 
@@ -454,13 +503,19 @@ var OCA = function($){
 
   };
 
+  // Loads all the comments in.
+  // @param {array of simple objects} comments The comments to add.
   var loadFileComments = function(comments){
     var i, j;
     for(i = 0; i < comments.length; i++){
       //comments[i].lid = commentIdCounter++;
       for(j = 0; j < comments[i].locations.length; j++){
         comments[i].locations[j].lid = locationIdCounter++;
-        highlightSelection(comments[i].locations[j]);
+
+        // Only highlight if this comment is for the current file.
+        if(comments[i].locations[j].file_id === curFileInfo.id){
+          highlightSelection(comments[i].locations[j]);
+        }
       }
       createComment(comments[i].locations, comments[i].content);
     }
@@ -535,7 +590,7 @@ var OCA = function($){
     highlightSelection(location);
     if(e.target.id === 'add-comment'){
       console.log('Adding comment');
-      createComment([location]);
+      createComment([location], '', true);
     } else if(e.target.id === 'add-to-comment'){
       console.log('Adding to existing comment');
     } else if(e.target.id === 'add-alt-code'){
