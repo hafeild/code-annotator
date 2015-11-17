@@ -484,14 +484,14 @@ var OCA = function($){
     var elm = $(this), parent = elm.parent();
 
     if(parent.data('expand-state') === 'expanded'){
-      parent.find('.directory').hide();
-      elm.find('.collapsed').show();
-      elm.find('.expanded').hide();
+      parent.children('.directory').hide();
+      elm.children('.collapsed').show();
+      elm.children('.expanded').hide();
       parent.data('expand-state', 'collapsed');
     } else {
-      parent.find('.directory').show();
-      elm.find('.collapsed').hide();
-      elm.find('.expanded').show();
+      parent.children('.directory').show();
+      elm.children('.collapsed').hide();
+      elm.children('.expanded').show();
       parent.data('expand-state', 'expanded');
     }
   });
