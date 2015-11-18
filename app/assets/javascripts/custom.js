@@ -67,6 +67,8 @@ var OCA = function($){
 
   /**
    * Displays an error message.
+   *
+   * @param {string} message The message to display.
    */
   var displayError = function(message){
     var errorElm = $('#alert-danger-template').clone().attr('id', '').
@@ -716,7 +718,7 @@ var OCA = function($){
           highlightSelection(comments[i].locations[j]);
         }
       }
-      var commentElm = createComment(comments[i].locations, comments[i].content);
+      var commentElm = createComment(comments[i].locations,comments[i].content);
       commentLidToSidMap[commentElm.data('lid')] = comments[i].id;
       console.log('Comment lid: '+ commentElm.data('lid') +'; real id: '+
         commentLidToSidMap[commentElm.data('lid')]);
