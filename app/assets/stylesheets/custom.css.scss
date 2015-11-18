@@ -603,4 +603,14 @@ input {
   h1 { text-align: left;}
 }
 
-
+/* Alerts */
+#alerts {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  z-index: 100000;
+}
+.alert {
+  margin: 0;
+}

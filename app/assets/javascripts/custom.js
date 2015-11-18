@@ -66,6 +66,15 @@ var OCA = function($){
   // FUNCTIONS
 
   /**
+   * Displays an error message.
+   */
+  var displayError = function(message){
+    var errorElm = $('#alert-danger-template').clone().attr('id', '').
+      appendTo('#alerts');
+    errorElm.find('.alert-message').html(message);
+  }
+
+  /**
    * Deletes a comment from the UI and the server.
    *
    * @param {string} commentLid The local id of the comment to remove.
@@ -84,10 +93,14 @@ var OCA = function($){
         _method: 'delete'
       },
       success: function(data){
-        console.log('Response for deleting comment '+ 
-          commentLidToSidMap[commentLid] +':', data);
+        if(data.error){
+          displayError('There was an error deleting the comment: '+ data.error);
+          console.log('Response for deleting comment '+ 
+            commentLidToSidMap[commentLid] +':', data);
+        }
       },
       error: function(xhr, status, error){
+        displayError('There was an error deleting the comment. '+ error);
         console.log('ERROR:', error);
       }
     });
@@ -227,13 +240,18 @@ var OCA = function($){
         success: function(data){
           console.log('Sent content: '+ newContent);
           console.log('Heard back from updating comment:', data);
-          if(!data.error){
-            target.removeClass('comment-in-edit');
-            target.parent().find('.comment-saved').show().fadeOut(2000);
-            target.data('content', newContent);
+          if(data.error){
+            displayError('There was an error updating your comment: '+ 
+              data.error);
+            console.log('Error updating comment:', data);
+            return;
           }
+          target.removeClass('comment-in-edit');
+          target.parent().find('.comment-saved').show().fadeOut(2000);
+          target.data('content', newContent);
         },
         error: function(xhr, status, error){
+          displayError('There was an error updating your comment. '+ error);
           console.log('ERROR:', error);
         }
       })
@@ -367,6 +385,7 @@ var OCA = function($){
       success: function(data){
         console.log('Heard back about new comment: ', data);
         if(data.error){
+          displayError('There was an error saving your comment: '+ data.error);
           console.log('ERROR saving comment:', data);
           return;
         }
@@ -383,18 +402,23 @@ var OCA = function($){
             success: (function(index){ return function(data){
               console.log('Heard back:', data);
               if(data.error){
+                displayError('There was an error saving the location of your '+
+                  'comment: '+ data.error);
                 console.log('ERROR saving comment location:', data);
                 return;
               }
               commentLocLidToSidMap[locations[index].lid] = data.id;
             }})(i),
             error: function(xhr, status, error){
+              displayError('There was an error saving the location of your '+
+                'comment. '+ error);
               console.log('ERROR:', error);
             }
           });
         }
       },
       error: function(xhr, status, error){
+        displayError('There was an error saving your comment. '+ error);
         console.log('ERROR:', error);
       }
     });
@@ -631,7 +655,8 @@ var OCA = function($){
       success: function(data, status){
         if(data.error){
           $('.page-header').html('ERROR');
-          $('#file-display').html(data.error);
+          displayError('There was an error retrieving this file: '+ data.error);
+          // $('#file-display').html(data.error);
         } else {
           curFileInfo = data.file;
           $('.page-header').html(data.file.name);
@@ -649,8 +674,10 @@ var OCA = function($){
         }
       },
       error: function(req, status, error){
-          $('.page-header').html('ERROR');
-          $('#file-display').html(error);
+        displayError('There was an error retrieving this file. '+ error);
+        console.log(req, status, error);
+        // $('.page-header').html('ERROR');
+        // $('#file-display').html(error);
       }
     });
   };
@@ -838,6 +865,7 @@ var OCA = function($){
 
   this.getSelectionLocation = getSelectionLocation;
   this.highlightSelection = highlightSelection;
+  this.displayError = displayError;
   return this;
 };
 

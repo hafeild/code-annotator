@@ -77,11 +77,11 @@
   </div>
 </div>
 
+<!-- Templates. -->
 <div id="templates" class="hidden">
+
+  <!-- Comment template. -->
   <div id="comment-template" class="panel panel-default comment">
-<!--     <div class="panel-heading">
-      <h3 class="panel-title comment-title"></h3>
-    </div> -->
     <div class="panel-body comment-body" contenteditable="true"
       placeholder="Enter your comment here..."></div>
     <div class="panel-footer comment-footer">
@@ -93,6 +93,18 @@
       <% end %>
     </div>
   </div>
-
+  <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
+
+  <!-- Error alert template. -->
+  <div id="alert-danger-template" class="alert alert-danger">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <span class="alert-message"></span>
+  </div>
+
+  <!-- Success alert template. -->
+  <div id="alert-success-template" class="alert alert-success">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <span class="alert-message"></span>
+  </div>
 </div>
