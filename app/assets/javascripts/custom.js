@@ -617,6 +617,9 @@ var OCA = function($){
    */
   var displayFile = function(fileId){
     $('#comments').html('');
+    $('.loaded').removeClass('loaded');
+    $('[data-file-id='+fileId+']').addClass('loaded');
+
     $('#file-display').html('Loading file '+ fileId +'...');
 
     // Convert the id to an integer (just in case someones putting something
@@ -698,6 +701,7 @@ var OCA = function($){
 
   // LISTENERS
 
+  // For the "Projects listing" view.
   // Listen for a row to be clicked on. A td element must specifically be 
   // clicked (not a child element) to trigger the page load. For example, see
   // the project listing -- the td with the trash can does not cause the row's
@@ -742,6 +746,7 @@ var OCA = function($){
     });
   }
 
+  // Handles toggling the file listing sidebar.
   $(document).on('click', '.sidebar-toggle', function(){
     toggleFileView();
   })
@@ -760,6 +765,7 @@ var OCA = function($){
     }
   });
 
+  // Handles clicks on comment editing buttons.
   $(document).on('click', '#selection-menu .btn', function(e){
     var location = getSelectionLocation();
     highlightSelection(location);
@@ -774,6 +780,7 @@ var OCA = function($){
 
   });
 
+  // Handles comment deletions.
   $(document).on('click', '.comment-delete', function(e){
     var comment = $(this).parents('.comment');
     hideCommentLocationHighlights();
@@ -782,14 +789,17 @@ var OCA = function($){
     e.preventDefault();
   });
 
+  // Listens for changes to comment content.
   $(document).on('change', '.comment-body', editComment);
   $(document).on('keyup', '.comment-body', editComment);
   $(document).on('mouseup', '.comment-body', editComment);
 
+  // Highlights comment locations when hovering over a comment.
   $(document).on('mouseover', '.comment', function(){
     highlightCommentLocations($(this).data('lid'));
   });
 
+  // Handles focusing on a comment when a comment location is clicked.
   $(document).on('click', '.selected', function(){
     var commentIds = $(this).data('commentIds');
     console.log(commentIds);
@@ -802,15 +812,22 @@ var OCA = function($){
     }
   });
 
+  // Changes the style of comments when they have focus.
   $(document).on('focus', '.comment-body', function(){
     $(this).parents('.comment').addClass('panel-primary');
   });
 
+  // Changes the style of comments when they loose focus.
   $(document).on('blur', '.comment-body', function(){
     $(this).parents('.comment').removeClass('panel-primary');
   });
 
+
+
+
+
   // INITIALIZATIONS.
+
   if(window.location.pathname.match(/^\/projects\/\d+$/)){
     // loadProjectComments();
   }

@@ -318,14 +318,36 @@ input {
   .file {
 
   }
+
+  .sidebar {
+    /*width: auto;*/
+    overflow: auto;
+  }
+
   .entry, .directory {
     @include box_sizing;
     cursor: pointer;
     font-size: 12pt;
     @include no_select;
+    width: auto;
+    display: block;
   }
   .entry .directory {
     margin-left: 25px;
+  }
+
+  .entry {
+    padding-left: 3px;
+    padding-right: 3px;
+    width: auto;
+  }
+
+  .file-entry a.loaded {
+    background-color: $brand-primary;
+    color: white;
+    margin-left: -3px;
+    padding-left: 3px;
+    padding-right: 3px;
   }
 
   .collapsed {
@@ -505,12 +527,14 @@ input {
     left: 0;
     z-index: 1000;
     display: block;
-    padding: 20px;
+    padding: 10px;
+    padding-right: 5px;
     overflow-x: auto;
     overflow-y: auto;
     background-color: #f5f5f5;
     border-right: 1px solid #eee;
     white-space: nowrap;
+    @include box_sizing;
   }
 
   .sidebar-collapse {
