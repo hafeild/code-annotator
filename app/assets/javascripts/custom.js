@@ -60,44 +60,89 @@ var OCA = function($){
   var commentLidToSidMap = {};
   var commentLocLidToSidMap = {};
   var curFileInfo;
-  var commentIdCounter = 0;
+  var commentLidCounter = 0;
   var locationIdCounter = 0;
 
   // FUNCTIONS
 
-  var deleteComment = function(commentId){
-    var locations = $('#comment-'+ commentId).data('locations');
+  /**
+   * Deletes a comment from the UI and the server.
+   *
+   * @param {string} commentLid The local id of the comment to remove.
+   */
+  var deleteComment = function(commentLid){
+    var locations = $('#comment-'+ commentLid).data('locations');
     var i;
     for(i = 0; i < locations.length; i++){
-      deleteCommentLocation(commentId, locations[i].lid, true);
+      deleteCommentLocation(commentLid, locations[i].lid, true);
     }
+    console.log('commentLid: '+ commentLid +'; real id: '+
+      commentLidToSidMap[commentLid]);
+    $.ajax('/api/comments/'+ commentLidToSidMap[commentLid],{
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        console.log('Response for deleting comment '+ 
+          commentLidToSidMap[commentLid] +':', data);
+      },
+      error: function(xhr, status, error){
+        console.log('ERROR:', error);
+      }
+    });
   };
 
-  var deleteCommentLocation = function(commentId, locationId, removeComment){
-    $('.comment_loc_'+ locationId).each(function(){
+  /**
+   * Removes a comment location from the UI.
+   *
+   * @param {string} commentLid The local id of the comment.
+   * @param {string} locationLid The local id of the location to remove.
+   * @param {boolean} removeComment A flag indicating whether all locations for
+   *                  the given comment are to be removed (assists in some
+   *                  corner cases).
+   */
+  var deleteCommentLocation = function(commentLid, locationLid, removeComment){
+    $('.comment_loc_'+ locationLid).each(function(){
       var elm = $(this);
-      elm.removeClass('comment_loc_'+locationId);
+      elm.removeClass('comment_loc_'+locationLid);
 
-      removeFromDataArray(elm, 'locationIds', locationId);
+      removeFromDataArray(elm, 'locationLids', locationLid);
 
-      if(removeComment || elm.data('locationIds').length === 0){
-        removeFromDataArray(elm, 'commentIds', commentId);
-        elm.removeClass('comment_'+ commentId);
+      if(removeComment || elm.data('locationLids').length === 0){
+        removeFromDataArray(elm, 'commentLids', commentLid);
+        elm.removeClass('comment_'+ commentLid);
         elm.removeClass('selected');
       }
     });
 
   };
 
+  /**
+   * Hides all comment location highlights.
+   */
   var hideCommentLocationHighlights = function(){
     $('.comment-location-highlight').removeClass('comment-location-highlight');
   };
 
-  var highlightCommentLocations = function(commentId){
+  /**
+   * Hides all comment locations.
+   *
+   * @param {string} commentLid The local id of the comment whose locations
+   *                            should be hidden.
+   */
+  var highlightCommentLocations = function(commentLid){
     hideCommentLocationHighlights();
-    $('.comment_'+ commentId).addClass('comment-location-highlight');
+    $('.comment_'+ commentLid).addClass('comment-location-highlight');
   };
 
+  /**
+   * Removes a value from an array stored with key in the data of elm.
+   *
+   * @param {jQuery Elm} elm The element whose data will be modified.
+   * @param {string} key The key that the array is stored under.
+   * @param {anything} value The value to remove from the array. 
+   */
   var removeFromDataArray = function(elm, key, value){
     var array =  elm.data(key) || []; 
     var index = array.indexOf(value);
@@ -107,6 +152,13 @@ var OCA = function($){
     }
   };
 
+  /**
+   * Adds a value to an array stored with key in the data of elm.
+   *
+   * @param {jQuery Elm} elm The element whose data will be modified.
+   * @param {string} key The key that the array is stored under.
+   * @param {anything} value The value to add to the array. 
+   */
   var addToElmDataArray = function(elm, key, value){
     var array =  elm.data(key) || []; 
     if(array.indexOf(value) < 0){
@@ -115,17 +167,25 @@ var OCA = function($){
     }
   };
 
-  var markCommentLocations = function(comment){
-    var locations = comment.data('locations'), i;
+  /**
+   * Goes through all comment locations attached to a comment elm, finds the
+   * corresponding characters in the displayed code, and adds information to
+   * each character to link it to that location and the comment.
+   *
+   * @param {jQuery Elm} commentElm The comment elm whose locations should be
+   *                                marked.
+   */
+  var markCommentLocations = function(commentElm){
+    var locations = commentElm.data('locations'), i;
     for(i = 0; i < locations.length; i++){
       if(locations[i].file_id === undefined || 
           locations[i].file_id === curFileInfo.id){
         highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
-          ' comment_'+ comment.data('lid'), true);
+          ' comment_'+ commentElm.data('lid'), true);
 
         $('.comment_loc_'+ locations[i].lid).each(function(){
           var elm = $(this);
-          addToElmDataArray(elm, 'commentIds', comment.data('lid'));
+          addToElmDataArray(elm, 'commentIds', commentElm.data('lid'));
           addToElmDataArray(elm, 'locationIds', locations[i].lid);
         });
       }
@@ -133,9 +193,16 @@ var OCA = function($){
     
   };
 
+  /**
+   * Edits a comment and sends any changes to the server to be saved.
+   */
   var editComment = function(e){
     var target = $(e.target);
-    if(target.data('content') === target.html()){ return; }
+    var commentElm = target.parents('.comment');
+    var origContent = target.data('content');
+    var newContent = target.html();
+    if(origContent === newContent){ return; }
+
 
     target.addClass('comment-in-edit');
     if(target.data('timeout')){
@@ -144,12 +211,44 @@ var OCA = function($){
 
     // TODO: This needs to actually save the comment changes.
     target.data('timeout', setTimeout(function(){
-      target.removeClass('comment-in-edit');
-      target.parent().find('.comment-saved').show().fadeOut(2000);
-      target.data('content', target.html());
+
+      console.log('Sending to: /api/comments/'+ 
+        commentLidToSidMap[commentElm.data('lid')]);
+      console.log('Sending: '+ newContent);
+
+      $.ajax('/api/comments/'+ commentLidToSidMap[commentElm.data('lid')], {
+        method: 'POST',
+        data: {
+          _method: 'patch',
+          comment: {
+            content: newContent
+          }
+        },
+        success: function(data){
+          console.log('Sent content: '+ newContent);
+          console.log('Heard back from updating comment:', data);
+          if(!data.error){
+            target.removeClass('comment-in-edit');
+            target.parent().find('.comment-saved').show().fadeOut(2000);
+            target.data('content', newContent);
+          }
+        },
+        error: function(xhr, status, error){
+          console.log('ERROR:', error);
+        }
+      })
     }, 2000));
   };
 
+  /**
+   * A comparison of two locations; when used with sort, this will cause
+   * locations with earlier (lower) starting lines and columns to come first.
+   * 
+   * @param {simple object} loc1 A location.
+   * @param {simple object} loc2 A location.
+   * @return -1 if loc1 comes before loc2, 0 if they're the same, and 1 if loc1
+   *         comes after loc2.
+   */
   var compareLocations = function(loc1, loc2){
     if(loc1.start_location === loc2.start_location){
       return loc1.start_column - loc2.start_column;
@@ -157,6 +256,14 @@ var OCA = function($){
     return loc1.start_location - loc2.start_location;
   }
 
+  /**
+   * Retrieves the first location in the list of locations that is for the
+   * given file.
+   *
+   * @param {array of simple objects} locations The list of locations.
+   * @param {string} fileId Only locations matching this id will be returned.
+   * @return The first location that matches the given file, if any.
+   */
   var getFirstLocation = function(locations, fileId){
     var sorted = locations.sort(compareLocations);
     var i;
@@ -167,15 +274,20 @@ var OCA = function($){
     }
   };
 
-  var insertComment = function(comment, container){
+  /**
+   * Inserts a comment into the given container.
+   *
+   * @param {jQuery Elm} comment The comment element to add to the container.
+   * @param {jQuery Elm} container The element to add the comment to.
+   */
+  var insertComment = function(commentElm, container){
     var inserted = false;
     container.children().each(function(i, e){
       var child = $(this);
-        // comment.data('start-line'));
-      if(child.data('start-line') > comment.data('start-line') ||
-          (child.data('start-line') === comment.data('start-line') &&
-            child.data('start-column') > comment.data('start-column'))){
-        comment.insertBefore(child);
+      if(child.data('start-line') > commentElm.data('start-line') ||
+          (child.data('start-line') === commentElm.data('start-line') &&
+            child.data('start-column') > commentElm.data('start-column'))){
+        commentElm.insertBefore(child);
         inserted = true;
         return;
       }
@@ -184,22 +296,34 @@ var OCA = function($){
     // If we've reached this point without inserting, then the comment should 
     // go at the end.
     if(!inserted){
-      container.append(comment);
+      container.append(commentElm);
     }
   }
 
-  // Creates a comment with the given locations.
-  // @param {array of simple objects} locations A list of locations.
-  // @param {string} content The comment content. Defaults to ''.
-  // @param {boolean} isNew Whether the comment is new, and therefore needs to
-  //                        be saved to the server.
-  // @return The comment that was created.
+  /**
+   * Creates a comment with the given locations.
+   * @param {array of simple objects} locations A list of locations.
+   * @param {string} content The comment content. Defaults to ''.
+   * @param {boolean} isNew Whether the comment is new, and therefore needs to
+   *                        be saved to the server.
+   * @return The comment that was created.
+   */
   var createComment = function(locations, content, isNew){
     content = content || '';
-    var commentId = commentIdCounter++;
+    var commentLid = commentLidCounter++;
+
+    // Add local ids to each of the locations.
+
+    var i;
+    for(i = 0; i < locations.length; i++){
+      if(locations[i].lid === undefined){
+        locations[i].lid = locationIdCounter++;
+      }
+    }
+
     var firstLocation = getFirstLocation(locations, curFileInfo.id);
     var comment = $('#comment-template').clone();
-    comment.attr('id', 'comment-'+ commentId);
+    comment.attr('id', 'comment-'+ commentLid);
     comment.find('.comment-owner').html($('#current-email').html());
     comment.data('start-line', firstLocation.start_line).
             data('start-column', firstLocation.start_column);
@@ -212,17 +336,25 @@ var OCA = function($){
     body.html(content).data('content', content);
     body.focus();
 
-    comment.data('lid', commentId);
+    comment.data('lid', commentLid);
     markCommentLocations(comment);
-    highlightCommentLocations(commentId);
+    highlightCommentLocations(commentLid);
 
     if(isNew){
-      saveComment(commentId, content, locations);
+      saveComment(commentLid, content, locations);
     }
 
     return comment;
   };
 
+  /**
+   * Saves a comment to the server.
+   *
+   * @param {int} commentLid The local id of the comment to save.
+   * @param {string} content The content of the comment to save.
+   * @param {array of simple objects} locations The list of locations to save
+   *                                            for this comment.
+   */
   var saveComment = function(commentLid, content, locations){
     console.log('URL: '+ NEW_COMMENT_API);
     $.ajax(NEW_COMMENT_API, {
@@ -234,6 +366,10 @@ var OCA = function($){
       },
       success: function(data){
         console.log('Heard back about new comment: ', data);
+        if(data.error){
+          console.log('ERROR saving comment:', data);
+          return;
+        }
         // Save location.
         commentLidToSidMap[commentLid] = data.id;
         var i;
@@ -244,9 +380,14 @@ var OCA = function($){
             data: {
               comment_location: locations[i]
             },
-            success: function(data){
+            success: (function(index){ return function(data){
               console.log('Heard back:', data);
-            },
+              if(data.error){
+                console.log('ERROR saving comment location:', data);
+                return;
+              }
+              commentLocLidToSidMap[locations[index].lid] = data.id;
+            }})(i),
             error: function(xhr, status, error){
               console.log('ERROR:', error);
             }
@@ -264,6 +405,15 @@ var OCA = function($){
     $('.code .selected').removeClass('selected');
   };
 
+  /**
+   * Normalizes a comment location; this is necessary because text selections
+   * where the user drags the mouse from the bottom/right to top/left will have
+   * the start and end information backwards from selections made from the
+   * top/left to bottom/right.
+   *
+   * @param {simple object} loc The location to normalize.
+   * @return The normalized location.
+   */
   var normalizeLocation = function(loc){
     var normLoc = {};
     if(loc.start_line < loc.end_line || 
@@ -281,16 +431,19 @@ var OCA = function($){
     return normLoc;
   };
 
-  // Highlights the given comment location. 
-  // @param {simple object} loc An object with the fields:
-  //    start_line:    The line of code to start on, base 1.
-  //    start_column:  The starting column, base 1.
-  //    end_line:      The line of code to end on, base 1.
-  //    end_column:    The final column to highlight, base 1.
-  // @param {string} cssClass The CSS class to add or remove to the selected 
-  //                          elements. Defaults to 'selected'.
-  // @param {boolean} add Whether the cssClass should be added to or removed
-  //                      from the selected elements. Defaults to true.
+  /**
+   * Highlights the given comment location. 
+   *
+   * @param {simple object} loc An object with the fields:
+   *    start_line:    The line of code to start on, base 1.
+   *    start_column:  The starting column, base 1.
+   *    end_line:      The line of code to end on, base 1.
+   *    end_column:    The final column to highlight, base 1.
+   * @param {string} cssClass The CSS class to add or remove to the selected 
+   *                          elements. Defaults to 'selected'.
+   * @param {boolean} add Whether the cssClass should be added to or removed
+   *                      from the selected elements. Defaults to true.
+   */
   var highlightSelection = function(loc, cssClass, add){
     loc = normalizeLocation(loc);
     var i, j;
@@ -314,10 +467,13 @@ var OCA = function($){
     }
   };
 
-  // Modifies the displayed file content to make highlighting easier.
-  // @param {DOM Elmement} contentElm The element containing the file content.
-  //                                  This should already be processed by 
-  //                                  SyntaxHighlighter.
+  /**
+   * Modifies the displayed file content to make highlighting easier.
+   *
+   * @param {DOM Elmement} contentElm The element containing the file content.
+   *                                  This should already be processed by 
+   *                                  SyntaxHighlighter.
+   */
   var addColumnsToHighlightedCode = function(contentElm){
     $(contentElm).find('.line').each(function(i,lineElm){
       var children = lineElm.childNodes;
@@ -357,38 +513,26 @@ var OCA = function($){
     });
   };
 
-  // Determines the line and column offset for a text selection.
-  // @param {HTML Node} node The selected node.
-  // @param {int} offset The offset of the selected node.
-  // @return {simple object} The line and column of the selection.
+  /**
+   * Determines the line and column offset for a text selection.
+   *
+   * @param {HTML Node} node The selected node.
+   * @param {int} offset The offset of the selected node.
+   * @return {simple object} The line and column of the selection.
+   */
   var getSelectionOffsets = function(node, offset){
     var parentJQ = $(node.parentNode);
     return {
       line: parseInt(parentJQ.data('line')),
       col:  parseInt(parentJQ.data('col'))
     };
-    // var shElm = node.parentNode;
-    // var lineElm = $(shElm).parents('.line')[0];
-    // var lineNumber = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
-    // var colNumber = 1;
-    // var children = lineElm.childNodes;
-    // var i;
-
-    // // Calculate the column.
-    // for(i = 0; i < children.length && children[i] != shElm; i++){
-    //   if(children[i].nodeType == 3){
-    //     colNumber += children[i].nodeValue.length;
-    //   } else {
-    //     colNumber += children[i].innerText.length;
-    //   }
-    // }
-    // colNumber += offset;
-
-    // return {line: lineNumber, col: colNumber};
   };
 
-  // Calculates the line and column offsets for the current selection.
-  // @return {simple object} The starting column
+  /**
+   * Calculates the line and column offsets for the current selection.
+   *
+   * @return {simple object} The starting column
+   */
   var getSelectionLocation = function(){
     var selection = window.getSelection();
 
@@ -402,7 +546,7 @@ var OCA = function($){
       selection.extentOffset);
     return {
       lid:              locationIdCounter++,
-      file_id:  curFileInfo.id,
+      file_id:          curFileInfo.id,
       start_line:       startLocInfo.line,
       start_column:     startLocInfo.col, 
       end_line:         endLocInfo.line,
@@ -410,20 +554,26 @@ var OCA = function($){
     };
   };
 
-  // Escapes an HTML string.
-  // Lifted from Mustache 
-  // (https://github.com/janl/mustache.js/blob/master/mustache.js)
-  // @param {string} html The HTML string to escape.
-  // @return The escaped HTML string.
+  /**
+   * Escapes an HTML string.
+   * Lifted from Mustache 
+   * (https: *github.com/janl/mustache.js/blob/master/mustache.js)
+   *
+   * @param {string} html The HTML string to escape.
+   * @return The escaped HTML string.
+   */
   var escapeHtml = function(html) {
     return String(html).replace(/[&<>"'\/]/g, function (s) {
       return ENTITY_MAP[s];
     });
   };
 
-  // Extracts the extension from a file name.
-  // @param {string} filename The name of the file.
-  // @return The extension (last .XXX) or undefined if no extension is found.
+  /**
+   * Extracts the extension from a file name.
+   *
+   * @param {string} filename The name of the file.
+   * @return The extension (last .XXX) or undefined if no extension is found.
+   */
   var extractExtension = function(filename){
     var parts = filename.split('.');
     if(parts.length > 1){
@@ -432,11 +582,14 @@ var OCA = function($){
     return undefined;
   };
 
-  // Figures out the highlighter class for the given file.
-  // @param {string} filename The name of the file.
-  // @return The highlighter class corresponding to the extension; defaults to
-  //         the plain text highligher if no extension is found, or no 
-  //         corresponding highlighter is found.
+  /**
+   * Figures out the highlighter class for the given file.
+   *
+   * @param {string} filename The name of the file.
+   * @return The highlighter class corresponding to the extension; defaults to
+   *         the plain text highligher if no extension is found, or no 
+   *         corresponding highlighter is found.
+   */
   var getHighlighterClass = function(filename){
     var extension = extractExtension(filename);
     var returnClass = 'brush: '+ 
@@ -447,15 +600,21 @@ var OCA = function($){
     return returnClass;
   };
 
-  // Remove the leading # on a hash.
-  // @param [string] hash The hash.
-  // @return The hash with leading # removed.
+  /**
+   * Remove the leading # on a hash.
+   *
+   * @param [string] hash The hash.
+   * @return The hash with leading # removed.
+   */
   var stripHash = function(hash){
     return hash.replace( /^#/, "" );
   };
 
-  // Fetch the content of the select file.
-  // @param [int] fileId The id of the file to load.
+  /**
+   * Fetch the content of the select file.
+   *
+   * @param [int] fileId The id of the file to load.
+   */
   var displayFile = function(fileId){
     $('#comments').html('');
     $('#file-display').html('Loading file '+ fileId +'...');
@@ -493,32 +652,48 @@ var OCA = function($){
     });
   };
 
-  // Toggles the sidebar and file contents area.
+  /**
+   * Toggles the sidebar and file contents area.
+   */
   var toggleFileView = function(){
     $('.sidebar').toggleClass('sidebar-collapse');
     $('.main').toggleClass('main-collapse');
   }
 
+  /**
+   *
+   */
   var loadProjectComments = function(){
 
   };
 
-  // Loads all the comments in.
-  // @param {array of simple objects} comments The comments to add.
+  /**
+   * Loads all the comments in.
+   *
+   * @param {array of simple objects} comments The comments to add.
+   */
   var loadFileComments = function(comments){
     var i, j;
     for(i = 0; i < comments.length; i++){
-      //comments[i].lid = commentIdCounter++;
+      //comments[i].lid = commentLidCounter++;
       for(j = 0; j < comments[i].locations.length; j++){
         comments[i].locations[j].lid = locationIdCounter++;
+        commentLocLidToSidMap[comments[i].locations[j].lid] = 
+          comments[i].locations[j].id;
 
         // Only highlight if this comment is for the current file.
         if(comments[i].locations[j].file_id === curFileInfo.id){
           highlightSelection(comments[i].locations[j]);
         }
       }
-      createComment(comments[i].locations, comments[i].content);
+      var commentElm = createComment(comments[i].locations, comments[i].content);
+      commentLidToSidMap[commentElm.data('lid')] = comments[i].id;
+      console.log('Comment lid: '+ commentElm.data('lid') +'; real id: '+
+        commentLidToSidMap[commentElm.data('lid')]);
+      commentElm.find('.comment-body').blur();
     }
+
+
   };
 
   // LISTENERS
@@ -625,6 +800,14 @@ var OCA = function($){
       $('#comments').scrollTop(comment[0].offsetTop);
       comment.find('.comment-body ').focus();
     }
+  });
+
+  $(document).on('focus', '.comment-body', function(){
+    $(this).parents('.comment').addClass('panel-primary');
+  });
+
+  $(document).on('blur', '.comment-body', function(){
+    $(this).parents('.comment').removeClass('panel-primary');
   });
 
   // INITIALIZATIONS.
