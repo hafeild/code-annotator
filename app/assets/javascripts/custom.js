@@ -59,9 +59,12 @@ var OCA = function($){
   // lid = Local ID; sid = Server ID
   var commentLidToSidMap = {};
   var commentLocLidToSidMap = {};
+  var commentLocLidToCommentLidMap = {};
   var curFileInfo;
   var commentLidCounter = 0;
   var locationIdCounter = 0;
+  var locationLidLastSelected = -1;
+  var locationIndexLastSelected = 0;
 
   // FUNCTIONS
 
@@ -148,6 +151,7 @@ var OCA = function($){
    */
   var highlightCommentLocations = function(commentLid){
     hideCommentLocationHighlights();
+    hideRemoveLocationButtons();  
     $('.comment_'+ commentLid).addClass('comment-location-highlight');
   };
 
@@ -195,13 +199,23 @@ var OCA = function($){
     for(i = 0; i < locations.length; i++){
       if(locations[i].file_id === undefined || 
           locations[i].file_id === curFileInfo.id){
+
+        // Attach a remove button to the selection.
+        var closeElm = $('<span>').attr('id', 'remove-'+ locations[i].lid).
+          addClass('location-removal-button').
+          html('<span class="glyphicon glyphicon-remove-circle"></span>');
+        $('#'+ locations[i].start_line +'_'+ locations[i].start_column).
+          append(closeElm);
+        console.log(locations[i]);
+
+
         highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
           ' comment_'+ commentElm.data('lid'), true);
 
         $('.comment_loc_'+ locations[i].lid).each(function(){
           var elm = $(this);
-          addToElmDataArray(elm, 'commentIds', commentElm.data('lid'));
-          addToElmDataArray(elm, 'locationIds', locations[i].lid);
+          addToElmDataArray(elm, 'commentLids', commentElm.data('lid'));
+          addToElmDataArray(elm, 'locationLids', locations[i].lid);
         });
       }
     }
@@ -339,6 +353,8 @@ var OCA = function($){
       if(locations[i].lid === undefined){
         locations[i].lid = locationIdCounter++;
       }
+
+      commentLocLidToCommentLidMap[locations[i].lid] = commentLid;
     }
 
     var firstLocation = getFirstLocation(locations, curFileInfo.id);
@@ -437,24 +453,28 @@ var OCA = function($){
    * the start and end information backwards from selections made from the
    * top/left to bottom/right.
    *
-   * @param {simple object} loc The location to normalize.
+   * @param {simple object} loc The location to normalize. This is modified
+   *                            in place.
    * @return The normalized location.
    */
   var normalizeLocation = function(loc){
-    var normLoc = {};
+    var unNormLoc = {
+      start_line: loc.start_line,
+      start_column: loc.start_column,
+      end_line: loc.end_line,
+      end_column: loc.end_column
+    };
+
     if(loc.start_line < loc.end_line || 
         (loc.start_line === loc.end_line && loc.start_column < loc.end_column)){
-      normLoc.start_line    = loc.start_line;
-      normLoc.start_column  = loc.start_column;
-      normLoc.end_line      = loc.end_line;
-      normLoc.end_column    = loc.end_column;
+
     } else {
-      normLoc.start_line   = loc.end_line;
-      normLoc.start_column = loc.end_column+1;
-      normLoc.end_line     = loc.start_line;
-      normLoc.end_column   = loc.start_column;
+      loc.start_line   = unNormLoc.end_line;
+      loc.start_column = unNormLoc.end_column+1;
+      loc.end_line     = unNormLoc.start_line;
+      loc.end_column   = unNormLoc.start_column;
     }
-    return normLoc;
+    return loc;
   };
 
   /**
@@ -471,7 +491,6 @@ var OCA = function($){
    *                      from the selected elements. Defaults to true.
    */
   var highlightSelection = function(loc, cssClass, add){
-    loc = normalizeLocation(loc);
     var i, j;
     cssClass = cssClass || 'selected';
     add = add === undefined ? true : add;
@@ -479,6 +498,7 @@ var OCA = function($){
       var start = (i === loc.start_line) ? loc.start_column : 1;
       var end = (i === loc.end_line) ? loc.end_column : 
         $('.content-line'+ i).size();
+
       for(j = start; j <= end; j++){
         if(add){
           $('#'+ i +'_'+ j).addClass(cssClass);
@@ -570,14 +590,14 @@ var OCA = function($){
       selection.anchorOffset);
     var endLocInfo = getSelectionOffsets(selection.extentNode, 
       selection.extentOffset);
-    return {
+    return normalizeLocation({
       lid:              locationIdCounter++,
       file_id:          curFileInfo.id,
       start_line:       startLocInfo.line,
       start_column:     startLocInfo.col, 
       end_line:         endLocInfo.line,
       end_column:       endLocInfo.col
-    };
+    });
   };
 
   /**
@@ -715,6 +735,7 @@ var OCA = function($){
 
         // Only highlight if this comment is for the current file.
         if(comments[i].locations[j].file_id === curFileInfo.id){
+          normalizeLocation(comments[i].locations[j]);
           highlightSelection(comments[i].locations[j]);
         }
       }
@@ -727,6 +748,13 @@ var OCA = function($){
 
 
   };
+
+  /**
+   * Hides all remove location buttons.
+   */
+  var hideRemoveLocationButtons = function(){
+    $('.location-removal-button.shown').removeClass('shown');
+  }
 
   // LISTENERS
 
@@ -787,10 +815,11 @@ var OCA = function($){
       $('#selection-menu .btn').removeClass('disabled');
       //hideHighlights();
       //highlightSelection(location);
-    } else {
+    } else if(!$(this).hasClass('comment-location-highlight')) {
       // hideHighlights();
       hideCommentLocationHighlights();
       $('#selection-menu .btn').addClass('disabled');
+      hideRemoveLocationButtons();
     }
   });
 
@@ -830,14 +859,45 @@ var OCA = function($){
 
   // Handles focusing on a comment when a comment location is clicked.
   $(document).on('click', '.selected', function(){
-    var commentIds = $(this).data('commentIds');
-    console.log(commentIds);
-    if(commentIds && commentIds.length > 0){
-      highlightCommentLocations(commentIds[0]);
-      // Find the comment, scroll to it, and focus on it.
-      var comment = $('#comment-'+ commentIds[0]);
+    var commentLocationElm = $(this);
+    var commentLids = commentLocationElm.data('commentLids');
+    var locationLids = commentLocationElm.data('locationLids');
+
+    // Find the comment, scroll to it, and focus on it.
+    // if(commentLids && commentLids.length > 0){
+    //   highlightCommentLocations(commentLids[0]);
+    //   var comment = $('#comment-'+ commentLids[0]);
+    //   $('#comments').scrollTop(comment[0].offsetTop);
+    //   comment.find('.comment-body ').focus();
+    // }
+
+    // Show the location-removal button.
+    if(locationLids && locationLids.length > 0){
+      var i = 0, commentLid;
+      if(
+          locationIndexLastSelected < locationLids.length &&
+          locationLids[locationIndexLastSelected] == locationLidLastSelected){
+        i = (locationIndexLastSelected + 1) % locationLids.length;
+      }
+
+      console.log(commentLocationElm.hasClass('comment-location-highlight'), 
+        i, locationIndexLastSelected, locationLidLastSelected, locationLids);
+
+      commentLid = commentLocLidToCommentLidMap[locationLids[i]];
+      highlightCommentLocations(commentLid);
+      var comment = $('#comment-'+ commentLid);
       $('#comments').scrollTop(comment[0].offsetTop);
       comment.find('.comment-body ').focus();
+
+      hideRemoveLocationButtons();
+      $('#remove-'+ locationLids[i]).addClass('shown');
+
+      locationIndexLastSelected = i;
+      locationLidLastSelected = locationLids[i];
+
+      console.log(commentLocationElm.hasClass('comment-location-highlight'),
+        i, locationIndexLastSelected, locationLidLastSelected, locationLids);
+
     }
   });
 

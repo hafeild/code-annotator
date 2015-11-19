@@ -388,6 +388,7 @@ input {
 
   .highlightable {
     display: inline-block;
+    position: relative;
   }
 
   .selected {
@@ -499,6 +500,23 @@ input {
     }
   }
 
+  .location-removal-button {
+    line-height: 1;
+    color: red;
+    background-color: rgba(255,255,255,.65);
+    padding: 0;
+    margin: 0;
+    font-size: 14pt;
+    position: absolute;
+    top: -3px;
+    left: -20px;
+    z-index: 100;
+    display: none;
+  }
+
+  .shown {
+    display: inline;
+  }
 
   .gutter {
     @include no_select;
