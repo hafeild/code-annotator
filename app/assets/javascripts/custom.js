@@ -2,7 +2,7 @@ var OCA = function($){
   // CONSTANTS / GLOBAL VARIABLES
   const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
   const FILES_API = '/api/files/';
-  const NEW_COMMENT_API = '/api/projects/'+ PROJECT_ID +'/comments';
+  const COMMENT_API = '/api/projects/'+ PROJECT_ID +'/comments';
   const KNOWN_FILE_EXTENSIONS = {
     as3:  'as3',
     sh:   'bash',
@@ -270,7 +270,7 @@ var OCA = function($){
     var commentElm = target.parents('.comment');
     var origContent = target.data('content');
     var newContent = target.html();
-    if(origContent === newContent){ return; }
+    if(origContent === newContent || target.hasClass('disabled')){ return; }
 
 
     target.addClass('comment-in-edit');
@@ -447,8 +447,8 @@ var OCA = function($){
    *                                            for this comment.
    */
   var saveComment = function(commentLid, content, locations){
-    console.log('URL: '+ NEW_COMMENT_API);
-    $.ajax(NEW_COMMENT_API, {
+    console.log('URL: '+ COMMENT_API);
+    $.ajax(COMMENT_API, {
       method: 'POST',
       data: {
         comment: {
@@ -777,8 +777,34 @@ var OCA = function($){
   /**
    *
    */
-  var loadProjectComments = function(){
+  var loadProjectComments = function(elm){
+    elm.html('');
+    $.ajax(COMMENT_API, {
+      method: 'GET',
+      success: function(data){
+        if(data.error){
+          displayError('There was an error retrieving the project comments: '+
+            data.error);
+          return;
+        }
 
+        var i;
+        for(i = 0; i < data.comments.length; i++){
+          var comment = $('#comment-template').clone().attr('id', '').
+            data('id', data.comments[i].id);
+          comment.find('.comment-owner').html(data.comments[i].creator_email);
+          comment.find('.comment-body').html(data.comments[i].content).
+            attr('contenteditable', false).addClass('disabled');
+          comment.find('.comment-delete').remove();
+          elm.append(comment);
+        }
+
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error retrieving the project comments. '+
+          error);
+      }
+    })
   };
 
   /**
@@ -925,6 +951,7 @@ var OCA = function($){
       console.log('Adding comment');
       createComment([location], '', true);
     } else if(e.target.id === 'add-to-comment'){
+      loadProjectComments($('#project-comments'))
       console.log('Adding to existing comment');
     } else if(e.target.id === 'add-alt-code'){
       console.log('Adding alternate code');

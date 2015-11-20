@@ -49,7 +49,8 @@
               Add comment
             </button>
             <button id="add-to-comment" type="button" 
-                class="btn btn-default btn-xs disabled">
+                class="btn btn-default btn-xs disabled"
+                data-toggle="modal" data-target="#project-comments-modal">
               <span class="glyphicon glyphicon-plus"></span>
               Add to comment
             </button>
@@ -74,6 +75,48 @@
           class="col-sm-4 col-sm-offset-8 col-md-3 col-md-offset-9"></div>
       </div>
     </div>
+
+<!--     <div id="project-comments-outer-container" class="project-comments">
+      <div id="project-comments-inner-container" class="center-center">
+
+        <a href="#" class="close" data-dismiss="project-comments" 
+          aria-label="close">&times;</a>
+
+        Please select a comment to add the current highlighted location to.
+
+        <div id="project-comment-lists">
+          <h2>Comments associated with the current file</h2>
+          <div id="current-file-comments" class="comment-list">
+          </div>
+
+          <h2>All comments associated with this project</h2>
+          <div id="all-project-comments" class="comment-list">
+          </div>
+        </div>
+
+      </div>
+    </div> -->
+
+    <div class="modal fade" id="project-comments-modal" tabindex="-1" 
+        role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+          </div>
+          <div class="modal-body">
+            All project comments.
+            <div id="project-comments">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 

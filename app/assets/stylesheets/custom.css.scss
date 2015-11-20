@@ -5,6 +5,7 @@
 /* mixins, variables, etc. */
 
 $gray-medium-light: #eaeaea;
+$header-height: 51px;
 
 @mixin box_sizing {
   -moz-box-sizing:    border-box;
@@ -40,6 +41,7 @@ $gray-medium-light: #eaeaea;
   -webkit-box-flex: 1;
   box-flex: 1;
 }
+
 
 
 /* universal */
@@ -369,7 +371,7 @@ input {
     /*position: absolute;*/
     /*overflow: hidden;*/
     position: fixed;
-    top: 51px;
+    top: $header-height;
     bottom: 0px;
     @include flex_box;
     @include box_orient_vertical;
@@ -526,6 +528,39 @@ input {
   .btn {
     outline: none;
   }
+
+
+  #project-comments-outer-container {
+    position: fixed;
+    top: $header-height;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: auto;
+    z-index: 10000;
+    background-color: rgba(255,255,255,0.7);
+  }
+
+  #project-comments-inner-container {
+    background-color: white;
+    border: 1px solid $brand-primary;
+    border-radius: 10px;
+    min-width: 300px;
+    width: 40%;
+    padding: 10px;
+    @include box_sizing;
+  }
+
+  #project-comment-lists {
+    max-height: 80%;
+  }
+}
+
+.center-center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /*
@@ -544,7 +579,7 @@ input {
 @media (min-width: 768px) {
   .sidebar {
     position: fixed;
-    top: 51px;
+    top: $header-height;
     bottom: 0;
     left: 0;
     z-index: 1000;
