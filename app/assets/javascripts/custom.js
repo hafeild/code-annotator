@@ -270,7 +270,9 @@ var OCA = function($){
     var commentElm = target.parents('.comment');
     var origContent = target.data('content');
     var newContent = target.html();
-    if(origContent === newContent || target.hasClass('disabled')){ return; }
+    if(origContent === newContent || target.parents('.disabled').size()>0){ 
+      return; 
+    }
 
 
     target.addClass('comment-in-edit');
@@ -791,10 +793,10 @@ var OCA = function($){
         var i;
         for(i = 0; i < data.comments.length; i++){
           var comment = $('#comment-template').clone().attr('id', '').
-            data('id', data.comments[i].id);
+            data('id', data.comments[i].id).addClass('disabled');
           comment.find('.comment-owner').html(data.comments[i].creator_email);
           comment.find('.comment-body').html(data.comments[i].content).
-            attr('contenteditable', false).addClass('disabled');
+            attr('contenteditable', false);
           comment.find('.comment-delete').remove();
           elm.append(comment);
         }
@@ -951,7 +953,7 @@ var OCA = function($){
       console.log('Adding comment');
       createComment([location], '', true);
     } else if(e.target.id === 'add-to-comment'){
-      loadProjectComments($('#project-comments'))
+      loadProjectComments($('#all-project-comments'))
       console.log('Adding to existing comment');
     } else if(e.target.id === 'add-alt-code'){
       console.log('Adding alternate code');
@@ -1020,11 +1022,13 @@ var OCA = function($){
 
   // Changes the style of comments when they have focus.
   $(document).on('focus', '.comment-body', function(){
+    if($(this).parents('.disabled')){ return; }
     $(this).parents('.comment').addClass('panel-primary');
   });
 
   // Changes the style of comments when they loose focus.
   $(document).on('blur', '.comment-body', function(){
+    if($(this).parents('.disabled')){ return; }
     $(this).parents('.comment').removeClass('panel-primary');
   });
 
