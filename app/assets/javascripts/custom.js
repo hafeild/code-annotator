@@ -148,6 +148,8 @@ var OCA = function($){
           if(removeComment || elm.data('locationLids').length === 0){
             removeFromDataArray(elm, 'commentLids', commentLid);
             elm.removeClass('comment_'+ commentLid);
+          }
+          if(elm.data('locationLids').length === 0){
             elm.removeClass('selected');
           }
         });
@@ -156,10 +158,12 @@ var OCA = function($){
         var comment = $('#comment-'+ commentLid),
             locations = comment.data('locations'),
             i;
-        for(i = 0; i < locations.length; i++){
-          if(locations[i].lid === locationLid){
-            locations.splice(i);
-            break;
+        if(locations){
+          for(i = 0; i < locations.length; i++){
+            if(locations[i].lid === locationLid){
+              locations.splice(i);
+              break;
+            }
           }
         }
       },
@@ -944,6 +948,10 @@ var OCA = function($){
 
   // Highlights comment locations when hovering over a comment.
   $(document).on('mouseover', '.comment', function(){
+    console.log('Hiding all highlights');
+    hideCommentLocationHighlights();
+    console.log('Highlighting only comment locations for comment '+
+      $(this).data('lid') );
     highlightCommentLocations($(this).data('lid'));
   });
 
