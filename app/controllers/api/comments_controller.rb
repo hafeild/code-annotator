@@ -63,7 +63,7 @@ class Api::CommentsController < ApplicationController
       return
     end
 
-    comment = Comment.create(comment_params(project.id))
+    comment = Comment.create(comment_params(project.id, current_user.id))
     if comment.valid? and comment.save
       render json: comment.id, serializer: SuccessWithIdSerializer
     else
@@ -115,9 +115,10 @@ class Api::CommentsController < ApplicationController
   private
 
     ## Defines valid comment parameters.
-    def comment_params(project_id=nil)
+    def comment_params(project_id=nil, created_by=nil)
       ps = params.require(:comment).permit(:content)
       ps[:project_id] = project_id
+      ps[:created_by] = created_by
       ps
     end
 

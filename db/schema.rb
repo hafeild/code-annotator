@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151111020125) do
+ActiveRecord::Schema.define(version: 20151120011649) do
 
   create_table "alternative_codes", force: :cascade do |t|
     t.text     "content"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 20151111020125) do
     t.integer  "end_column"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
+    t.integer  "created_by"
   end
 
   add_index "alternative_codes", ["project_file_id"], name: "index_alternative_codes_on_project_file_id"
@@ -45,6 +46,7 @@ ActiveRecord::Schema.define(version: 20151111020125) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer  "project_id"
+    t.integer  "created_by"
   end
 
   create_table "project_files", force: :cascade do |t|

@@ -84,7 +84,8 @@ projectCount.times do
   # cur_comment_id += 1
   comment = Comment.create!(
     content: "This needs to be indented.",
-    project_id: project.id
+    project_id: project.id,
+    created_by: users.shuffle.first.id
   )
 
   ## Files.
@@ -110,7 +111,8 @@ projectCount.times do
       start_line: 0,
       start_column: 0,
       end_line: 2,
-      end_column: 0
+      end_column: 0,
+      created_by: users.shuffle.first.id
     )
 
     CommentLocation.create!(

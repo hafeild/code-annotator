@@ -134,7 +134,7 @@ var OCA = function($){
             data.error);
           return;
         }
-        
+
         hideCommentLocationHighlights();
         $('#remove-'+ locationLid).remove();
 
@@ -152,6 +152,16 @@ var OCA = function($){
           }
         });
 
+        // Remove the comment location from the comment itself.
+        var comment = $('#comment-'+ commentLid),
+            locations = comment.data('locations'),
+            i;
+        for(i = 0; i < locations.length; i++){
+          if(locations[i].lid === locationLid){
+            locations.splice(i);
+            break;
+          }
+        }
       },
       error: function(xhr, status, error){
         displayError('There was an error removing the comment location. '+
@@ -366,42 +376,57 @@ var OCA = function($){
    * @param {string} content The comment content. Defaults to ''.
    * @param {boolean} isNew Whether the comment is new, and therefore needs to
    *                        be saved to the server.
+   * @param {simple object} serverComment The comment from the server, if 
+   *                                      available.
    * @return The comment that was created.
    */
-  var createComment = function(locations, content, isNew){
+  var createComment = function(locations, content, isNew, serverComment){
     content = content || '';
     var commentLid = commentLidCounter++;
 
-    // Add local ids to each of the locations.
-
+    // Add local ids to each of the locations if they don't already have one.
     var i;
     for(i = 0; i < locations.length; i++){
       if(locations[i].lid === undefined){
         locations[i].lid = locationIdCounter++;
       }
-
       commentLocLidToCommentLidMap[locations[i].lid] = commentLid;
     }
 
     var firstLocation = getFirstLocation(locations, curFileInfo.id);
     var comment = $('#comment-template').clone();
     comment.attr('id', 'comment-'+ commentLid);
-    comment.find('.comment-owner').html($('#current-email').html());
+
+    // Comments loaded from the server will include a creator_email. New
+    // comments should use the current user's email.
+    if(serverComment){
+      comment.find('.comment-owner').html(serverComment.creator_email);
+    } else {
+      comment.find('.comment-owner').html($('#current-email').html());
+    }
+
+    // So we know where the first comment location is.
     comment.data('start-line', firstLocation.start_line).
             data('start-column', firstLocation.start_column);
 
-    // Find the spot where this comment should be inserted.
+    // Insert the comment into the comment list.
     insertComment(comment, $('#comments'));
-    // $('#comments').append(comment);
+
+    // Store the comment locations.
     comment.data('locations', locations);
+
+    // Store the comment content so we know when it's changed; give focus to
+    // it so the user can edit straight away.
     var body = comment.find('.comment-body');
     body.html(content).data('content', content);
     body.focus();
 
+    // Set lid and mark all comment locations.
     comment.data('lid', commentLid);
     markCommentLocations(comment);
     highlightCommentLocations(commentLid);
 
+    // If new, we need to save the comment to the server.
     if(isNew){
       saveComment(commentLid, content, locations);
     }
@@ -616,7 +641,8 @@ var OCA = function($){
       selection.anchorOffset);
     var endLocInfo = getSelectionOffsets(selection.focusNode, 
       selection.focusOffset);
-    return normalizeLocation({
+
+    var location = normalizeLocation({
       lid:              locationIdCounter++,
       file_id:          curFileInfo.id,
       start_line:       startLocInfo.line,
@@ -624,6 +650,12 @@ var OCA = function($){
       end_line:         endLocInfo.line,
       end_column:       endLocInfo.col
     });
+
+    if(locationIsValid(location)){
+      return location;
+    }
+
+    return false;
   };
 
   /**
@@ -751,6 +783,7 @@ var OCA = function($){
    * @param {array of simple objects} comments The comments to add.
    */
   var loadFileComments = function(comments){
+    console.log(comments)
     var i, j;
     for(i = 0; i < comments.length; i++){
       //comments[i].lid = commentLidCounter++;
@@ -765,7 +798,8 @@ var OCA = function($){
           highlightSelection(comments[i].locations[j]);
         }
       }
-      var commentElm = createComment(comments[i].locations,comments[i].content);
+      var commentElm = createComment(
+        comments[i].locations, comments[i].content, false, comments[i]);
       commentLidToSidMap[commentElm.data('lid')] = comments[i].id;
       console.log('Comment lid: '+ commentElm.data('lid') +'; real id: '+
         commentLidToSidMap[commentElm.data('lid')]);
@@ -780,7 +814,19 @@ var OCA = function($){
    */
   var hideRemoveLocationButtons = function(){
     $('.location-removal-button.shown').removeClass('shown');
-  }
+  };
+
+  /**
+   * Checks if the given location is valid, that is, the starting and ending
+   * points are numbers greater than 0.
+   *
+   * @param {simple object} location The location to verify.
+   * @return True if the location is valid, false otherwise.
+   */
+  var locationIsValid = function(location){
+    return location.start_line > 0 && location.start_column > 0 &&
+        location.end_line > 0 && location.end_column > 0;
+  };
 
   // LISTENERS
 
@@ -834,15 +880,25 @@ var OCA = function($){
     toggleFileView();
   })
 
+  // $(document).on('mouseup', '#file-and-annotations', function(){
+  //   hideCommentLocationHighlights();
+  //   $('#selection-menu .btn').addClass('disabled');
+  //   hideRemoveLocationButtons();
+  // });
+
   // Listens for file content to be selected and then highlights it.
-  $(document).on('mouseup', '.code .container', function(){
+  // $(document).on('mouseup', '.code .container', function(){
+  $(document).on('mouseup', '#file-and-annotations', function(){
     var location = getSelectionLocation();
-    if(location){
+    console.log(location);
+    if(locationIsValid(location)){
+      console.log('Removing disabled...');
       $('#selection-menu .btn').removeClass('disabled');
       //hideHighlights();
       //highlightSelection(location);
     } else if(!$(this).hasClass('comment-location-highlight')) {
       // hideHighlights();
+      console.log('Adding disabled...');
       hideCommentLocationHighlights();
       $('#selection-menu .btn').addClass('disabled');
       hideRemoveLocationButtons();
@@ -856,6 +912,10 @@ var OCA = function($){
     }
 
     var location = getSelectionLocation();
+    if(!locationIsValid(location)){
+      return;
+    }
+
     highlightSelection(location);
     if(e.target.id === 'add-comment'){
       console.log('Adding comment');
@@ -892,14 +952,6 @@ var OCA = function($){
     var commentLocationElm = $(this);
     var commentLids = commentLocationElm.data('commentLids');
     var locationLids = commentLocationElm.data('locationLids');
-
-    // Find the comment, scroll to it, and focus on it.
-    // if(commentLids && commentLids.length > 0){
-    //   highlightCommentLocations(commentLids[0]);
-    //   var comment = $('#comment-'+ commentLids[0]);
-    //   $('#comments').scrollTop(comment[0].offsetTop);
-    //   comment.find('.comment-body ').focus();
-    // }
 
     // Show the location-removal button.
     if(locationLids && locationLids.length > 0){
