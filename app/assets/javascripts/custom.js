@@ -112,7 +112,7 @@ var OCA = function($){
   };
 
   /**
-   * Removes a comment location from the UI.
+   * Removes a comment location from the UI and the server.
    *
    * @param {string} commentLid The local id of the comment.
    * @param {string} locationLid The local id of the location to remove.
@@ -121,19 +121,43 @@ var OCA = function($){
    *                  corner cases).
    */
   var deleteCommentLocation = function(commentLid, locationLid, removeComment){
-    $('.comment_loc_'+ locationLid).each(function(){
-      var elm = $(this);
-      elm.removeClass('comment_loc_'+locationLid);
+    console.log('locationLid:', locationLid, 
+      'locationId:', commentLocLidToSidMap[locationLid]);
+    $.ajax('/api/comment_locations/'+ commentLocLidToSidMap[locationLid], {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error removing the comment location: '+
+            data.error);
+          return;
+        }
+        
+        hideCommentLocationHighlights();
+        $('#remove-'+ locationLid).remove();
 
-      removeFromDataArray(elm, 'locationLids', locationLid);
+        // hideHighlights();
+        $('.comment_loc_'+ locationLid).each(function(){
+          var elm = $(this);
+          elm.removeClass('comment_loc_'+locationLid);
 
-      if(removeComment || elm.data('locationLids').length === 0){
-        removeFromDataArray(elm, 'commentLids', commentLid);
-        elm.removeClass('comment_'+ commentLid);
-        elm.removeClass('selected');
+          removeFromDataArray(elm, 'locationLids', locationLid);
+
+          if(removeComment || elm.data('locationLids').length === 0){
+            removeFromDataArray(elm, 'commentLids', commentLid);
+            elm.removeClass('comment_'+ commentLid);
+            elm.removeClass('selected');
+          }
+        });
+
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing the comment location. '+
+          error);
       }
     });
-
   };
 
   /**
@@ -203,10 +227,12 @@ var OCA = function($){
         // Attach a remove button to the selection.
         var closeElm = $('<span>').attr('id', 'remove-'+ locations[i].lid).
           addClass('location-removal-button').
-          html('<span class="glyphicon glyphicon-remove-circle"></span>');
+          html('<span class="glyphicon glyphicon-remove-circle"></span>').
+          data('lid', locations[i].lid);
         $('#'+ locations[i].start_line +'_'+ locations[i].start_column).
           append(closeElm);
         console.log(locations[i]);
+
 
 
         highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
@@ -459,18 +485,16 @@ var OCA = function($){
    */
   var normalizeLocation = function(loc){
     var unNormLoc = {
-      start_line: loc.start_line,
+      start_line:   loc.start_line,
       start_column: loc.start_column,
-      end_line: loc.end_line,
-      end_column: loc.end_column
+      end_line:     loc.end_line,
+      end_column:   loc.end_column
     };
 
-    if(loc.start_line < loc.end_line || 
-        (loc.start_line === loc.end_line && loc.start_column < loc.end_column)){
-
-    } else {
+    if(loc.start_line > loc.end_line || 
+        (loc.start_line === loc.end_line && loc.start_column > loc.end_column)){
       loc.start_line   = unNormLoc.end_line;
-      loc.start_column = unNormLoc.end_column+1;
+      loc.start_column = unNormLoc.end_column;
       loc.end_line     = unNormLoc.start_line;
       loc.end_column   = unNormLoc.start_column;
     }
@@ -582,14 +606,16 @@ var OCA = function($){
   var getSelectionLocation = function(){
     var selection = window.getSelection();
 
+    console.log(selection);
+
     if(!selection || selection.isCollapsed){
       return false;
     }
 
     var startLocInfo = getSelectionOffsets(selection.anchorNode, 
       selection.anchorOffset);
-    var endLocInfo = getSelectionOffsets(selection.extentNode, 
-      selection.extentOffset);
+    var endLocInfo = getSelectionOffsets(selection.focusNode, 
+      selection.focusOffset);
     return normalizeLocation({
       lid:              locationIdCounter++,
       file_id:          curFileInfo.id,
@@ -825,6 +851,10 @@ var OCA = function($){
 
   // Handles clicks on comment editing buttons.
   $(document).on('click', '#selection-menu .btn', function(e){
+    if($(this).hasClass('disabled')){
+      return;
+    }
+
     var location = getSelectionLocation();
     highlightSelection(location);
     if(e.target.id === 'add-comment'){
@@ -911,7 +941,11 @@ var OCA = function($){
     $(this).parents('.comment').removeClass('panel-primary');
   });
 
-
+  // Listen for comment location removal buttons to be pressed.
+  $(document).on('click', '.location-removal-button', function(){
+    var lid = $(this).data('lid');
+    deleteCommentLocation(commentLocLidToCommentLidMap[lid], lid, false);
+  });
 
 
 
