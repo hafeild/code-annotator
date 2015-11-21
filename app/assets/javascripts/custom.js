@@ -801,6 +801,9 @@ var OCA = function($){
           elm.append(comment);
         }
 
+        elm.css({maxHeight: ($(window).height()-300)+'px'});
+        elm.parents('.modal').modal('handleUpdate');
+
       },
       error: function(xhr, status, error){
         displayError('There was an error retrieving the project comments. '+
@@ -977,6 +980,7 @@ var OCA = function($){
 
   // Highlights comment locations when hovering over a comment.
   $(document).on('mouseover', '.comment', function(){
+    if($(this).parents('.disabled')){ return; }
     console.log('Hiding all highlights');
     hideCommentLocationHighlights();
     console.log('Highlighting only comment locations for comment '+

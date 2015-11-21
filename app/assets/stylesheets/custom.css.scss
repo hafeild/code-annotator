@@ -529,6 +529,38 @@ input {
     outline: none;
   }
 
+/*  .modal {
+    height: 90%;
+  }
+*/
+
+  /*.modal-content {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }*/
+
+
+ /* .modal-body {
+    position: absolute;
+    top: 40px;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    min-height: 100px;
+    overflow-y: auto;
+  }*/
+
+/*  .modal-body {
+    max-height: 400px;
+    overflow: auto;
+  }*/
+
+  #all-project-comments {
+    overflow: auto;
+  }
 
   /*#project-comments-outer-container {
     position: fixed;
