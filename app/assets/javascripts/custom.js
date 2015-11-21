@@ -65,6 +65,7 @@ var OCA = function($){
   var locationIdCounter = 0;
   var locationLidLastSelected = -1;
   var locationIndexLastSelected = 0;
+  var locationToAddToComment;
 
   // FUNCTIONS
 
@@ -225,15 +226,14 @@ var OCA = function($){
   };
 
   /**
-   * Goes through all comment locations attached to a comment elm, finds the
-   * corresponding characters in the displayed code, and adds information to
-   * each character to link it to that location and the comment.
+   * Goes through the given comment locations, finds the corresponding
+   * characters in the displayed code, and adds information to each character to
+   * link it to that location and the comment.
    *
-   * @param {jQuery Elm} commentElm The comment elm whose locations should be
-   *                                marked.
+   * @param {int} commentLid The local id of the comment.
+   * @param {array of simple objects} locations The comment locations to mark.
    */
-  var markCommentLocations = function(commentElm){
-    var locations = commentElm.data('locations'), i;
+  var markCommentLocations = function(commentLid, locations){
     for(i = 0; i < locations.length; i++){
       if(locations[i].file_id === undefined || 
           locations[i].file_id === curFileInfo.id){
@@ -247,19 +247,16 @@ var OCA = function($){
           append(closeElm);
         console.log(locations[i]);
 
-
-
         highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
-          ' comment_'+ commentElm.data('lid'), true);
+          ' comment_'+ commentLid, true);
 
         $('.comment_loc_'+ locations[i].lid).each(function(){
           var elm = $(this);
-          addToElmDataArray(elm, 'commentLids', commentElm.data('lid'));
+          addToElmDataArray(elm, 'commentLids', commentLid);
           addToElmDataArray(elm, 'locationLids', locations[i].lid);
         });
       }
     }
-    
   };
 
   /**
@@ -270,7 +267,7 @@ var OCA = function($){
     var commentElm = target.parents('.comment');
     var origContent = target.data('content');
     var newContent = target.html();
-    if(origContent === newContent || target.parents('.disabled').size()>0){ 
+    if(origContent === newContent || target.parents('.disabled').length > 0){ 
       return; 
     }
 
@@ -360,9 +357,11 @@ var OCA = function($){
     var inserted = false;
     container.children().each(function(i, e){
       var child = $(this);
+      if(inserted || child === commentElm){ return; }
       if(child.data('start-line') > commentElm.data('start-line') ||
           (child.data('start-line') === commentElm.data('start-line') &&
             child.data('start-column') > commentElm.data('start-column'))){
+
         commentElm.insertBefore(child);
         inserted = true;
         return;
@@ -375,6 +374,55 @@ var OCA = function($){
       container.append(commentElm);
     }
   }
+
+  /**
+   * Adds a list of locations to the given comment.
+   *
+   * @param {int} commentLid The local id of the comment.
+   * @param {array of simple objects} locations The comment locations to add.
+   * @param {boolean} save Whether the comment locations should be saved to the
+   *                       server; default = false.
+   */
+  var addCommentLocationsToComment = function(commentLid, locations, save){
+    var commentElm = $('#comment-'+ commentLid),
+        startingLocationChanged = false, 
+        i,
+        origLocations;
+
+    // Add the new locations to the comment.
+    origLocations = commentElm.data('locations') || [];
+    commentElm.data('locations', origLocations.concat(locations));
+
+    for(i = 0; i < locations.length; i++){
+      var startLine = commentElm.data('start-line');
+      var startColumn = commentElm.data('start-column');
+      if(startLine === undefined || startLine > locations[i].start_line ||
+          (startLine === locations[i].start_line && 
+           startColumn > locations[i].start_column)){
+
+        // So we know where the first comment location is.
+        commentElm.data('start-line', locations[i].start_line).
+                data('start-column', locations[i].start_column);
+
+        startingLocationChanged = true;
+      }
+    }
+
+    // (Re-)Insert the comment into the comment list if the start-line/
+    // start-column changed.
+    if(startingLocationChanged){
+      insertComment(commentElm, $('#comments'));
+    }
+
+    // Highlight all the comments.
+    markCommentLocations(commentLid, locations);
+    highlightCommentLocations(commentLid);
+
+    // Save the locations to the server if requested.
+    if(save){
+      saveCommentLocations(commentLid, locations);
+    }
+  };
 
   /**
    * Creates a comment with the given locations.
@@ -399,9 +447,11 @@ var OCA = function($){
       commentLocLidToCommentLidMap[locations[i].lid] = commentLid;
     }
 
-    var firstLocation = getFirstLocation(locations, curFileInfo.id);
+    // var firstLocation = getFirstLocation(locations, curFileInfo.id);
+
     var comment = $('#comment-template').clone();
     comment.attr('id', 'comment-'+ commentLid);
+    comment.appendTo('#comments');
 
     // Comments loaded from the server will include a creator_email. New
     // comments should use the current user's email.
@@ -411,31 +461,29 @@ var OCA = function($){
       comment.find('.comment-owner').html($('#current-email').html());
     }
 
-    // So we know where the first comment location is.
-    comment.data('start-line', firstLocation.start_line).
-            data('start-column', firstLocation.start_column);
-
-    // Insert the comment into the comment list.
-    insertComment(comment, $('#comments'));
-
-    // Store the comment locations.
-    comment.data('locations', locations);
-
     // Store the comment content so we know when it's changed; give focus to
     // it so the user can edit straight away.
     var body = comment.find('.comment-body');
     body.html(content).data('content', content);
-    body.focus();
 
     // Set lid and mark all comment locations.
     comment.data('lid', commentLid);
-    markCommentLocations(comment);
-    highlightCommentLocations(commentLid);
+
+    // Add comment locations.
+    addCommentLocationsToComment(commentLid, locations, false);
 
     // If new, we need to save the comment to the server.
     if(isNew){
       saveComment(commentLid, content, locations);
     }
+
+    // Set the real id if the server comment is available.
+    if(serverComment){
+      commentLidToSidMap[commentLid] = serverComment.id;
+    }
+
+    // So this comment has the focus.
+    body.focus();
 
     return comment;
   };
@@ -464,33 +512,11 @@ var OCA = function($){
           console.log('ERROR saving comment:', data);
           return;
         }
-        // Save location.
+
         commentLidToSidMap[commentLid] = data.id;
-        var i;
-        for(i = 0; i < locations.length; i++){
-          console.log('locations[i]:', locations[i]);
-          $.ajax('/api/comments/'+ data.id +'/locations', {
-            method: 'POST',
-            data: {
-              comment_location: locations[i]
-            },
-            success: (function(index){ return function(data){
-              console.log('Heard back:', data);
-              if(data.error){
-                displayError('There was an error saving the location of your '+
-                  'comment: '+ data.error);
-                console.log('ERROR saving comment location:', data);
-                return;
-              }
-              commentLocLidToSidMap[locations[index].lid] = data.id;
-            }})(i),
-            error: function(xhr, status, error){
-              displayError('There was an error saving the location of your '+
-                'comment. '+ error);
-              console.log('ERROR:', error);
-            }
-          });
-        }
+
+        // Save location.
+        saveCommentLocations(commentLid, locations);
       },
       error: function(xhr, status, error){
         displayError('There was an error saving your comment. '+ error);
@@ -499,7 +525,43 @@ var OCA = function($){
     });
   }
 
-  // Hides all highlighted selections.
+  /**
+   * Saves a list of comment locations to the server.
+   *
+   * @param {int} commentLid The local id of the comment to which the locations
+   *                         belong.
+   * @param {array of simple objects} locations The locations to save.
+   */
+  var saveCommentLocations = function(commentLid, locations){
+    var i;
+    for(i = 0; i < locations.length; i++){
+      $.ajax('/api/comments/'+ commentLidToSidMap[commentLid] +'/locations', {
+        method: 'POST',
+        data: {
+          comment_location: locations[i]
+        },
+        success: (function(index){ return function(data){
+          console.log('Heard back:', data);
+          if(data.error){
+            displayError('There was an error saving the location of your '+
+              'comment: '+ data.error);
+            console.log('ERROR saving comment location:', data);
+            return;
+          }
+          commentLocLidToSidMap[locations[index].lid] = data.id;
+        }})(i),
+        error: function(xhr, status, error){
+          displayError('There was an error saving the location of your '+
+            'comment. '+ error);
+          console.log('ERROR:', error);
+        }
+      });
+    }
+  };
+
+  /**
+   * Hides all highlighted selections.
+   */
   var hideHighlights = function(){
     $('.code .selected').removeClass('selected');
   };
@@ -798,6 +860,7 @@ var OCA = function($){
           comment.find('.comment-body').html(data.comments[i].content).
             attr('contenteditable', false);
           comment.find('.comment-delete').remove();
+          comment.data('server-comment', data.comments[i]);
           elm.append(comment);
         }
 
@@ -835,13 +898,10 @@ var OCA = function($){
       }
       var commentElm = createComment(
         comments[i].locations, comments[i].content, false, comments[i]);
-      commentLidToSidMap[commentElm.data('lid')] = comments[i].id;
       console.log('Comment lid: '+ commentElm.data('lid') +'; real id: '+
         commentLidToSidMap[commentElm.data('lid')]);
       commentElm.find('.comment-body').blur();
     }
-
-
   };
 
   /**
@@ -862,6 +922,8 @@ var OCA = function($){
     return location.start_line > 0 && location.start_column > 0 &&
         location.end_line > 0 && location.end_column > 0;
   };
+
+
 
   // LISTENERS
 
@@ -923,7 +985,7 @@ var OCA = function($){
 
   // Listens for file content to be selected and then highlights it.
   // $(document).on('mouseup', '.code .container', function(){
-  $(document).on('mouseup', '#file-and-annotations', function(){
+  $(document).on('mouseup', '#file-display', function(){
     var location = getSelectionLocation();
     console.log(location);
     if(locationIsValid(location)){
@@ -957,6 +1019,7 @@ var OCA = function($){
       createComment([location], '', true);
     } else if(e.target.id === 'add-to-comment'){
       loadProjectComments($('#all-project-comments'))
+      locationToAddToComment = location;
       console.log('Adding to existing comment');
     } else if(e.target.id === 'add-alt-code'){
       console.log('Adding alternate code');
@@ -980,7 +1043,8 @@ var OCA = function($){
 
   // Highlights comment locations when hovering over a comment.
   $(document).on('mouseover', '.comment', function(){
-    if($(this).parents('.disabled')){ return; }
+    if($(this).parents('.disabled').length > 0){ return; }
+
     console.log('Hiding all highlights');
     hideCommentLocationHighlights();
     console.log('Highlighting only comment locations for comment '+
@@ -1026,13 +1090,13 @@ var OCA = function($){
 
   // Changes the style of comments when they have focus.
   $(document).on('focus', '.comment-body', function(){
-    if($(this).parents('.disabled')){ return; }
+    if($(this).parents('.disabled').length > 0){ return; }
     $(this).parents('.comment').addClass('panel-primary');
   });
 
   // Changes the style of comments when they loose focus.
   $(document).on('blur', '.comment-body', function(){
-    if($(this).parents('.disabled')){ return; }
+    if($(this).parents('.disabled').length > 0){ return; }
     $(this).parents('.comment').removeClass('panel-primary');
   });
 
@@ -1042,7 +1106,42 @@ var OCA = function($){
     deleteCommentLocation(commentLocLidToCommentLidMap[lid], lid, false);
   });
 
+  $(document).on('mouseover', '#project-comments-modal .comment', function(){
+    $(this).addClass('panel-primary');
+  });
 
+  $(document).on('mouseout', '#project-comments-modal .comment', function(){
+    $(this).removeClass('panel-primary');
+  });
+
+  $(document).on('click', '#project-comments-modal .comment', function(){
+    var tmpComment = $(this),
+        id = tmpComment.data('id'),
+        lid, tmpLid,
+        location = locationToAddToComment;
+
+    if(!locationIsValid(location)){ return; }
+
+    // Check if we're adding to a comment that already exists.
+    for(tmpLid in commentLidToSidMap){
+      if(commentLidToSidMap[tmpLid] === id){
+        lid = tmpLid;
+        break;
+      }
+    }
+
+    if(lid >= 0){
+      addCommentLocationsToComment(lid, [location], true);
+    } else {
+      var newComment = createComment([location], 
+        tmpComment.find('.comment-body').html(), false, 
+        tmpComment.data('server-comment'));
+      saveCommentLocations(newComment.data('lid'), [location]);
+    }
+
+    $('#project-comments-modal').modal('hide');
+    locationToAddToComment = undefined;
+  });
 
   // INITIALIZATIONS.
 

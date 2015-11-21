@@ -560,7 +560,13 @@ input {
 
   #all-project-comments {
     overflow: auto;
+
+    .comment {
+      cursor: pointer;
+    }
   }
+
+
 
   /*#project-comments-outer-container {
     position: fixed;
