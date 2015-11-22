@@ -62,7 +62,7 @@ var OCA = function($){
   var commentLocLidToCommentLidMap = {};
   var curFileInfo;
   var commentLidCounter = 0;
-  var locationIdCounter = 0;
+  var locationLidCounter = 0;
   var locationLidLastSelected = -1;
   var locationIndexLastSelected = 0;
   var locationToAddToComment;
@@ -87,13 +87,19 @@ var OCA = function($){
    */
   var deleteComment = function(commentLid){
     var locations = $('#comment-'+ commentLid).data('locations');
-    var i;
+    var i, commentId;
+
+    // incrementCommentCount(-1);
+
+
+    commentId = commentLidToSidMap[commentLid];
+    delete commentLidToSidMap[commentLid];
+
     for(i = 0; i < locations.length; i++){
       deleteCommentLocation(commentLid, locations[i].lid, true);
     }
-    console.log('commentLid: '+ commentLid +'; real id: '+
-      commentLidToSidMap[commentLid]);
-    $.ajax('/api/comments/'+ commentLidToSidMap[commentLid],{
+
+    $.ajax('/api/comments/'+ commentId,{
       method: 'POST',
       data: {
         _method: 'delete'
@@ -102,7 +108,7 @@ var OCA = function($){
         if(data.error){
           displayError('There was an error deleting the comment: '+ data.error);
           console.log('Response for deleting comment '+ 
-            commentLidToSidMap[commentLid] +':', data);
+            commentId +':', data);
         }
       },
       error: function(xhr, status, error){
@@ -158,15 +164,46 @@ var OCA = function($){
         // Remove the comment location from the comment itself.
         var comment = $('#comment-'+ commentLid),
             locations = comment.data('locations'),
-            i;
+            i, curLocaiton;
         if(locations){
           for(i = 0; i < locations.length; i++){
+            curLocation = locations[i];
             if(locations[i].lid === locationLid){
               locations.splice(i);
               break;
             }
           }
+
+          // Determine if we need to decrement comments.
+          if(getCommentLocationCountInCurrentFile(locations, 
+              curLocation.file_id) === 0){
+            incrementCommentCount(-1, curLocation.file_id);
+          }
+
         }
+
+        console.log('Locations', locations);
+        console.log('locations in current file: ',
+          getCommentLocationCountInCurrentFile(locations));
+
+        // Check if the comment needs to be removed because there are no more
+        // locations associated with it.
+        if(commentLidToSidMap[commentLid] !== undefined &&
+            locations && locations.length === 0){
+          console.log('Deleting comment');
+          deleteComment(commentLid);
+          comment.remove();
+
+        // Check if the comment needs to be removed from the list of file
+        // comments because there are no more locations in this file associated
+        // with it.
+        } else if(commentLidToSidMap[commentLid] !== undefined &&
+            locations && locations.length > 0 && 
+            getCommentLocationCountInCurrentFile(locations) === 0){
+          comment.remove();
+          delete commentLidToSidMap[commentLid];
+        }
+
       },
       error: function(xhr, status, error){
         displayError('There was an error removing the comment location. '+
@@ -174,6 +211,30 @@ var OCA = function($){
       }
     });
   };
+
+  /**
+   * Counts the number of locations for the given comment are associated with
+   * the currently displayed file.
+   *
+   * @param {array of simple objects} locations The list of locations to check.
+   * @param {int} fileId The id of the file to count locations in. Defaults to
+   *                     the current file id.
+   * @return The number of comment locations in the given file.
+   */
+  var getCommentLocationCountInCurrentFile = function(locations, fileId){
+    // var locations = $('#comment-'+ commentLid).data('locations') || [];
+    locations = locations || [];
+    var i, locationsInCurrentFile = 0;
+    fileId = fileId || curFileInfo.id;
+
+    for(i = 0; i < locations.length; i++){
+      if(locations[i].file_id === undefined || 
+          locations[i].file_id === fileId){
+        locationsInCurrentFile++;
+      }
+    }
+    return locationsInCurrentFile;
+  }
 
   /**
    * Hides all comment location highlights.
@@ -394,6 +455,8 @@ var OCA = function($){
     commentElm.data('locations', origLocations.concat(locations));
 
     for(i = 0; i < locations.length; i++){
+      commentLocLidToCommentLidMap[locations[i].lid] = commentLid;
+
       var startLine = commentElm.data('start-line');
       var startColumn = commentElm.data('start-column');
       if(startLine === undefined || startLine > locations[i].start_line ||
@@ -425,6 +488,22 @@ var OCA = function($){
   };
 
   /**
+   * Increments the comment count badge for the current file.
+   *
+   * @param {int} amount The amount to increment the comment count by. Defaults
+   *                     to 1; can be set to a negative number to decrement.
+   * @param {int} fileId The id of the file whose counter should be adjusted.
+   *                     Defaults to the current file id.
+   */
+  var incrementCommentCount = function(amount, fileId){
+      amount = (amount === undefined) ? 1 : amount;
+      fileId = (fileId === undefined) ? curFileInfo.id : fileId;
+      var commentCountElm = $('#file-'+ fileId).
+        find('.comment-count .badge');
+      commentCountElm.html(parseInt(commentCountElm.html())+amount);
+  };
+
+  /**
    * Creates a comment with the given locations.
    * @param {array of simple objects} locations A list of locations.
    * @param {string} content The comment content. Defaults to ''.
@@ -442,7 +521,7 @@ var OCA = function($){
     var i;
     for(i = 0; i < locations.length; i++){
       if(locations[i].lid === undefined){
-        locations[i].lid = locationIdCounter++;
+        locations[i].lid = locationLidCounter++;
       }
       commentLocLidToCommentLidMap[locations[i].lid] = commentLid;
     }
@@ -475,6 +554,7 @@ var OCA = function($){
     // If new, we need to save the comment to the server.
     if(isNew){
       saveComment(commentLid, content, locations);
+      incrementCommentCount();
     }
 
     // Set the real id if the server comment is available.
@@ -711,7 +791,7 @@ var OCA = function($){
       selection.focusOffset);
 
     var location = normalizeLocation({
-      lid:              locationIdCounter++,
+      lid:              locationLidCounter++,
       file_id:          curFileInfo.id,
       start_line:       startLocInfo.line,
       start_column:     startLocInfo.col, 
@@ -839,7 +919,10 @@ var OCA = function($){
   }
 
   /**
+   * Loads project comments from the server and includes them in the given
+   * element.
    *
+   * @param {jQuery element} elm The element to add the projects to.
    */
   var loadProjectComments = function(elm){
     elm.html('');
@@ -883,10 +966,16 @@ var OCA = function($){
   var loadFileComments = function(comments){
     console.log(comments)
     var i, j;
+    commentLocLidToCommentLidMap = {};
+    commentLidToSidMap = {};
+    commentLocLidToCommentLidMap = {}
+    commentLidCounter = 0;
+    locationLidCounter = 0;
+
     for(i = 0; i < comments.length; i++){
       //comments[i].lid = commentLidCounter++;
       for(j = 0; j < comments[i].locations.length; j++){
-        comments[i].locations[j].lid = locationIdCounter++;
+        comments[i].locations[j].lid = locationLidCounter++;
         commentLocLidToSidMap[comments[i].locations[j].lid] = 
           comments[i].locations[j].id;
 
@@ -1071,6 +1160,9 @@ var OCA = function($){
         i, locationIndexLastSelected, locationLidLastSelected, locationLids);
 
       commentLid = commentLocLidToCommentLidMap[locationLids[i]];
+      console.log('Comment lid: ', commentLid);
+      console.log('locationLids', locationLids);
+      console.log('commentLocLidToCommentLidMap', commentLocLidToCommentLidMap);
       highlightCommentLocations(commentLid);
       var comment = $('#comment-'+ commentLid);
       $('#comments').scrollTop(comment[0].offsetTop);
@@ -1120,6 +1212,8 @@ var OCA = function($){
         lid, tmpLid,
         location = locationToAddToComment;
 
+    console.log('locationToAddToComment', locationToAddToComment);
+
     if(!locationIsValid(location)){ return; }
 
     // Check if we're adding to a comment that already exists.
@@ -1132,14 +1226,19 @@ var OCA = function($){
 
     if(lid >= 0){
       addCommentLocationsToComment(lid, [location], true);
+
     } else {
-      var newComment = createComment([location], 
+      var newComment = createComment(
+        tmpComment.data('server-comment').locations.concat([location]), 
         tmpComment.find('.comment-body').html(), false, 
         tmpComment.data('server-comment'));
-      saveCommentLocations(newComment.data('lid'), [location]);
+      lid = newComment.data('lid');
+      saveCommentLocations(lid, [location]);
+      incrementCommentCount();
     }
 
     $('#project-comments-modal').modal('hide');
+    $('#comment-'+ lid).find('.comment-body').focus();
     locationToAddToComment = undefined;
   });
 

@@ -566,7 +566,20 @@ input {
     }
   }
 
+  .file-entry .count {
+    position: relative;
+    color: #ccc !important;
+    /*width: 30px;*/
+  }
 
+  .file-entry .badge {
+    font-size: 50%;
+    background: none;
+    position: absolute;
+    left: -5px;
+    top: 0px;
+    color: black;
+  }
 
   /*#project-comments-outer-container {
     position: fixed;
