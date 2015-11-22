@@ -50,6 +50,7 @@ class Project < ActiveRecord::Base
   has_many :users, through: :project_permissions
   has_many :project_permissions
   has_many :project_files
+  has_many :comments
 
   validates :created_by, presence: true
   validates :name, presence: true, length: {maximum: 255}

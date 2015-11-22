@@ -12,41 +12,145 @@
     </div>
 
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-      <div class="button-bar">
-        <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
-        <% if @projectPermission.can_author %>
-          <button type="button" class="btn btn-default"><span 
-            class="glyphicon glyphicon-cloud-upload"></span> 
-            Upload files
-          </button>
-        <% end %>
-        <button type="button" class="btn btn-default"><span 
-          class="glyphicon glyphicon-print"></span> 
-          Print files
-        </button>
-        <button type="button" class="btn btn-default"><span 
-          class="glyphicon glyphicon-cloud-download"></span> 
-          Download files
-        </button>
-        <% if @projectPermission.can_author %>
-          <button type="button" class="btn btn-default"><span 
-            class="glyphicon glyphicon-remove-circle"></span> 
-            Remove files
-          </button>
-          <button type="button" class="btn btn-default"><span 
-            class="glyphicon glyphicon-trash"></span> Delete project
-          </button>
-        <% end %>
+      <div id="project-view-header">
+        <div class="button-bar">
+          <span class="sidebar-toggle btn btn-default btn-xs"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
+          <div class="btn-group" role="group" aria-label="file operations">
+            <% if @projectPermission.can_author %>
+              <button type="button" class="btn btn-default btn-xs"><span 
+                class="glyphicon glyphicon-cloud-upload"></span> 
+                Upload files
+              </button>
+            <% end %>
+            <button type="button" class="btn btn-default btn-xs"><span 
+              class="glyphicon glyphicon-print"></span> 
+              Print files
+            </button>
+            <button type="button" class="btn btn-default btn-xs"><span 
+              class="glyphicon glyphicon-cloud-download"></span> 
+              Download files
+            </button>
+            <% if @projectPermission.can_author %>
+              <button type="button" class="btn btn-default btn-xs"><span 
+                class="glyphicon glyphicon-remove-circle"></span> 
+                Remove files
+              </button>
+              <button type="button" class="btn btn-default btn-xs"><span 
+                class="glyphicon glyphicon-trash"></span> Delete project
+              </button>
+            <% end %>
+          </div>
+          <% if @projectPermission.can_annotate %>
+          <div class="btn-group" id="selection-menu" role="group" 
+                aria-label="selections">
+            <button id="add-comment" type="button" 
+                class="btn btn-default btn-xs disabled">
+              <span class="glyphicon glyphicon-comment"></span>
+              Add comment
+            </button>
+            <button id="add-to-comment" type="button" 
+                class="btn btn-default btn-xs disabled"
+                data-toggle="modal" data-target="#project-comments-modal">
+              <span class="glyphicon glyphicon-plus"></span>
+              Add to comment
+            </button>
+            <button id="add-alt-code" type="button" 
+                class="btn btn-default btn-xs disabled">
+              <span class="glyphicon glyphicon-random"></span>
+              Add alternate code
+            </button>
+          </div>
+          <% end %>
+        </div>
+
+        <h2 class="page-header"></h2>
+
       </div>
 
+      <div id="file-and-annotations" class="row">
+        <div id="file-display" class="col-sm-8 col-md-9"
+          placeholder="Select a file to the left to have it displayed here."></div>
 
-      <h2 class="page-header"></h2>
-
-      <div id="file-display">
-
+        <div id="comments" placeholder="No comments yet." 
+          class="col-sm-4 col-sm-offset-8 col-md-3 col-md-offset-9"></div>
       </div>
-
-
     </div>
+
+<!--     <div id="project-comments-outer-container" class="project-comments">
+      <div id="project-comments-inner-container" class="center-center">
+
+        <a href="#" class="close" data-dismiss="project-comments" 
+          aria-label="close">&times;</a>
+
+        Please select a comment to add the current highlighted location to.
+
+        <div id="project-comment-lists">
+          <h2>Comments associated with the current file</h2>
+          <div id="current-file-comments" class="comment-list">
+          </div>
+
+          <h2>All comments associated with this project</h2>
+          <div id="all-project-comments" class="comment-list">
+          </div>
+        </div>
+
+      </div>
+    </div> -->
+
+    <div class="modal fade" id="project-comments-modal" tabindex="-1" 
+        role="dialog" aria-labelledby="project-comments">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="project-comments">Project Comments</h4>
+          </div>
+          <div class="modal-body">
+            <p>
+            Click a comment to add your selection to.
+            </p>
+
+            <div id="all-project-comments">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Templates. -->
+<div id="templates" class="hidden">
+
+  <!-- Comment template. -->
+  <div id="comment-template" class="panel panel-default comment">
+    <div class="panel-body comment-body" contenteditable="true"
+      placeholder="Enter your comment here..."></div>
+    <div class="panel-footer comment-footer">
+      <span class="comment-owner"></span> 
+
+      <% if @projectPermission.can_annotate %>
+      <span class="comment-delete"><span class="glyphicon glyphicon-trash"></span></span> 
+      <span class="comment-saved"><span class="glyphicon glyphicon-floppy-saved"></span></span>
+      <% end %>
+    </div>
+  </div>
+  <!-- Not a template, but is hidden data for use in templates. -->
+  <div id="current-email"><%= current_user.email %></div>
+
+  <!-- Error alert template. -->
+  <div id="alert-danger-template" class="alert alert-danger">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <span class="alert-message"></span>
+  </div>
+
+  <!-- Success alert template. -->
+  <div id="alert-success-template" class="alert alert-success">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <span class="alert-message"></span>
   </div>
 </div>

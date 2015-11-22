@@ -16,10 +16,18 @@
       </div>
     </div>
   <% else %>
-    <div class="entry file-entry">
+    <div class="entry file-entry" id="file-<%= file.project_file.id %>">
       <a href="#<%= file.project_file.id %>"
-        data-file-id="<%= file.project_file.id %>" class="file-entry"
+        data-file-id="<%= file.project_file.id %>"
         ><%= file.name %></a>
+      <span class="count comment-count">
+        <span class="glyphicon glyphicon-comment"></span>
+        <span class="badge"><%= file.project_file.comments.uniq.count %></span>
+      </span>
+      <span class="count altcode-count">
+        <span class="glyphicon glyphicon-random"></span>
+        <span class="badge"><%= file.project_file.alternative_codes.count %></span>
+      </span>
     </div>
   <% end %>
 </li>

@@ -5,7 +5,7 @@ pp1:
   user: foo
   can_author: true
   can_view: true
-  can_annotate: false
+  can_annotate: true
 
 pp2:
   project: p2

@@ -5,6 +5,7 @@
 /* mixins, variables, etc. */
 
 $gray-medium-light: #eaeaea;
+$header-height: 51px;
 
 @mixin box_sizing {
   -moz-box-sizing:    border-box;
@@ -20,10 +21,38 @@ $gray-medium-light: #eaeaea;
   user-select: none;
 }
 
+@mixin flex_box {
+  display: box;
+  display: -webkit-box;
+}
+
+@mixin box_orient_vertical {
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+}
+
+@mixin box_orient_horizontal {
+  -webkit-box-orient: horizontal;
+  box-orient: horizontal;
+}
+
+
+@mixin box_flex_1 {
+  -webkit-box-flex: 1;
+  box-flex: 1;
+}
+
+
+
 /* universal */
 
 body {
   padding-top: 60px;
+/*  position: fixed;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;*/
 }
 
 section {
@@ -291,14 +320,36 @@ input {
   .file {
 
   }
+
+  .sidebar {
+    /*width: auto;*/
+    overflow: auto;
+  }
+
   .entry, .directory {
     @include box_sizing;
     cursor: pointer;
     font-size: 12pt;
     @include no_select;
+    width: auto;
+    display: block;
   }
   .entry .directory {
     margin-left: 25px;
+  }
+
+  .entry {
+    padding-left: 3px;
+    padding-right: 3px;
+    width: auto;
+  }
+
+  .file-entry a.loaded {
+    background-color: $brand-primary;
+    color: white;
+    margin-left: -3px;
+    padding-left: 3px;
+    padding-right: 3px;
   }
 
   .collapsed {
@@ -315,6 +366,252 @@ input {
   .button-bar {
     margin-bottom: 5px;
   }
+
+  .main {
+    /*position: absolute;*/
+    /*overflow: hidden;*/
+    position: fixed;
+    top: $header-height;
+    bottom: 0px;
+    @include flex_box;
+    @include box_orient_vertical;
+  }
+
+  #project-view-header{
+/*    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;*/
+  }
+
+  .button-bar .btn-group {
+    display: inline-block !important;
+  }
+
+  .highlightable {
+    display: inline-block;
+    position: relative;
+  }
+
+  .selected {
+    background-color: #ffffc4 !important;
+  }
+
+  .comment-location-highlight {
+    background-color: #80ff00 !important;
+  }
+
+  .line-wrapper {
+    @include flex_box;
+    @include box_orient_horizontal;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .line-content {
+    /*display: inline-block;*/
+  }
+
+  .line-endcap {
+    /*width: 100% !important;*/
+    @include box_flex_1;
+    /*display: inline-block;*/
+  }
+
+  #selection-menu{
+  }
+
+  #file-and-annotations {
+    @include box_flex_1;
+    position: relative;
+    @include box_sizing;
+    margin: 0;
+    padding: 0;
+  }
+
+  #file-display {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+    @include box_sizing;
+  }
+
+  #comments {
+    border-left: 1px solid lightgray;
+    overflow-y: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    padding-top: 5px;
+    @include box_sizing;
+    padding-right: 20px;
+  }
+
+  .comment-body {
+    font-size: 10pt;
+    padding: 3px;
+    outline: none;
+  }
+
+  [placeholder]:empty:before {
+    content: attr(placeholder)  ;
+    color: gray;
+    font-style: italic; 
+  }
+
+  .comment-footer {
+    font-size: 8pt;
+    padding: 2px;
+    font-style: italic;
+  }
+
+  .comment .comment-delete {
+    display: none;
+  }
+  .comment:hover .comment-delete {
+    display: inline;
+  }
+
+  .comment-in-edit {
+    border-color: red;
+    color: red;
+  }
+
+  .comment-saved {
+    display: none;
+    color: green;
+  }
+
+  .comment-focused {
+    color: green;
+    border: 2px solid orange;
+  }
+
+  .comment-delete {
+    /*color: red;*/
+    cursor: pointer;
+
+    :hover {
+      color: red;
+    }
+
+    :active {
+      font-weight: bold;
+    }
+  }
+
+  .location-removal-button {
+    line-height: 1;
+    color: red;
+    background-color: rgba(255,255,255,.65);
+    padding: 0;
+    margin: 0;
+    /*font-size: 14pt;*/
+    font-size: 8pt;
+    position: absolute;
+    top: 0px;
+    left: -10px;
+    z-index: 100;
+    display: none;
+  }
+
+  .shown {
+    display: inline;
+  }
+
+  .gutter {
+    @include no_select;
+  }
+
+  .btn {
+    outline: none;
+  }
+
+/*  .modal {
+    height: 90%;
+  }
+*/
+
+  /*.modal-content {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }*/
+
+
+ /* .modal-body {
+    position: absolute;
+    top: 40px;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    min-height: 100px;
+    overflow-y: auto;
+  }*/
+
+/*  .modal-body {
+    max-height: 400px;
+    overflow: auto;
+  }*/
+
+  #all-project-comments {
+    overflow: auto;
+
+    .comment {
+      cursor: pointer;
+    }
+  }
+
+  .file-entry .count {
+    position: relative;
+    color: #ccc !important;
+    /*width: 30px;*/
+  }
+
+  .file-entry .badge {
+    font-size: 50%;
+    background: none;
+    position: absolute;
+    left: -5px;
+    top: 0px;
+    color: black;
+  }
+
+  /*#project-comments-outer-container {
+    position: fixed;
+    top: $header-height;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: auto;
+    z-index: 10000;
+    background-color: rgba(255,255,255,0.7);
+  }
+
+  #project-comments-inner-container {
+    background-color: white;
+    border: 1px solid $brand-primary;
+    border-radius: 10px;
+    min-width: 300px;
+    width: 40%;
+    padding: 10px;
+    @include box_sizing;
+  }
+
+  #project-comment-lists {
+    max-height: 80%;
+  }*/
+}
+
+.center-center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /*
@@ -333,16 +630,19 @@ input {
 @media (min-width: 768px) {
   .sidebar {
     position: fixed;
-    top: 51px;
+    top: $header-height;
     bottom: 0;
     left: 0;
     z-index: 1000;
     display: block;
-    padding: 20px;
+    padding: 10px;
+    padding-right: 5px;
     overflow-x: auto;
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+    overflow-y: auto;
     background-color: #f5f5f5;
     border-right: 1px solid #eee;
+    white-space: nowrap;
+    @include box_sizing;
   }
 
   .sidebar-collapse {
@@ -411,4 +711,14 @@ input {
   h1 { text-align: left;}
 }
 
-
+/* Alerts */
+#alerts {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  z-index: 100000;
+}
+.alert {
+  margin: 0;
+}

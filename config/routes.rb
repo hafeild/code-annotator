@@ -31,11 +31,18 @@ Rails.application.routes.draw do
     resources :permissions, only: [:show,:update,:destroy]
 
     ## Annotations (by project and files).
+    ## Comments.
     post  'projects/:project_id/comments'                => 'comments#create'
     get   'projects/:project_id/comments'                => 'comments#index'
     get   'projects/:project_id/files/:file_id/comments' => 'comments#index'
     resources :comments,    only: [:show,:update,:destroy]
 
+    ## Comment locations.
+    post    'comments/:comment_id/locations'              => 
+              'comment_locations#create'
+    resources :comment_locations, only: [:destroy]
+
+    ## Alternate code.
     post  'projects/:project_id/altcode'                => 'altcode#create'
     get   'projects/:project_id/altcode'                => 'altcode#index'
     get   'projects/:project_id/files/:file_id/altcode' => 'altcode#index'

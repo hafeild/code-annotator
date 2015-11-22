@@ -6,9 +6,17 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 
-users = (1..5).to_a
-projects = (1..50).to_a
-files = (1..20).to_a
+userCount = 5
+projectCount = 50
+fileCount = 20
+
+# users = (1..5).to_a
+# projects = (1..50).to_a
+# files = (1..20).to_a
+
+users = []
+projects = []
+files = []
 
 cur_file_id = 0
 cur_comment_id = 0
@@ -30,11 +38,12 @@ fileContents = [
 
 
 ## Create users.
-users.each do |uid|
+userCount.times do |uid|
+  uid += 1
   name  = Faker::Name.name
   email = "example-#{uid}@mail.com"
   password = "password"
-  User.create!(name:  name,
+  users << User.create!(name:  name,
                email: email,
                password:              password,
                password_confirmation: password,
@@ -42,10 +51,12 @@ users.each do |uid|
 end
 
 ## Projects.
-projects.each do |pid|
-  owner_id = users.shuffle.first
+# projects.each do |pid|
+projectCount.times do
+  owner = users.shuffle.first
   name = Faker::Company.catch_phrase
-  project = Project.create!(name: name, created_by: owner_id)
+  project = Project.create!(name: name, created_by: owner.id)
+  projects << project
 
   ## Preset directories. Files will be distributed across these.
   directories = [
@@ -64,44 +75,49 @@ projects.each do |pid|
         name: d, 
         content: "",
         size: 0,
-        added_by: owner_id,
-        project_id: pid,
+        added_by: owner.id,
+        project_id: project.id,
         is_directory: true)
     end
   end
 
-  cur_comment_id += 1
-  Comment.create!(
+  # cur_comment_id += 1
+  comment = Comment.create!(
     content: "This needs to be indented.",
+    project_id: project.id,
+    created_by: users.shuffle.first.id
   )
 
   ## Files.
-  files.each do |fid|
-    cur_file_id += 1
+  # files.each do |fid|
+  fileCount.times do |fid|
+    # cur_file_id += 1s
     dir = directories.shuffle.first
 
     file = fileContents.shuffle.first
-    ProjectFile.create!(name: "#{dir}file-#{fid}#{file[0]}", 
+    projectFile = ProjectFile.create!(name: "#{dir}file-#{fid}#{file[0]}", 
       content: file[1],
       size: 1000,
-      added_by: owner_id,
-      project_id: pid,
+      added_by: owner.id,
+      project_id: project.id,
       is_directory: false
     )
+    files << projectFile
 
     ## TODO -- add annotations to file.
     AlternativeCode.create!(
       content: "def div(a, b):\n\ta.to_f / b",
-      project_file_id: cur_file_id,
+      project_file_id: projectFile.id,
       start_line: 0,
       start_column: 0,
       end_line: 2,
-      end_column: 0
+      end_column: 0,
+      created_by: users.shuffle.first.id
     )
 
     CommentLocation.create!(
-      comment_id: cur_comment_id,
-      project_file_id: cur_file_id,
+      comment_id: comment.id,
+      project_file_id: projectFile.id,
       start_line: 2,
       start_column: 2,
       end_line: 2,
@@ -113,12 +129,12 @@ projects.each do |pid|
 
 
   ## Project permissions.
-  users.each do |uid|
+  users.each do |user|
     type_of_user = rand(10)
 
     can_author = can_view = can_annotate = true
 
-    if uid == owner_id
+    if user.id == owner.id
       can_author = can_view = can_annotate = true
     elsif type_of_user == 0
       can_author = can_view = can_annotate = true
@@ -133,7 +149,7 @@ projects.each do |pid|
     end
 
     if can_annotate or can_author or can_view
-      ProjectPermission.create!(project_id: pid, user_id: uid,
+      ProjectPermission.create!(project_id: project.id, user_id: user.id,
         can_author: can_author, can_view: can_view, can_annotate: can_annotate )
     end
   end

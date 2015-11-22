@@ -29,11 +29,18 @@ class ApplicationController < ActionController::Base
     class JSONError
       attr_accessor :error
 
-      def initialize(error="Resource not available.")
+      def initialize(error=nil)
+        error = error.nil? ? "Resource not available." : error
         @error = error
       end
     end
 
+    ## Displays a JSON error.
+    ## @param message (OPTIONAL) The message to display. The default JSONError
+    ##                message is displayed if omitted.
+    def render_error(message=nil)
+      render json: JSONError.new(message), serializer: ErrorSerializer
+    end
 
     ## Determines if the current user has the specified permissions to the 
     ## given project. 
@@ -50,5 +57,35 @@ class ApplicationController < ActionController::Base
       ## Check if the user's permissions include the ones requested.
       checked = permissions.select{|p| project_permissions[p]}
       checked.size == permissions.size
+    end
+
+    ## Deletes a comment and all of its locations. This will raise exceptions
+    ## and can be used within a transaction.
+    ## @param comment A Comment instance.
+    def delete_comment(comment)
+      ## Delete all comment locations.
+      comment.comment_locations.each do |comment_location|
+        delete_comment_location(comment_location)
+      end
+      comment.destroy!
+    end
+
+    ## Deletes a comment location. This will raise exceptions and can be used
+    ## within a transaction.
+    ## @param comment_location A CommentLocation instance.
+    def delete_comment_location(comment_location)
+      comment_location.destroy!
+    end
+
+    ## Checks if every key in a list of keys is present in the given hash.
+    ## @param hash The hash map to consider.
+    ## @param keys The list of keys to check.
+    def has_keys?(hash, keys)
+      keys.each do |key|
+        unless hash.key?(key)
+          return false
+        end
+      end
+      true
     end
 end
