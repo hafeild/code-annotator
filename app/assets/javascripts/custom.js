@@ -1242,6 +1242,15 @@ var OCA = function($){
     locationToAddToComment = undefined;
   });
 
+  $(document).on('change', '#project_file_files', function(){
+    console.log('Changed!');
+    $('#file-upload-submit').attr('disabled', false);
+  });
+
+  $(document).on('click', '#file-upload-submit', function(){
+    $('#upload-files form').submit();
+  });
+
   // INITIALIZATIONS.
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){
