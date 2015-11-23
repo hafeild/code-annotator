@@ -6,11 +6,11 @@ class Api::FilesControllerTest < ActionController::TestCase
     @user = users(:foo)
   end
 
-  test "should return success message on create" do
-    log_in_as @user
-    response = post :create, project_id: 1, file: {}
-    assert JSON.parse(response.body)['success']
-  end
+  # test "should return success message on create" do
+  #   log_in_as @user
+  #   response = post :create, project_id: 1, file: {}
+  #   assert JSON.parse(response.body)['success']
+  # end
 
   test "should return success message on index" do
     log_in_as @user

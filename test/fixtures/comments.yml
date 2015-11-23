@@ -3,7 +3,9 @@
 comment1:
   content: "Indent more!"
   project: p1
+  creator: foo
 
 comment2:
   content: "This should go down two lines."
   project: p2
+  creator: bar

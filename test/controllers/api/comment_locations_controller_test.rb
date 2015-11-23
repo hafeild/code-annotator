@@ -13,7 +13,7 @@ class Api::CommentLocationsControllerTest < ActionController::TestCase
     comment = comments(:comment1)
     assert_no_difference 'CommentLocation.count', "CommentLocation added." do 
       response = post :create, comment_id: comment.id, comment_location: {
-        project_file_id: project_files(:file2).id,
+        file_id: project_files(:file2).id,
         start_line: 3,
         start_column: 0,
         end_line: 4,
@@ -42,7 +42,7 @@ class Api::CommentLocationsControllerTest < ActionController::TestCase
     file = project_files(:file1)
     assert_difference 'CommentLocation.count', 1, "No CommentLocation added." do 
       response = post :create, comment_id: comment.id, comment_location: {
-        project_file_id: file.id,
+        file_id: file.id,
         start_line: 3,
         start_column: 0,
         end_line: 4,

@@ -4,18 +4,19 @@ class FilesController < ApplicationController
   MAX_PROJECT_SIZE_BYTES = 1024*1024 # 1MB
   MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024
 
-  ## Log a user in.
+
   def create
     project = Project.find_by(id: params[:project_id])
     file = nil;
 
 
     ## Make sure the user has permissions to edit this project.
-    if project and user_can_access_project(project.id, [:can_view])
+    if project and user_can_access_project(project.id, [:can_author])
 
       if params[:project_file][:files].size == 0
         flash.now[:danger] = "No files uploaded."
-        redirect_to "/projects/#{project.id}", flash: {danger: flash.now[:danger]}
+        redirect_to "/projects/#{project.id}", 
+          flash: {danger: flash.now[:danger]}
         return
       end
 
@@ -26,6 +27,15 @@ class FilesController < ApplicationController
 
         params[:project_file][:files].each do |file_io|
 
+          project_size += file_io.size
+          if project_size > MAX_PROJECT_SIZE_BYTES
+            flash.now[:danger] = "Error: couldn't save files -- Project size "+
+              "exceeded #{MAX_PROJECT_SIZE_MB} MB."
+            raise ActiveRecord::Rollback, 
+              "Couldn't save file -- project size exceeded "+
+              "#{MAX_PROJECT_SIZE_BYTES} bytes."
+          end
+
           begin
             tmp_file = create_file(file_io, project.id)
           rescue 
@@ -33,14 +43,8 @@ class FilesController < ApplicationController
             raise ActiveRecord::Rollback, "Bad file type."
           end
 
-          project_size += tmp_file.size
-          if project_size > MAX_PROJECT_SIZE_BYTES
-            flash.now[:danger] = "Error: couldn't save files -- Project size "+
-              "exceeded #{MAX_PROJECT_SIZE_MB} MB."
-            raise ActiveRecord::Rollback, 
-              "Couldn't save file -- project size exceeded "+
-              "#{MAX_PROJECT_SIZE_BYTES} bytes."
-          elsif not tmp_file.save
+          
+          if not tmp_file.save
             flash.now[:danger] = "Error: couldn't save files."
             raise ActiveRecord::Rollback, "Couldn't save file!"
           end
@@ -50,13 +54,19 @@ class FilesController < ApplicationController
       end
 
       if file.nil?
-        redirect_to "/projects/#{project.id}", flash: {danger: flash.now[:danger]}
+        redirect_url = "/projects/#{project.id}"
       else
-        redirect_to "/projects/#{project.id}##{file.id}", flash: {danger: flash.now[:danger]}
+        redirect_url = "/projects/#{project.id}##{file.id}"
+      end
+
+      if flash.now[:danger].nil?
+        redirect_to redirect_url
+      else 
+        redirect_to redirect_url, flash: {danger: flash.now[:danger]}
       end
     else
       flash.now[:danger] = "Couldn't access project #{project.id}."
-      redirect_to :root_path, flash: {danger: flash.now[:danger]}
+      redirect_to root_path, flash: {danger: flash.now[:danger]}
     end
   end
 
@@ -82,7 +92,7 @@ class FilesController < ApplicationController
       total_bytes
     end
 
-    def get_file_size(file_content)
-      file_content.size * 8
+    def get_file_size(io)
+      io.size * 8
     end
 end
