@@ -7,6 +7,7 @@ altcode1:
   start_column: 1
   end_line: 10
   end_column: 80
+  creator: foo
 
 altcode2:
   content: "// What?"
@@ -15,3 +16,4 @@ altcode2:
   start_column: 1
   end_line: 5
   end_column: 5
+  creator: bar

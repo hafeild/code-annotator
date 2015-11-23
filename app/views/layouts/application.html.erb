@@ -14,7 +14,12 @@
   <div class="main-view-container">
     <div id="alerts">
       <% flash.each do |message_type, message| %>
-        <div class="alert alert-<%= message_type %>"><%= message %></div>
+        <% if message %>
+        <div class="alert alert-<%= message_type %>">
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+          <%= message %>
+        </div>
+        <% end %>
       <% end %>
     </div>
     <%= yield %>

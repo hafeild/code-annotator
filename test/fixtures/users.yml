@@ -14,6 +14,6 @@ bar:
   email: bar@gmail.com
   password_digest:  <%= User.digest('password') %>
   activation_digest:
-  activated: false
+  activated: true
   activated_at: 2015-11-02 16:00:00
   remember_digest:

@@ -3,6 +3,8 @@ var OCA = function($){
   const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
   const FILES_API = '/api/files/';
   const COMMENT_API = '/api/projects/'+ PROJECT_ID +'/comments';
+  const MAX_PROJECT_SIZE_BYTES = 1024*1024; // 1MB.
+  const MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024;
   const KNOWN_FILE_EXTENSIONS = {
     as3:  'as3',
     sh:   'bash',
@@ -1013,6 +1015,13 @@ var OCA = function($){
   };
 
 
+  var getFileSizes = function(files){
+    var i, totalSize = 0;
+    for(i = 0; i < files.length; i++){
+      totalSize += files[i].size;
+    }
+    return totalSize;
+  }
 
   // LISTENERS
 
@@ -1240,6 +1249,27 @@ var OCA = function($){
     $('#project-comments-modal').modal('hide');
     $('#comment-'+ lid).find('.comment-body').focus();
     locationToAddToComment = undefined;
+  });
+
+  $(document).on('change', '#project_file_files', function(){
+    console.log('Changed!');
+    console.log(this.files);
+    
+    var uploadSize = getFileSizes(this.files);
+    if(this.files.length > 0 && uploadSize <= MAX_PROJECT_SIZE_BYTES){
+      $('#file-upload-submit').attr('disabled', false);
+    } else {
+      if(uploadSize > MAX_PROJECT_SIZE_BYTES){
+        alert('Upload file size too large! Uploads must be less than '+
+          MAX_PROJECT_SIZE_MB +'MB and not exceed the project limit (also '+
+          MAX_PROJECT_SIZE_MB + 'MB).');
+      }
+      $('#file-upload-submit').attr('disabled', true);
+    }
+  });
+
+  $(document).on('click', '#file-upload-submit', function(){
+    $('#upload-files form').submit();
   });
 
   // INITIALIZATIONS.

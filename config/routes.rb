@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :users,         only: [:create,:update,:edit,:destroy]
   resources :projects,      only: [:index,:show]
   resources :account_activations, only: [:edit]
+  post  'projects/:project_id/files'    => 'files#create'
 
   ## For the JSON api.
   namespace :api do
@@ -22,7 +23,6 @@ Rails.application.routes.draw do
     get   'projects/:project_id/files'    => 'files#index'
     get   'projects/:project_id/download' => 'files#download'
     get   'projects/:project_id/print'    => 'files#print'
-    post  'projects/:project_id/files'    => 'files#create'
     resources :files,       only: [:show,:update,:destroy]
 
     ## Permissions (by project).
