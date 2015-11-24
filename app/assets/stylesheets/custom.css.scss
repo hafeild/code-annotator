@@ -313,7 +313,19 @@ input {
   li {
 
   }
+/*  td.trash {
+    text-align: center;
+    :hover {
+      color: red
+    }
+  }*/
 
+  td.trash {
+    text-align: center;
+  }
+  td.trash:hover {
+    color: red;
+  }
 }
 
 .project-view {

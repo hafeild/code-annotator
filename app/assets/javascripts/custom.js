@@ -1031,7 +1031,7 @@ var OCA = function($){
   // the project listing -- the td with the trash can does not cause the row's
   // href to be loaded.
   $(document).on('click', '.clickable-row', function(event) {
-    if(event.target.tagName === 'TD'){
+    if(event.target.tagName === 'TD' && !$(event.target).hasClass('trash')){
       window.document.location = $(this).data('href');
     }
   });
@@ -1272,6 +1272,7 @@ var OCA = function($){
     }
   });
 
+  // Listen for files to be submitted.
   $(document).on('click', '#file-upload-submit', function(){
     $('#upload-files form').submit();
   });
@@ -1323,9 +1324,40 @@ var OCA = function($){
   });
 
   // After sorting, be sure that the new project form row is at the top.
-  $('.authored-projects')[0].addEventListener('Sortable.sorted', function(){
-    console.log('Table sorted!');
-    $('#add-project-row').prependTo($(this).find('tbody'));
+  if($('.authored-projects').length > 0){
+    $('.authored-projects')[0].addEventListener('Sortable.sorted', function(){
+      $('#add-project-row').prependTo($(this).find('tbody'));
+    });
+  }
+  
+  // Listen for projects to be deleted.
+  $(document).on('click', '.project-trash', function(e){
+    var entryElm = $(this).parents('.project');
+    var projectId = entryElm.attr('id');
+
+    console.log('Trash can for project '+ projectId +' clicked; now removing...');
+
+    $.ajax('/api/projects/'+ projectId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        console.log('Heard back from the server: ', data);
+        if(data.error){
+          displayError('There was an error removing this project: '+data.error);
+          return;
+        }
+
+        // Remove the project from the list.
+        entryElm.remove();
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing this project. '+ error);
+      }
+    });
+
+    e.preventDefault();
   });
 
   // INITIALIZATIONS.
