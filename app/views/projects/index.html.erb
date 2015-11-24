@@ -2,6 +2,8 @@
 <div id="projects-page" class="container">
   <h1>Projects</h1>
 
+
+
   <div class="row">
 
     <% [[@authoredProjects, "My Projects"], 
@@ -14,15 +16,35 @@
         </div>
         <div class="panel-body">
           <div class="list-group">
-              <% if data[0].empty? %>
+              <% if data[0].empty? and data[0] != @authoredProjects %>
                 <em>No projects.</em>
-
               <% else %>
-                <table class="table table-hover sortable-theme-bootstrap" data-sortable>
+                <table class="table table-hover sortable-theme-bootstrap 
+                    <%= "authored-projects" if data[0] == @authoredProjects %>" 
+                    data-sortable>
                   <thead>
                     <th>Name</th><th>Creator</th><th>Created on</th><th></th>
                   </thead>
                   <tbody>
+                    <% if data[0] == @authoredProjects %>
+                    <tr id="add-project-row">
+                      <td colspan="4">
+                        <form id="add-project-form">
+                          <div class="input-group" style="width: 100%">
+                            <span class="input-group-btn">
+                              <button id="add-project-btn" 
+                                class="btn btn-primary" type="submit"><span 
+                                  class="glyphicon glyphicon-plus"></span
+                              ></button>
+                            </span>
+                            <input type="text" id="new-project-name" 
+                              class="form-control" 
+                              placeholder="Enter a new project name...">
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                    <% end %>
                     <%= render data[0] %>
                   </tbody>
                 </table>
@@ -34,5 +56,21 @@
     <% end %>
 
   </div>
+</div>
+
+<div class="hidden">
+  <table>
+  <tr id="entry-template" class="clickable-row project" data-href="" 
+      class="project-main">
+    <td class="name"></td>
+    <td class="email"></td> 
+    <td class="date"></td> 
+    <td>
+      <a href="#" class="trash project-trash">
+        <span class="glyphicon glyphicon-trash"></span>
+      </a>
+    </td>
+  </tr>  
+  </table>
 </div>
 

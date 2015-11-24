@@ -1030,7 +1030,7 @@ var OCA = function($){
   // clicked (not a child element) to trigger the page load. For example, see
   // the project listing -- the td with the trash can does not cause the row's
   // href to be loaded.
-  $('.clickable-row').click(function(event) {
+  $(document).on('click', '.clickable-row', function(event) {
     if(event.target.tagName === 'TD'){
       window.document.location = $(this).data('href');
     }
@@ -1100,18 +1100,22 @@ var OCA = function($){
     }
   });
 
+  // Handles clicks on file operation buttons.
+  $(document).on('click', '#file-ops .btn', function(e){
+    if($(this).hasClass('disabled')){ return; }
+
+    // ....
+
+  });
+
   // Handles clicks on comment editing buttons.
   $(document).on('click', '#selection-menu .btn', function(e){
-    if($(this).hasClass('disabled')){
-      return;
-    }
+    if($(this).hasClass('disabled')){ return; }
 
     var location = getSelectionLocation();
-    if(!locationIsValid(location)){
-      return;
-    }
-
+    if(!locationIsValid(location)){ return; }
     highlightSelection(location);
+
     if(e.target.id === 'add-comment'){
       console.log('Adding comment');
       createComment([location], '', true);
@@ -1272,13 +1276,66 @@ var OCA = function($){
     $('#upload-files form').submit();
   });
 
+
+  // Listen for clicks on the 'add project' button.
+  // $(document).on('click', '#add-project', function(){
+  $(document).on('submit', '#add-project-form', function(e){
+    var elm = $(this), newProjectInput = $('#new-project-name');
+
+    // Verify the user entered a project name.
+    if(newProjectInput.val().length == 0){ return; }
+
+    var projectName = newProjectInput.val();
+
+    // Create project and add an entry once we've heard back from
+    // the server.
+    $.ajax('/api/projects', {
+      method: 'POST',
+      data: {
+        project: {name: projectName}
+      },
+      success: function(data){
+        console.log('Heard back: ', data);
+        if(data.error){
+          displayError('There was an error creating the new project: '+ 
+            data.error);
+          return;
+        }
+
+        // Add project to the list.
+        var newEntry = $('#entry-template').clone();
+        newEntry.attr('id', data.id);
+        newEntry.attr('data-href', 
+          window.location.origin +'/projects/'+ data.id);
+        newEntry.find('.name').html(projectName);
+        newEntry.find('.date').html(data.created_on);
+        newEntry.find('.email').html(data.creator_email);
+
+        console.log("inserting", newEntry, "after", elm.parents('tr'));
+        newEntry.insertAfter(elm.parents('tr'));
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error creating the new project. '+ error);
+      }
+    });
+    
+    e.preventDefault();
+  });
+
+  // After sorting, be sure that the new project form row is at the top.
+  $('.authored-projects')[0].addEventListener('Sortable.sorted', function(){
+    console.log('Table sorted!');
+    $('#add-project-row').prependTo($(this).find('tbody'));
+  });
+
   // INITIALIZATIONS.
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){
     // loadProjectComments();
   }
 
-
+  // Make tables labeled as sortable, sortable.
+  Sortable.init();
   SyntaxHighlighter.defaults['toolbar'] = false;
   SyntaxHighlighter.defaults['quick-code'] = false;
 

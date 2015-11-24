@@ -20,6 +20,7 @@ class ProjectsTest < ActionDispatch::IntegrationTest
     ## Make sure the user is authorized to view all the projects listed.
     assert_select ".project" do |elements|
       elements.each do |p|
+        next if p.attr('id') == 'entry-template'
         id = p.attr('id').to_i
         assert expectedProjects.member?(id), 
           "Unauthorized project: #{id}; valid ids: #{expectedProjects.to_json}."
