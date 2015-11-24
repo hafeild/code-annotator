@@ -19,14 +19,15 @@
               <% if data[0].empty? and data[0] != @authoredProjects %>
                 <em>No projects.</em>
               <% else %>
-                <table class="table table-hover sortable-theme-bootstrap" 
+                <table class="table table-hover sortable-theme-bootstrap 
+                    <%= "authored-projects" if data[0] == @authoredProjects %>" 
                     data-sortable>
                   <thead>
                     <th>Name</th><th>Creator</th><th>Created on</th><th></th>
                   </thead>
                   <tbody>
                     <% if data[0] == @authoredProjects %>
-                    <tr>
+                    <tr id="add-project-row">
                       <td colspan="4">
                         <form id="add-project-form">
                           <div class="input-group" style="width: 100%">

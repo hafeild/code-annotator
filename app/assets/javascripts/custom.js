@@ -1322,13 +1322,20 @@ var OCA = function($){
     e.preventDefault();
   });
 
+  // After sorting, be sure that the new project form row is at the top.
+  $('.authored-projects')[0].addEventListener('Sortable.sorted', function(){
+    console.log('Table sorted!');
+    $('#add-project-row').prependTo($(this).find('tbody'));
+  });
+
   // INITIALIZATIONS.
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){
     // loadProjectComments();
   }
 
-
+  // Make tables labeled as sortable, sortable.
+  Sortable.init();
   SyntaxHighlighter.defaults['toolbar'] = false;
   SyntaxHighlighter.defaults['quick-code'] = false;
 
