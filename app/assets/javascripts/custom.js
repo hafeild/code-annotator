@@ -83,6 +83,34 @@ var OCA = function($){
   }
 
   /**
+   * Removes a project from the server.
+   *
+   * @param {int} projectId The id of the project to remove.
+   * @param {function} onSuccess A function to call after successfully removing
+   *                             the project.
+   */
+  var deleteProject = function(projectId, onSuccess){
+    $.ajax('/api/projects/'+ projectId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        console.log('Heard back from the server: ', data);
+        if(data.error){
+          displayError('There was an error removing this project: '+data.error);
+          return;
+        }
+
+        onSuccess(data);
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing this project. '+ error);
+      }
+    });
+  };
+
+  /**
    * Deletes a comment from the UI and the server.
    *
    * @param {string} commentLid The local id of the comment to remove.
@@ -1104,7 +1132,12 @@ var OCA = function($){
   $(document).on('click', '#file-ops .btn', function(e){
     if($(this).hasClass('disabled')){ return; }
 
-    // ....
+    if(e.target.id === 'delete-project'){
+        // Remove the project.
+        deleteProject(PROJECT_ID, function(data){
+          window.document.location = '/projects';
+        });
+    }
 
   });
 
@@ -1329,7 +1362,7 @@ var OCA = function($){
       $('#add-project-row').prependTo($(this).find('tbody'));
     });
   }
-  
+
   // Listen for projects to be deleted.
   $(document).on('click', '.project-trash', function(e){
     var entryElm = $(this).parents('.project');
@@ -1337,24 +1370,10 @@ var OCA = function($){
 
     console.log('Trash can for project '+ projectId +' clicked; now removing...');
 
-    $.ajax('/api/projects/'+ projectId, {
-      method: 'POST',
-      data: {
-        _method: 'delete'
-      },
-      success: function(data){
-        console.log('Heard back from the server: ', data);
-        if(data.error){
-          displayError('There was an error removing this project: '+data.error);
-          return;
-        }
-
-        // Remove the project from the list.
-        entryElm.remove();
-      },
-      error: function(xhr, status, error){
-        displayError('There was an error removing this project. '+ error);
-      }
+    // Remove the project.
+    deleteProject(projectId, function(data){
+      // Remove the project from the list.
+      entryElm.remove();
     });
 
     e.preventDefault();
