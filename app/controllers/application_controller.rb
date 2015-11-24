@@ -59,6 +59,43 @@ class ApplicationController < ActionController::Base
       checked.size == permissions.size
     end
 
+    ## Deletes a project and all associated permissions, comments, files,
+    ## and altcode. This will raise exceptions and can be used within a 
+    ## transaction.
+    ## @param project The project to delete.
+    def delete_project(project)
+      ## Remove all permissions.
+      project.project_permissions.each do |permission|
+        permission.destroy!
+      end
+
+      ## Remove all files.
+      project.project_files.each do |file|
+        delete_file(file)
+      end
+
+      ## Remove all comments.
+      project.comments.each do |comment|
+        delete_comment(comment)
+      end
+
+      ## Lastly, remove the project itself.
+      project.destroy!
+    end
+
+
+    ## Deletes a file and all of its alt code. This will raise exceptions
+    ## and can be used within a transaction.
+    ## @param comment The project file to delete.
+    def delete_file(file)
+      ## Delete all altcode.
+      file.alternative_codes.each do |altcode|
+        altcode.destroy!
+      end
+      file.destroy!
+    end
+
+
     ## Deletes a comment and all of its locations. This will raise exceptions
     ## and can be used within a transaction.
     ## @param comment A Comment instance.

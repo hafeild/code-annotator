@@ -42,7 +42,24 @@ class Api::ProjectsController < ApplicationController
     render json: "", serializer: SuccessSerializer
   end
 
+  ## In the future, perhaps only the creator should be able to fully remove
+  ## the project? Or someone should be appointed an owner role and they must
+  ## remove it?
   def destroy
-    render json: "", serializer: SuccessSerializer
+    project = Project.find_by(id: params[:id])
+
+    if project and user_can_access_project(project.id, [:can_author])
+
+      ActiveRecord::Base.transaction do
+        ## Remove the project and everything associated with it (permissions,
+        ## files, comments, altcode).
+        delete_project(project)
+
+        render json: "", serializer: SuccessSerializer
+        return
+      end
+      render_error "Could not remove project."
+    end
+    render_error "Resource not available."
   end
 end
