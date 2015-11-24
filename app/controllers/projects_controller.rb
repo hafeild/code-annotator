@@ -16,13 +16,21 @@ class ProjectsController < ApplicationController
   end
 
   def show
-    @projectPermission = ProjectPermission.where({
-      project_id: params[:id],
-      user_id: current_user.id
-    }).first
-    @project = Project.find(params[:id])
-    # if @projects.index(@project) 
-    unless @project and @projectPermission and @projectPermission.can_view
+    success = false
+
+    if params.key?(:id)
+      @projectPermission = ProjectPermission.find_by(
+        project_id: params[:id],
+        user_id: current_user.id
+      )
+      @project = Project.find_by(id: params[:id])
+
+      success =(@project and @projectPermission and @projectPermission.can_view)
+    end
+
+    if success
+      render :show
+    else
       flash[:warning] = "That project does not exist or you do not have "+
         "permission to view it."
       redirect_to :projects

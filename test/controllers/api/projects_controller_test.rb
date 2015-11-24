@@ -83,9 +83,46 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on delete" do
+  test "should return success message on delete and remove everything "+
+      "connected with the project" do
     log_in_as @user
-    response = delete :destroy, id: 1
-    assert JSON.parse(response.body)['success']
+    project = projects(:p1)
+    pp_id = project_permissions(:pp1).id
+    file_id = project_files(:file1).id
+    comment_id = comments(:comment1).id
+    cl_id = comment_locations(:cl1).id
+    altcode_id = alternative_codes(:altcode1).id
+
+    response = delete :destroy, id: project.id
+    response = JSON.parse(response.body)
+    assert response['success']
+    assert Project.find_by(id: project.id).nil?
+    assert ProjectPermission.find_by(id: pp_id).nil?
+    assert ProjectFile.find_by(id: file_id).nil?
+    assert Comment.find_by(id: comment_id).nil?
+    assert CommentLocation.find_by(id: cl_id).nil?
+    assert AlternativeCode.find_by(id: altcode_id).nil?
+  end
+
+
+  test "should return error when delete on project without author permissions" do
+    log_in_as users(:bar)
+
+    project = projects(:p1)
+    pp_id = project_permissions(:pp1).id
+    file_id = project_files(:file1).id
+    comment_id = comments(:comment1).id
+    cl_id = comment_locations(:cl1).id
+    altcode_id = alternative_codes(:altcode1).id
+
+    response = delete :destroy, id: project.id
+    response = JSON.parse(response.body)
+    assert response['error']
+    assert_not Project.find_by(id: project.id).nil?
+    assert_not ProjectPermission.find_by(id: pp_id).nil?
+    assert_not ProjectFile.find_by(id: file_id).nil?
+    assert_not Comment.find_by(id: comment_id).nil?
+    assert_not CommentLocation.find_by(id: cl_id).nil?
+    assert_not AlternativeCode.find_by(id: altcode_id).nil?
   end
 end
