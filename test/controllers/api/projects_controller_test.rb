@@ -15,7 +15,15 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         response = post :create, project: {name: "my project"}
         json_reponse = JSON.parse(response.body)
         assert json_reponse['success'], 'Response unsuccessful.'
-        assert json_reponse['id'] == Project.last.id, "Project ids don't match."
+        assert json_reponse['id'] == Project.last.id, 
+          "Project id doesn't match."
+        assert json_reponse['name'] == Project.last.name, 
+          "Project name doesn't match."
+        assert json_reponse['creator_email'] == Project.last.creator.email, 
+          "Project email doesn't match."
+        assert json_reponse['created_on'] == 
+          Project.last.created_at.strftime("%d-%b-%Y"), 
+          "Project name doesn't match."
         permission = ProjectPermission.find_by(project_id: Project.last.id)
         assert_not permission.nil?
         # assert permissions.size == 1, "No permission created."

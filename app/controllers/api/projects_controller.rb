@@ -29,7 +29,8 @@ class Api::ProjectsController < ApplicationController
           can_annotate: true)
         permissions.save!
 
-        render json: project.id, serializer: SuccessWithIdSerializer
+        render json: project, serializer: SessionCreationSuccessSerializer
+        # render json: project.id, serializer: SuccessWithIdSerializer
         return
       end
     end

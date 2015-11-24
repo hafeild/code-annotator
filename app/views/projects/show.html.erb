@@ -15,7 +15,7 @@
       <div id="project-view-header">
         <div class="button-bar">
           <span class="sidebar-toggle btn btn-default btn-xs"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
-          <div class="btn-group" role="group" aria-label="file operations">
+          <div class="btn-group" id="file-ops" role="group" aria-label="file operations">
             <% if @projectPermission.can_author %>
               <button type="button" class="btn btn-default btn-xs"
                 data-toggle="modal" data-target="#upload-files"><span 
@@ -169,15 +169,4 @@
   <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
 
-  <!-- Error alert template. -->
-  <div id="alert-danger-template" class="alert alert-danger">
-    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    <span class="alert-message"></span>
-  </div>
-
-  <!-- Success alert template. -->
-  <div id="alert-success-template" class="alert alert-success">
-    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    <span class="alert-message"></span>
-  </div>
 </div>

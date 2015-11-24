@@ -29,5 +29,19 @@
     <%= debug(params) if Rails.env.development? %>
     <% end %>
   </div>
+
+  <div class="hidden">
+    <!-- Error alert template. -->
+    <div id="alert-danger-template" class="alert alert-danger">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <span class="alert-message"></span>
+    </div>
+
+    <!-- Success alert template. -->
+    <div id="alert-success-template" class="alert alert-success">
+      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+      <span class="alert-message"></span>
+    </div>
+  </div>
 </body>
 </html>
