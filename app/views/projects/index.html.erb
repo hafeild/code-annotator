@@ -2,7 +2,6 @@
 <div id="projects-page" class="container">
   <h1>Projects</h1>
 
-  <!-- <input type="text" placeholder="Enter a project name..."/> <button id="add-project" class="btn btn-primary btn-md"><span class="glyphicon glyphicon-plus"></span> Create project</button> -->
 
 
   <div class="row">
@@ -20,7 +19,8 @@
               <% if data[0].empty? and data[0] != @authoredProjects %>
                 <em>No projects.</em>
               <% else %>
-                <table class="table table-hover sortable-theme-bootstrap" data-sortable>
+                <table class="table table-hover sortable-theme-bootstrap" 
+                    data-sortable>
                   <thead>
                     <th>Name</th><th>Creator</th><th>Created on</th><th></th>
                   </thead>
@@ -28,12 +28,19 @@
                     <% if data[0] == @authoredProjects %>
                     <tr>
                       <td colspan="4">
-                        <div class="input-group" style="width: 100%">
-                          <span class="input-group-btn">
-                            <button id="add-project" class="btn btn-primary" type="button"><span class="glyphicon glyphicon-plus"></span></button>
-                          </span>
-                          <input type="text" id="new-project-name" class="form-control" placeholder="Enter a new project name...">
-                        </div>
+                        <form id="add-project-form">
+                          <div class="input-group" style="width: 100%">
+                            <span class="input-group-btn">
+                              <button id="add-project-btn" 
+                                class="btn btn-primary" type="submit"><span 
+                                  class="glyphicon glyphicon-plus"></span
+                              ></button>
+                            </span>
+                            <input type="text" id="new-project-name" 
+                              class="form-control" 
+                              placeholder="Enter a new project name...">
+                          </div>
+                        </form>
                       </td>
                     </tr>
                     <% end %>
@@ -52,7 +59,8 @@
 
 <div class="hidden">
   <table>
-  <tr id="entry-template" class="clickable-row project" data-href="" class="project-main">
+  <tr id="entry-template" class="clickable-row project" data-href="" 
+      class="project-main">
     <td class="name"></td>
     <td class="email"></td> 
     <td class="date"></td> 

@@ -1278,7 +1278,8 @@ var OCA = function($){
 
 
   // Listen for clicks on the 'add project' button.
-  $(document).on('click', '#add-project', function(){
+  // $(document).on('click', '#add-project', function(){
+  $(document).on('submit', '#add-project-form', function(e){
     var elm = $(this), newProjectInput = $('#new-project-name');
 
     // Verify the user entered a project name.
@@ -1318,6 +1319,7 @@ var OCA = function($){
       }
     });
     
+    e.preventDefault();
   });
 
   // INITIALIZATIONS.
