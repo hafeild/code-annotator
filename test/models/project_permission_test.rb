@@ -13,9 +13,14 @@ class ProjectPermissionTest < ActiveSupport::TestCase
     assert @projectPermission.valid?
   end
 
-  test "user_id should be present" do
+  test "user_id can be absent" do
     @projectPermission.user_id = nil
-    assert_not @projectPermission.valid?
+    assert @projectPermission.valid?
+  end
+
+  test "user_email can be absent" do
+    @projectPermission.user_email = nil
+    assert @projectPermission.valid?
   end
 
   test "project_id should be present" do
