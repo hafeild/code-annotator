@@ -1419,7 +1419,53 @@ var OCA = function($){
   });
 
   // Listen for existing permissions to be edited.
+  $(document).on('change', '.permission-options', function(e){
+    var accessLevel = $(this).val(),
+        can_author = can_view = can_annotate = false,
+        row = $(this).parents('tr'),
+        permissionId = row.data('permission-id'),
+        email = row.find('.permission-email').html();
 
+    console.log('Changing permissions for permission id '+ permissionId +
+      ' to '+ accessLevel);
+
+    if(accessLevel === 'author'){
+      can_author = can_view = can_annotate = true;
+    } else if(accessLevel === 'annotate'){
+      can_annotate = can_view = true;
+    } else {
+      can_view = true;
+    }
+
+    console.log('Permissions: can_view: '+ can_view + ', can_author: '+ 
+      can_author + ', can_annotate: '+ can_annotate);
+
+    $.ajax('/api/permissions/'+ permissionId, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        permissions: {
+          can_view: can_view,
+          can_author: can_author,
+          can_annotate: can_annotate
+        }
+      },
+      success: function(data){
+        console.log(data);
+
+        if(data.error){
+          displayError('There was an error updating permissions for '+ email +
+            ': '+ data.error);
+          return;
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error updating permissions for '+ email +'. '+
+          error);
+      }
+    });
+
+  });
 
   // Listen for existing permissions to be deleted.
 

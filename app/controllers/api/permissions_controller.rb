@@ -139,6 +139,11 @@ class Api::PermissionsController < ApplicationController
           ## Annotators get at least viewing and annotation permissions.
           elsif get_with_default(p, :can_annotate, false)
             p[:can_view]     = true
+            p[:can_author]   = false
+          else
+            p[:can_view]     = true
+            p[:can_author]   = false
+            p[:can_annotate] = false
           end
 
           p[:project_id] = project.id
@@ -151,11 +156,11 @@ class Api::PermissionsController < ApplicationController
         end
       else
         ## DEBUG
-        error = "project missing or (target_user missing or user_needs_placeholder false)"
+        #error = "project missing or (target_user missing or user_needs_placeholder false)"
       end
     else
       ## DEBUG
-      error = "project_id or permissions missing"
+      #error = "project_id or permissions missing"
     end
 
     if permissions

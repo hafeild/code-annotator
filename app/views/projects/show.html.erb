@@ -4,6 +4,7 @@
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar sidebar-collapse">
       <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-remove-circle"></span> Hide file list</span>
+      <span class="project-title"><%= @project.name %></span>
       <div class="root-directory directory">
       <%= render template: "projects/_project_file_listing", 
                  locals: { :files => @project.getFilesAsDirectories.files } %>
