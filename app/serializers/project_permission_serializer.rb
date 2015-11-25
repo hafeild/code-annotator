@@ -1,12 +1,14 @@
 class ProjectPermissionSerializer < ActiveModel::Serializer
   # self.root = false
-  attributes :id, :name, :can_view, :can_author, :can_annotate
+  attributes :project_id, :id, :user_name, :user_id, :user_email, 
+    :can_view, :can_author, :can_annotate
 
-  def id
-    object.project.id
+
+  def user_email
+    object.user.email
   end
 
-  def name
-    object.project.name
+  def user_name
+    object.user.name
   end
 end
