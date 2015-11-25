@@ -1379,6 +1379,51 @@ var OCA = function($){
     e.preventDefault();
   });
 
+  // Listen for new permissions to be added.
+  $(document).on('submit', '#add-permission-form', function(e){
+    var email = $('#new-permission-email').val();
+    if(email === ''){ return; }
+
+    $.ajax('/api/projects/'+ PROJECT_ID +'/permissions', {
+      method: 'POST',
+      data: {
+        permissions: {
+          user_email: email,
+          can_view: true,
+          can_author: false,
+          can_annotate: false
+        }
+      },
+      success: function(data){
+        console.log(data);
+
+        if(data.error){
+          displayError('There was an error adding permissions for '+ email +
+            ': '+ data.error);
+          return;
+        }
+
+        var newPermission = $('#new-permission-template').clone().attr('id','');
+        newPermission.data('permission-id', data.permissions.id);
+        newPermission.find('.permission-email').html(data.permissions.user_email);
+        newPermission.find('.permission-options').val('view');
+        newPermission.insertAfter($('#add-permission-row'));
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error adding permissions for '+ email +'. '+
+          error);
+      }
+    });
+
+    e.preventDefault();
+  });
+
+  // Listen for existing permissions to be edited.
+
+
+  // Listen for existing permissions to be deleted.
+
+
   // INITIALIZATIONS.
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){

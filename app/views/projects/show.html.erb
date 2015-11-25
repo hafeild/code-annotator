@@ -196,11 +196,11 @@
               %>
               <tr data-permission-id="<%= permission.id %>">
                 <td class="permission-email"><%= permission.user_email.nil? ? permission.user.email : permission.user_email %></td>
-                <td class="permission-options">
-                  <select name="access-level" class="form-control">
-                    <option <%= access == "author" ? "selected=selected" : "" %>>Can author</option>
-                    <option <%= access == "viewer" ? "selected=selected" : "" %>>Can view</option>  
-                    <option <%= access == "annotator" ? "selected=selected" : "" %>>Can annotate</option>
+                <td>
+                  <select name="access-level" class="form-control permission-options">
+                    <option value="author" <%= access == "author" ? "selected=selected" : "" %>>Can author</option>
+                    <option value="view" <%= access == "viewer" ? "selected=selected" : "" %>>Can view</option>  
+                    <option value="annotate" <%= access == "annotator" ? "selected=selected" : "" %>>Can annotate</option>
                   </select>
                 </td>
                 <td class="permission-trash tash">
@@ -237,6 +237,24 @@
       <% end %>
     </div>
   </div>
+
+
+  <table>
+    <tr id="new-permission-template" data-permission-id="">
+      <td class="permission-email"></td>
+      <td>
+        <select name="access-level" class="form-control permission-options">
+          <option value="author">Can author</option>
+          <option value="view">Can view</option>  
+          <option value="annotate">Can annotate</option>
+        </select>
+      </td>
+      <td class="permission-trash tash">
+        <span class="glyphicon glyphicon-trash"></span>
+      </td>
+    </tr>
+  </table>
+
   <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
 
