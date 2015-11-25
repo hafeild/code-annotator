@@ -77,10 +77,62 @@ class Api::PermissionsControllerTest < ActionController::TestCase
 
   test "should return success message on update" do
     log_in_as @user
-    response = patch :update, id: 1
-    assert JSON.parse(response.body)['success']
+    bar = users(:bar)
+    pp = ProjectPermission.create(user: bar, project: projects(:p1),
+      can_annotate: false, can_view: false, can_author: false)
+    response = patch :update, id: pp, permissions: {can_view: true} 
+    assert_not JSON.parse(response.body)['error'], "Error returned."
+    assert ProjectPermission.find(pp.id).can_view, 
+      "Permission doesn't include can_view."
+    assert_not ProjectPermission.find(pp.id).can_author, 
+      "Permission includes can_author."
+    assert_not ProjectPermission.find(pp.id).can_annotate, 
+      "Permission includes can_annotate."
   end
 
+  test "should return error message on update of user's permissions" do
+    log_in_as @user
+    pp = project_permissions(:pp1)
+    response = patch :update, id: pp, permissions: {can_view: true} 
+    assert JSON.parse(response.body)['error'], "No error returned."
+    assert ProjectPermission.find(pp.id).can_view, "can_view changed."
+    assert ProjectPermission.find(pp.id).can_author, "can_author changed."
+    assert ProjectPermission.find(pp.id).can_annotate, "can_annotate changed."
+  end
+
+
+  test "should return error message on removing viewing permissions from "+
+      "author or annotator" do
+    log_in_as @user
+    bar = users(:bar)
+    pp = ProjectPermission.create(user: bar, project: projects(:p1),
+      can_annotate: true, can_view: true, can_author: true)
+    response = patch :update, id: pp, permissions: {can_view: false} 
+    assert JSON.parse(response.body)['error'], "No error returned."
+    assert ProjectPermission.find(pp.id).can_view, 
+      "Permission doesn't include can_view."
+    assert ProjectPermission.find(pp.id).can_author, 
+      "Permission includes can_author."
+    assert ProjectPermission.find(pp.id).can_annotate, 
+      "Permission includes can_annotate."
+  end
+
+  test "should change viewing and annotation permissions when given a user "+
+      "authoring permissions" do
+    log_in_as @user
+    bar = users(:bar)
+    pp = ProjectPermission.create(user: bar, project: projects(:p1),
+      can_annotate: false, can_view: false, can_author: false)
+    response = patch :update, id: pp, permissions: {can_author: true} 
+    assert_not JSON.parse(response.body)['error'], "Error returned: "+
+      "#{JSON.parse(response.body)['error']}."
+    assert ProjectPermission.find(pp.id).can_view, 
+      "Permission doesn't include can_view."
+    assert ProjectPermission.find(pp.id).can_author, 
+      "Permission includes can_author."
+    assert ProjectPermission.find(pp.id).can_annotate, 
+      "Permission includes can_annotate."
+  end
 
   test "should return success message on delete" do
     log_in_as @user

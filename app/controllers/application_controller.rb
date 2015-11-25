@@ -125,4 +125,13 @@ class ApplicationController < ActionController::Base
       end
       true
     end
+
+    ## Gets the value in the hash associated with the given key if it exists,
+    ## otherwise returns the default.
+    ## @param hash The hash.
+    ## @param key The key.
+    ## @param default The default to return if key is not in hash.
+    def get_with_default(hash, key, default)
+      hash.key?(key) ? hash[key] : default
+    end
 end

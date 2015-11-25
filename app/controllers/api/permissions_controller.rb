@@ -46,7 +46,53 @@ class Api::PermissionsController < ApplicationController
 
   ## Requires author permissions on the project.
   def update
-    render json: "", serializer: SuccessSerializer
+    success = false;
+    error = "Resource not available."
+    permissions = nil
+
+    if params.key?(:id) and params.key?(:permissions)
+      permissions = ProjectPermission.find_by(id: params[:id])
+      if permissions
+        if permissions.user == current_user
+          error = "User permissions may not be modified."
+        else
+          project = permissions.project
+          if project and user_can_access_project(project.id, [:can_author])
+
+            p = params.require(:permissions).permit(
+              :can_author, :can_view, :can_annotate)
+
+            ## Authors get full permissions.
+            if get_with_default(p, :can_author, false)
+              p[:can_view]     = true
+              p[:can_annotate] = true
+            ## Annotators get at least viewing and annotation permissions.
+            elsif get_with_default(p, :can_annotate, false)
+              p[:can_view]     = true
+            end
+             
+            ## Make sure that can_view is not being taken away from a user with
+            ## authoring or annotation permissions.
+            if not get_with_default(p, :can_view, true) and 
+                (get_with_default(p, :can_annotate, permissions.can_annotate) or
+                 get_with_default(p, :can_author, permissions.can_author))
+                error = "Illegal state of permissions: you cannot revoke "+
+                  "viewing permissions from an author or annotator."
+            else
+              success = permissions.update(p)
+              error = "Error updating permissions." unless success
+            end
+          end
+        end
+      end
+    end
+
+    if success
+      render json: permissions, serializer: ProjectPermissionSerializer,
+        root: "permissions"
+    else
+      render_error error
+    end
   end
 
   ## Requires author permissions on the project.
@@ -78,4 +124,5 @@ class Api::PermissionsController < ApplicationController
       render_error error
     end
   end
+
 end
