@@ -38,7 +38,7 @@ class Api::PermissionsController < ApplicationController
 
     if success
       render json: permissions, serializer: ProjectPermissionSerializer,
-      root: "permissions"
+        root: "permissions"
     else
       render_error error
     end
@@ -56,7 +56,26 @@ class Api::PermissionsController < ApplicationController
 
   ## Requires author permissions on the project.
   def destroy
+    success = false;
+    error = "Resource not available."
+    permissions = nil
 
-    render json: "", serializer: SuccessSerializer
+    if params.key?(:id)
+      permissions = ProjectPermission.find_by(id: params[:id])
+      if permissions
+        project = permissions.project
+        if project and user_can_access_project(project.id, [:can_author])
+          permissions.destroy
+          success = permissions.destroyed?
+          error = "Error removing permissions." unless success
+        end
+      end
+    end
+
+    if success
+      render json: "", serializer: SuccessSerializer
+    else
+      render_error error
+    end
   end
 end
