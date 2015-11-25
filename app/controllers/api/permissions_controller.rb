@@ -22,19 +22,41 @@ class Api::PermissionsController < ApplicationController
     end
   end
 
+  ## Requires view permissions for the project.
+  def show
+    success = false;
+    error = "Resource not available."
+    permissions = nil
+
+    if params.key?(:id)
+      permissions = ProjectPermission.find_by(id: params[:id])
+      if permissions
+        project = permissions.project
+        success = (project and user_can_access_project(project.id, [:can_view]))
+      end
+    end
+
+    if success
+      render json: permissions, serializer: ProjectPermissionSerializer,
+      root: "permissions"
+    else
+      render_error error
+    end
+  end
+
+  ## Requires author permissions on the project.
   def update
     render json: "", serializer: SuccessSerializer
   end
 
+  ## Requires author permissions on the project.
   def create
     render json: "", serializer: SuccessSerializer
   end
 
-  def show
-    render json: "", serializer: SuccessSerializer
-  end
-
+  ## Requires author permissions on the project.
   def destroy
+
     render json: "", serializer: SuccessSerializer
   end
 end

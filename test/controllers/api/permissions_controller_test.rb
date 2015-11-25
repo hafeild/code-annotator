@@ -12,7 +12,7 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on index" do
+  test "should return all permissions on index" do
     log_in_as @user
     pp_expected = project_permissions(:pp1)
     response = get :index, project_id: projects(:p1)
@@ -43,10 +43,26 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['error']
   end
 
-  test "should return success message on show" do
+  test "should return permissions on show" do
     log_in_as @user
-    response = get :show, id: 1
-    assert JSON.parse(response.body)['success']
+    pp_expected = project_permissions(:pp1)
+    response = get :show, id: pp_expected
+    json_response = JSON.parse(response.body)
+    assert json_response.key?('permissions'), "No permissions returned."
+    pp = json_response['permissions']
+    assert pp['id'] == pp_expected.id, "Ids don't match up."
+    assert pp['project_id'] == pp_expected.project_id, 
+      "Project ids don't match."
+    assert pp['user_name'] == pp_expected.user.name, "User names don't match."
+    assert pp['user_email'] == pp_expected.user.email, 
+      "User emails don't match."
+    assert pp['user_id'] == pp_expected.user.id, "User ids don't match."
+    assert pp['can_view'] == pp_expected.can_view, 
+      "Viewing permissions don't match."
+    assert pp['can_author'] == pp_expected.can_author, 
+      "Authoring permissions don't match."
+    assert pp['can_annotate'] == pp_expected.can_annotate, 
+      "Annotation permissions don't match."
   end
 
   test "should return success message on update" do
