@@ -52,6 +52,8 @@ class Project < ActiveRecord::Base
   has_many :project_files
   has_many :comments
 
+
+
   validates :created_by, presence: true
   validates :name, presence: true, length: {maximum: 255}
 
@@ -63,5 +65,11 @@ class Project < ActiveRecord::Base
     end
 
     dirs
+  end
+
+  def altcode 
+    all_altcode = []
+    project_files.each{|file| all_altcode.concat(file.alternative_codes)}
+    all_altcode
   end
 end
