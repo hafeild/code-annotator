@@ -63,19 +63,24 @@ class Api::PermissionsController < ApplicationController
               :can_author, :can_view, :can_annotate).to_h
 
             ## Authors get full permissions.
-            if get_with_default(p, :can_author, false)
-              p[:can_view]     = true
-              p[:can_annotate] = true
+            if get_with_default(p, 'can_author', false)
+              p['can_view']     = true
+              p['can_annotate'] = true
             ## Annotators get at least viewing and annotation permissions.
-            elsif get_with_default(p, :can_annotate, false)
-              p[:can_view]     = true
+            elsif get_with_default(p, 'can_annotate', false)
+              p['can_view']     = true
             end
              
+            Rails.logger.debug "p: #{p.to_json}; "+
+              "can_annotate: #{get_with_default(p, :can_annotate, permissions.can_annotate)}, "+
+              "can_author: #{get_with_default(p, :can_author, permissions.can_author)}"
+
             ## Make sure that can_view is not being taken away from a user with
             ## authoring or annotation permissions.
-            if not get_with_default(p, :can_view, true) and 
-                (get_with_default(p, :can_annotate, permissions.can_annotate) or
-                 get_with_default(p, :can_author, permissions.can_author))
+            if p.key?('can_view') and not p['can_view']
+                (get_with_default(p, 'can_annotate', permissions.can_annotate) or
+                 get_with_default(p, 'can_author', permissions.can_author))
+                Rails.logger.debug "Hello -- ILLEGAL STATE REACHED!"
                 error = "Illegal state of permissions: you cannot revoke "+
                   "viewing permissions from an author or annotator."
             else

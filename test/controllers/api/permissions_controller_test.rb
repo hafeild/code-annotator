@@ -121,7 +121,7 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     pp = ProjectPermission.create(user: bar, project: projects(:p1),
       can_annotate: true, can_view: true, can_author: true)
     response = patch :update, id: pp, permissions: {can_view: false} 
-    assert JSON.parse(response.body)['error'], "No error returned."
+    assert JSON.parse(response.body)['error'], "No error returned: #{response.body}"
     assert ProjectPermission.find(pp.id).can_view, 
       "Permission doesn't include can_view."
     assert ProjectPermission.find(pp.id).can_author, 
