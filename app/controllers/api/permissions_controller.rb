@@ -138,17 +138,17 @@ class Api::PermissionsController < ApplicationController
           end
 
           ## Authors get full permissions.
-          if get_with_default(p, :can_author, false)
-            p[:can_view]     = true
-            p[:can_annotate] = true
+          if get_with_default(p, :can_author, 'false') == 'true'
+            p[:can_view]     = 'true'
+            p[:can_annotate] = 'true'
           ## Annotators get at least viewing and annotation permissions.
-          elsif get_with_default(p, :can_annotate, false)
-            p[:can_view]     = true
-            p[:can_author]   = false
+          elsif get_with_default(p, :can_annotate, 'false') == 'true'
+            p[:can_view]     = 'true'
+            p[:can_author]   = 'false'
           else
-            p[:can_view]     = true
-            p[:can_author]   = false
-            p[:can_annotate] = false
+            p[:can_view]     = 'true'
+            p[:can_author]   = 'false'
+            p[:can_annotate] = 'false'
           end
 
           p[:project_id] = project.id
