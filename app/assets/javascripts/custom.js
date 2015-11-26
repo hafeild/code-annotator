@@ -1426,9 +1426,6 @@ var OCA = function($){
         permissionId = row.data('permission-id'),
         email = row.find('.permission-email').html();
 
-    console.log('Changing permissions for permission id '+ permissionId +
-      ' to '+ accessLevel);
-
     if(accessLevel === 'author'){
       can_author = can_view = can_annotate = true;
     } else if(accessLevel === 'annotate'){
@@ -1436,9 +1433,6 @@ var OCA = function($){
     } else {
       can_view = true;
     }
-
-    console.log('Permissions: can_view: '+ can_view + ', can_author: '+ 
-      can_author + ', can_annotate: '+ can_annotate);
 
     $.ajax('/api/permissions/'+ permissionId, {
       method: 'POST',
@@ -1451,8 +1445,6 @@ var OCA = function($){
         }
       },
       success: function(data){
-        console.log(data);
-
         if(data.error){
           displayError('There was an error updating permissions for '+ email +
             ': '+ data.error);

@@ -60,7 +60,7 @@ class Api::PermissionsController < ApplicationController
           if project and user_can_access_project(project.id, [:can_author])
 
             p = params.require(:permissions).permit(
-              :can_author, :can_view, :can_annotate)
+              :can_author, :can_view, :can_annotate).to_h
 
             ## Authors get full permissions.
             if get_with_default(p, :can_author, false)
