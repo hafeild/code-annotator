@@ -1403,6 +1403,8 @@ var OCA = function($){
           return;
         }
 
+        $('#new-permission-email').val('');
+
         var newPermission = $('#new-permission-template').clone().attr('id','');
         newPermission.data('permission-id', data.permissions.id);
         newPermission.find('.permission-email').html(data.permissions.user_email);
@@ -1460,6 +1462,32 @@ var OCA = function($){
   });
 
   // Listen for existing permissions to be deleted.
+  $(document).on('click', '.permission-trash', function(e){
+    var row = $(this).parents('tr'),
+        permissionId = row.data('permission-id'),
+        email = row.find('.permission-email').html();
+
+    $.ajax('/api/permissions/'+ permissionId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error removing permissions for '+ email +
+            ': '+ data.error);
+          return;
+        }
+
+        // Remove row.
+        row.remove();
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing permissions for '+email +'. '+
+          error);
+      }
+    });
+  });
 
 
   // INITIALIZATIONS.
