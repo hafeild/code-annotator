@@ -6,11 +6,28 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     @user = users(:foo)
   end
 
-  test "should return success message on create" do
+  test "should add permission on create and return it" do
     log_in_as @user
-    response = post :create, project_id: 1, permission: {}
-    assert JSON.parse(response.body)['success']
+
+    response = post :create, project_id: projects(:p1), permissions: {
+      user_email: users(:bar).email, 
+      can_view: true,
+      can_author: false
+    }
+    assert_not JSON.parse(response.body)['error'], "Error was returned."
+    pp = ProjectPermission.find_by(user_id: users(:bar).id, 
+      project_id: projects(:p1).id)
+    assert pp, "Permission not found."
+    assert pp.user_email.nil?, "Email not nil."
+    assert pp.can_view, "can_view set to false."
+    assert_not pp.can_author, "can_author set to true."
+    assert_not pp.can_annotate, "can_annotate set to true."
+    assert pp.project_id == projects(:p1).id, "Project ids don't match."
   end
+
+
+
+
 
   test "should return all permissions on index" do
     log_in_as @user
@@ -24,10 +41,8 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     assert pp['id'] == pp_expected.id, "Ids don't match up."
     assert pp['project_id'] == pp_expected.project_id, 
       "Project ids don't match."
-    assert pp['user_name'] == pp_expected.user.name, "User names don't match."
     assert pp['user_email'] == pp_expected.user.email, 
       "User emails don't match."
-    assert pp['user_id'] == pp_expected.user.id, "User ids don't match."
     assert pp['can_view'] == pp_expected.can_view, 
       "Viewing permissions don't match."
     assert pp['can_author'] == pp_expected.can_author, 
@@ -53,10 +68,8 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     assert pp['id'] == pp_expected.id, "Ids don't match up."
     assert pp['project_id'] == pp_expected.project_id, 
       "Project ids don't match."
-    assert pp['user_name'] == pp_expected.user.name, "User names don't match."
     assert pp['user_email'] == pp_expected.user.email, 
       "User emails don't match."
-    assert pp['user_id'] == pp_expected.user.id, "User ids don't match."
     assert pp['can_view'] == pp_expected.can_view, 
       "Viewing permissions don't match."
     assert pp['can_author'] == pp_expected.can_author, 
@@ -108,7 +121,7 @@ class Api::PermissionsControllerTest < ActionController::TestCase
     pp = ProjectPermission.create(user: bar, project: projects(:p1),
       can_annotate: true, can_view: true, can_author: true)
     response = patch :update, id: pp, permissions: {can_view: false} 
-    assert JSON.parse(response.body)['error'], "No error returned."
+    assert JSON.parse(response.body)['error'], "No error returned: #{response.body}"
     assert ProjectPermission.find(pp.id).can_view, 
       "Permission doesn't include can_view."
     assert ProjectPermission.find(pp.id).can_author, 

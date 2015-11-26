@@ -4,6 +4,7 @@
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar sidebar-collapse">
       <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-remove-circle"></span> Hide file list</span>
+      <span class="project-title"><%= @project.name %></span>
       <div class="root-directory directory">
       <%= render template: "projects/_project_file_listing", 
                  locals: { :files => @project.getFilesAsDirectories.files } %>
@@ -36,6 +37,11 @@
                 class="glyphicon glyphicon-remove-circle"></span> 
                 Remove files
               </button>
+              <button type="button" id="share-project"
+                class="btn btn-default btn-xs"
+                data-toggle="modal" data-target="#project-sharing"><span 
+                class="glyphicon glyphicon-transfer"></span> Share project
+              </button>              
               <button type="button" id="delete-project"
                 class="btn btn-default btn-xs"><span 
                 class="glyphicon glyphicon-trash"></span> Delete project
@@ -134,7 +140,7 @@
           </div>
           <div class="modal-body">
           <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
-              <% f.file_field :files, multiple: true %>
+              <% f.file_field :files, multiple: true, class: "form-control" %>
           <% end %>
           </div>
           <div class="modal-footer">
@@ -144,6 +150,67 @@
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+
+    <div class="modal fade" id="project-sharing" tabindex="-1" 
+        role="dialog" aria-labelledby="project-sharing-title">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="project-sharing-title">Share project</h4>
+          </div>
+          <div class="modal-body">
+            <table class="table table-hover">
+              <tr id="add-permission-row">
+                <td colspan="3">
+                  <form id="add-permission-form">
+                    <div class="input-group" style="width: 100%">
+                      <span class="input-group-btn">
+                        <button id="add-permission-btn" 
+                          class="btn btn-primary" type="submit"><span 
+                            class="glyphicon glyphicon-plus"></span
+                        ></button>
+                      </span>
+                      <input type="text" id="new-permission-email" 
+                        class="form-control" 
+                        placeholder="Enter user email...">
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            <% @project.project_permissions.each do |permission| %>
+              <% 
+                next if permission.user and permission.user == current_user
+                access = nil
+                if permission.can_author
+                  access = "author"
+                elsif permission.can_annotate
+                  access = "annotator"
+                elsif permission.can_view
+                  access = "viewer"
+                end
+              %>
+              <tr data-permission-id="<%= permission.id %>">
+                <td class="permission-email"><%= permission.user_email.nil? ? permission.user.email : permission.user_email %></td>
+                <td>
+                  <select name="access-level" class="form-control permission-options">
+                    <option value="author" <%= access == "author" ? "selected=selected" : "" %>>Can author</option>
+                    <option value="view" <%= access == "viewer" ? "selected=selected" : "" %>>Can view</option>  
+                    <option value="annotate" <%= access == "annotator" ? "selected=selected" : "" %>>Can annotate</option>
+                  </select>
+                </td>
+                <td class="permission-trash trash">
+                  <span class="glyphicon glyphicon-trash"></span>
+                </td>
+              </tr>
+            <% end %>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -167,6 +234,24 @@
       <% end %>
     </div>
   </div>
+
+
+  <table>
+    <tr id="new-permission-template" data-permission-id="">
+      <td class="permission-email"></td>
+      <td>
+        <select name="access-level" class="form-control permission-options">
+          <option value="author">Can author</option>
+          <option value="view">Can view</option>  
+          <option value="annotate">Can annotate</option>
+        </select>
+      </td>
+      <td class="permission-trash trash">
+        <span class="glyphicon glyphicon-trash"></span>
+      </td>
+    </tr>
+  </table>
+
   <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
 

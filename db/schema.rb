@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151120011649) do
+ActiveRecord::Schema.define(version: 20151125150835) do
 
   create_table "alternative_codes", force: :cascade do |t|
     t.text     "content"
@@ -70,8 +70,10 @@ ActiveRecord::Schema.define(version: 20151120011649) do
     t.boolean  "can_annotate", default: false
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
+    t.string   "user_email"
   end
 
+  add_index "project_permissions", ["project_id", "user_email"], name: "index_project_permissions_on_project_id_and_user_email", unique: true
   add_index "project_permissions", ["project_id", "user_id"], name: "index_project_permissions_on_project_id_and_user_id", unique: true
   add_index "project_permissions", ["project_id"], name: "index_project_permissions_on_project_id"
   add_index "project_permissions", ["user_id"], name: "index_project_permissions_on_user_id"

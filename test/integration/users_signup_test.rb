@@ -24,4 +24,24 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
     # assert_template 'users/show'
     # assert is_logged_in?
   end
+
+  test "permissions tied to an email should be resolved on signup" do
+    email = "user@example.com"
+    pp = ProjectPermission.create!({user_email: email, 
+      project_id: projects(:p1).id, can_view: true, can_author: false,
+      can_annotate: false})
+    get signup_path
+    assert_difference 'User.count', 1 do
+      post_via_redirect users_path, user: { name:  "Example User",
+                                            email: email,
+                                            password:              "password",
+                                            password_confirmation: "password" }
+    end
+
+    assert ProjectPermission.find(pp.id).user_email.nil?
+    assert ProjectPermission.find(pp.id).user == User.find_by(email: email)
+    # assert_template 'users/show'
+    # assert is_logged_in?
+  end
+
 end

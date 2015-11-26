@@ -10,6 +10,13 @@ class UsersController < ApplicationController
     if @user.save
         #log_in @user
         @user.send_activation_email
+
+        ## Take care of previous permissions for this user's email that were 
+        ## saved prior to signup.
+        ProjectPermission.where({user_email: @user.email}).each do |pp|
+          pp.update({user_id: @user.id, user_email: nil})
+        end
+
         #flash[:success] = "Thanks for signing up!"
         flash[:success] = "Please check your email to activate your account."
         redirect_to root_url

@@ -1379,6 +1379,117 @@ var OCA = function($){
     e.preventDefault();
   });
 
+  // Listen for new permissions to be added.
+  $(document).on('submit', '#add-permission-form', function(e){
+    var email = $('#new-permission-email').val();
+    if(email === ''){ return; }
+
+    $.ajax('/api/projects/'+ PROJECT_ID +'/permissions', {
+      method: 'POST',
+      data: {
+        permissions: {
+          user_email: email,
+          can_view: true,
+          can_author: false,
+          can_annotate: false
+        }
+      },
+      success: function(data){
+        console.log(data);
+
+        if(data.error){
+          displayError('There was an error adding permissions for '+ email +
+            ': '+ data.error);
+          return;
+        }
+
+        $('#new-permission-email').val('');
+
+        var newPermission = $('#new-permission-template').clone().attr('id','');
+        newPermission.data('permission-id', data.permissions.id);
+        newPermission.find('.permission-email').html(data.permissions.user_email);
+        newPermission.find('.permission-options').val('view');
+        newPermission.insertAfter($('#add-permission-row'));
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error adding permissions for '+ email +'. '+
+          error);
+      }
+    });
+
+    e.preventDefault();
+  });
+
+  // Listen for existing permissions to be edited.
+  $(document).on('change', '.permission-options', function(e){
+    var accessLevel = $(this).val(),
+        can_author = can_view = can_annotate = false,
+        row = $(this).parents('tr'),
+        permissionId = row.data('permission-id'),
+        email = row.find('.permission-email').html();
+
+    if(accessLevel === 'author'){
+      can_author = can_view = can_annotate = true;
+    } else if(accessLevel === 'annotate'){
+      can_annotate = can_view = true;
+    } else {
+      can_view = true;
+    }
+
+    $.ajax('/api/permissions/'+ permissionId, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        permissions: {
+          can_view: can_view,
+          can_author: can_author,
+          can_annotate: can_annotate
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error updating permissions for '+ email +
+            ': '+ data.error);
+          return;
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error updating permissions for '+ email +'. '+
+          error);
+      }
+    });
+
+  });
+
+  // Listen for existing permissions to be deleted.
+  $(document).on('click', '.permission-trash', function(e){
+    var row = $(this).parents('tr'),
+        permissionId = row.data('permission-id'),
+        email = row.find('.permission-email').html();
+
+    $.ajax('/api/permissions/'+ permissionId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error removing permissions for '+ email +
+            ': '+ data.error);
+          return;
+        }
+
+        // Remove row.
+        row.remove();
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing permissions for '+email +'. '+
+          error);
+      }
+    });
+  });
+
+
   // INITIALIZATIONS.
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){

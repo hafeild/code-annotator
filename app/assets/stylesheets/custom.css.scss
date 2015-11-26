@@ -319,14 +319,8 @@ input {
       color: red
     }
   }*/
-
-  td.trash {
-    text-align: center;
-  }
-  td.trash:hover {
-    color: red;
-  }
 }
+
 
 .project-view {
   .file {
@@ -617,7 +611,29 @@ input {
   #project-comment-lists {
     max-height: 80%;
   }*/
+
+  #project-sharing {
+    td.permission-email, td.permission-trash {
+      padding-top: 15px;
+
+    }
+  }
+
+  .project-title {
+    font-size: 110%;
+    font-weight: bold;
+    color: $brand-primary;
+  }
 }
+
+td.trash {
+  text-align: center;
+  cursor: pointer;
+}
+td.trash:hover {
+  color: red;
+} 
+
 
 .center-center {
   position: fixed;
