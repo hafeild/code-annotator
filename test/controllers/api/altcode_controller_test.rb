@@ -111,10 +111,41 @@ class Api::AltcodeControllerTest < ActionController::TestCase
       "created_by don't match."
   end
 
-  test "should return success message on show" do
+  test "should return altcode message on show" do
     log_in_as @user
-    response = get :show, id: 1
-    assert JSON.parse(response.body)['success']
+    exp_altcode = alternative_codes(:altcode1)
+    response = get :show, id: exp_altcode
+
+    response_json = JSON.parse(response.body)
+
+    assert_not response_json['error'], "Error returned"
+
+    assert response_json['altcode'], "No altcode."
+    ret_altcode = response_json['altcode']
+    assert ret_altcode['id'] == exp_altcode.id, "IDs don't match."
+    assert ret_altcode['content'] == exp_altcode.content, 
+      "Contents don't match."
+    assert ret_altcode['file_id'] == exp_altcode.project_file.id, 
+    "File ids don't match."
+    assert ret_altcode['start_line'] == exp_altcode.start_line, 
+      "start_lines don't match."
+    assert ret_altcode['start_column'] == exp_altcode.start_column, 
+      "start_columns don't match."
+    assert ret_altcode['end_line'] == exp_altcode.end_line, 
+      "end_lines don't match."
+    assert ret_altcode['end_column'] == exp_altcode.end_column, 
+      "end_column don't match."
+    assert ret_altcode['creator_email'] == exp_altcode.creator.email, 
+      "created_by don't match."
+  end
+
+  test "should return error message on unauthorized show" do
+    log_in_as @user
+    exp_altcode = alternative_codes(:altcode2)
+    response = get :show, id: exp_altcode
+    response_json = JSON.parse(response.body)
+    assert response_json['error'], "No error returned"
+    assert_not response_json['altcode'], "Altcode returned."
   end
 
   test "should perform updates on update" do

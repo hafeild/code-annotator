@@ -83,7 +83,14 @@ class Api::AltcodeController < ApplicationController
   end
 
   def show
-    render json: "", serializer: SuccessSerializer
+    altcode = AlternativeCode.find_by(id: params[:id])
+    if altcode and user_can_access_project(altcode.project_file.project.id, 
+        [:can_view])
+      render json: altcode, serializer: AlternativeCodeSerializer, 
+        :root => "altcode"
+    else
+      render_error
+    end
   end
 
   def destroy
