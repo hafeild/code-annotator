@@ -8,9 +8,53 @@ class Api::AltcodeControllerTest < ActionController::TestCase
 
   test "should return success message on create" do
     log_in_as @user
-    response = post :create, project_id: 1, altcode: {}
-    assert JSON.parse(response.body)['success']
+    altcode = {
+      content: "new content",
+      start_line: 10,
+      start_column: 0,
+      end_line: 15,
+      end_column: 70,
+      file_id: project_files(:file1)
+    }
+    assert_difference "AlternativeCode.count", 1, "No new entry created" do
+      response = post :create, project_id: projects(:p1), altcode: altcode
+      assert JSON.parse(response.body)['success'], "Success message not returned."
+      new_altcode = AlternativeCode.last
+      assert JSON.parse(response.body)['id'] == new_altcode.id, "Ids don't match."
+      assert new_altcode.created_by == @user.id, "Creators don't match."
+      assert new_altcode.project_file == project_files(:file1), 
+        "Files don't match."
+      assert new_altcode.content == altcode[:content], "Content doesn't match."
+      assert new_altcode.start_line == altcode[:start_line], 
+        "start_line doesn't match."
+      assert new_altcode.start_column == altcode[:start_column],
+        "start_column doesn't match."
+      assert new_altcode.end_line == altcode[:end_line],
+        "end_line doesn't match."
+      assert new_altcode.end_column == altcode[:end_column],
+        "end_column doesn't match"
+    end
   end
+
+
+  test "should return error message on unauthorized create" do
+    log_in_as @user
+    altcode = {
+      content: "new content",
+      start_line: 10,
+      start_column: 0,
+      end_line: 15,
+      end_column: 70,
+      file_id: project_files(:file2)
+    }
+
+    assert_no_difference "AlternativeCode.count", "New entry created" do
+      response = post :create, project_id: projects(:p2), altcode: altcode
+      assert JSON.parse(response.body)['error'], "Error message not returned."
+    end
+    
+  end
+
 
   test "should return success message on index by project" do
     log_in_as @user
@@ -84,13 +128,17 @@ class Api::AltcodeControllerTest < ActionController::TestCase
       end_column: 70
     }
     response = patch :update, id: altcode.id, altcode: updates
-    assert JSON.parse(response.body)['success']
+    assert JSON.parse(response.body)['success'], "Success not returned."
     new_altcode = AlternativeCode.find_by(id: altcode.id)
-    assert new_altcode.content == updates[:content]
-    assert new_altcode.start_line == updates[:start_line]
-    assert new_altcode.start_column == updates[:start_column]
-    assert new_altcode.end_line == updates[:end_line]
-    assert new_altcode.end_column == updates[:end_column]
+    assert new_altcode.content == updates[:content], "Content doesn't match."
+    assert new_altcode.start_line == updates[:start_line], 
+      "start_line doesn't match."
+    assert new_altcode.start_column == updates[:start_column],
+      "start_column doesn't match."
+    assert new_altcode.end_line == updates[:end_line],
+      "end_line doesn't match."
+    assert new_altcode.end_column == updates[:end_column],
+      "end_column doesn't match."
   end
 
   test "should return an error on unauthorized update" do
@@ -104,13 +152,17 @@ class Api::AltcodeControllerTest < ActionController::TestCase
       end_column: 70
     }
     response = patch :update, id: altcode.id, altcode: updates
-    assert JSON.parse(response.body)['error']
+    assert JSON.parse(response.body)['error'], "Error not returned."
     new_altcode = AlternativeCode.find_by(id: altcode.id)
-    assert_not new_altcode.content == updates[:content]
-    assert_not new_altcode.start_line == updates[:start_line]
-    assert_not new_altcode.start_column == updates[:start_column]
-    assert_not new_altcode.end_line == updates[:end_line]
-    assert_not new_altcode.end_column == updates[:end_column]
+    assert_not new_altcode.content == updates[:content], "Content updated."
+    assert_not new_altcode.start_line == updates[:start_line],
+      "start_line updated."
+    assert_not new_altcode.start_column == updates[:start_column],
+      "start_column updated."
+    assert_not new_altcode.end_line == updates[:end_line],
+      "end_line updated."
+    assert_not new_altcode.end_column == updates[:end_column],
+      "end_column updated."
   end
 
 

@@ -49,7 +49,37 @@ class Api::AltcodeController < ApplicationController
   end
 
   def create
-    render json: "", serializer: SuccessSerializer
+    success = false
+    error = nil
+
+    project = Project.find_by(id: params[:project_id])
+    if project and user_can_access_project(project.id, [:can_annotate])
+
+      if params.key?(:altcode) and has_keys?(params[:altcode],
+            [:file_id, :start_line, :start_column, :end_line, :end_column])
+
+        file = ProjectFile.find_by(id: params[:altcode][:file_id])
+        if file and file.project != project
+          error = "The specified file is not part of the project."
+          render_error
+          return
+        end
+
+        altcode = AlternativeCode.new(altcode_params(current_user.id))
+        if altcode.valid? and altcode.save
+          render json: altcode.id, serializer: SuccessWithIdSerializer
+          success = true
+        else
+          error = "Couldn't save altcode; ensure all fields are valid."
+        end
+      else
+        error = "Not all required fields are present."
+      end
+    end
+
+    unless success
+      render_error error
+    end
   end
 
   def show
