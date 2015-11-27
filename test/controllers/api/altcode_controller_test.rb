@@ -73,10 +73,44 @@ class Api::AltcodeControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on update" do
+  test "should perform updates on update" do
     log_in_as @user
-    response = patch :update, id: 1
+    altcode = alternative_codes(:altcode1)
+    updates = {
+      content: "new content",
+      start_line: 10,
+      start_column: 0,
+      end_line: 15,
+      end_column: 70
+    }
+    response = patch :update, id: altcode.id, altcode: updates
     assert JSON.parse(response.body)['success']
+    new_altcode = AlternativeCode.find_by(id: altcode.id)
+    assert new_altcode.content == updates[:content]
+    assert new_altcode.start_line == updates[:start_line]
+    assert new_altcode.start_column == updates[:start_column]
+    assert new_altcode.end_line == updates[:end_line]
+    assert new_altcode.end_column == updates[:end_column]
+  end
+
+  test "should return an error on unauthorized update" do
+    log_in_as @user
+    altcode = alternative_codes(:altcode2)
+    updates = {
+      content: "new content",
+      start_line: 10,
+      start_column: 0,
+      end_line: 15,
+      end_column: 70
+    }
+    response = patch :update, id: altcode.id, altcode: updates
+    assert JSON.parse(response.body)['error']
+    new_altcode = AlternativeCode.find_by(id: altcode.id)
+    assert_not new_altcode.content == updates[:content]
+    assert_not new_altcode.start_line == updates[:start_line]
+    assert_not new_altcode.start_column == updates[:start_column]
+    assert_not new_altcode.end_line == updates[:end_line]
+    assert_not new_altcode.end_column == updates[:end_column]
   end
 
 

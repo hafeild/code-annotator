@@ -25,7 +25,27 @@ class Api::AltcodeController < ApplicationController
   end
 
   def update
-    render json: "", serializer: SuccessSerializer
+    altcode = AlternativeCode.find_by(id: params[:id])
+    if altcode.nil?
+      render_error
+      return
+    end
+
+    project = altcode.project_file.project
+
+    ## Make sure the user can annotate this project.
+    if project.nil? or not user_can_access_project(project.id, [:can_annotate])
+      render_error
+      return
+    end
+
+    p = altcode_params
+
+    if altcode.update(p)
+      render json: "", serializer: SuccessSerializer
+    else
+      render_error("There was a problem updating the altcode.")
+    end
   end
 
   def create
@@ -39,4 +59,23 @@ class Api::AltcodeController < ApplicationController
   def destroy
     render json: "", serializer: SuccessSerializer
   end
+
+
+  private
+
+    ## Defines valid comment parameters.
+    def altcode_params(created_by=nil)
+      p = params.require(:altcode).permit(
+        :start_line, :start_column, :end_line, :end_column, :content
+      )
+      if params[:altcode].key?(:file_id)
+        p[:project_file_id] = params[:altcode][:file_id]
+      end
+
+      unless created_by.nil?
+        p[:created_by] = created_by
+      end
+
+      p
+    end
 end
