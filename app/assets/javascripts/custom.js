@@ -718,26 +718,16 @@ var OCA = function($){
    *                      from the selected elements. Defaults to true.
    */
   var highlightSelection = function(loc, cssClass, add){
-    var i, j;
     cssClass = cssClass || 'selected';
     add = add === undefined ? true : add;
-    for(i = loc.start_line; i <= loc.end_line; i++){
-      var start = (i === loc.start_line) ? loc.start_column : 1;
-      var end = (i === loc.end_line) ? loc.end_column : 
-        $('.content-line'+ i).size();
 
-      for(j = start; j <= end; j++){
-        if(add){
-          $('#'+ i +'_'+ j).addClass(cssClass);
-        } else {
-          $('#'+ i +'_'+ j).removeClass(cssClass);
-        }
-        // Highlight the endcap if the selection spans to lines below.
-        // if(i !== loc.end_line){
-        //   $('#'+ i +'_endcap').addClass('selected');
-        // }
+    applyToCodeRange(loc, function(charElm){
+      if(add){
+        charElm.addClass(cssClass);
+      } else {
+        charElm.removeClass(cssClass);
       }
-    }
+    });
   };
 
   /**
@@ -1082,6 +1072,28 @@ var OCA = function($){
   };
 
   /**
+   * Applies the given function to each character in the given range of
+   * characters in the code.
+   *
+   * @param {simple object} loc A map with four fields: start_line,
+   *                            end_line, start_column, end_column.
+   * @param {function} fnc The function to invoke for each character. Should
+   *                       take one arg: a jQuery instance of the character.
+   */
+  var applyToCodeRange = function(loc, fnc){
+    var i, j;
+    for(i = loc.start_line; i <= loc.end_line; i++){
+      var start = (i === loc.start_line) ? loc.start_column : 1;
+      var end = (i === loc.end_line) ? loc.end_column : 
+        $('.content-line'+ i).size();
+
+      for(j = start; j <= end; j++){
+        fnc($('#'+ i +'_'+ j));
+      }
+    }
+  };
+
+  /**
    * Adds in a block of alternative code at the given line.
    *
    * @param {simple object} altcode An altcode object that contains the fields:
@@ -1100,19 +1112,21 @@ var OCA = function($){
 
     // The gutter lines (each line has a "alternate" symbol).
     for(i = 0; i < contentLineElms.length; i++){
-      var newGutterElm = $('<div>').addClass('altcode altcode-gutter line');
+      var newGutterElm = $('<div>').addClass(
+        'altcode altcode-gutter line altcode-'+ altcode.lid);
       newGutterElm.html('&nbsp;<span class="glyph-wrapper">'+
         '<span class="glyphicon glyphicon-random"></span></span>');
       newGutterElm.insertAfter(gutterEndElm);
     }
 
     // Add the content.
-    $(contentLineElms).addClass('altcode altcode-content').
+    $(contentLineElms).addClass(
+      'altcode altcode-content altcode-'+ altcode.lid).
       insertAfter(codeEndElm);
 
 
     // TODO: Go through and strikeout the code being replaced.
-    $('')
+    highlightSelection(altcode, 'altcode-strikeout altcode-'+ altcode.lid);
 
   };
 
