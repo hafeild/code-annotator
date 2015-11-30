@@ -624,6 +624,34 @@ input {
     font-weight: bold;
     color: $brand-primary;
   }
+
+  .altcode-container {
+    position: absolute;
+
+  }
+
+  .altcode-gutter {
+    position: relative;
+    color: $brand-primary;
+   /* color: $brand-primary;
+    font-size: 1em !important;
+    line-height: 1.1em !important;
+    height: 1.1em !important;*/
+  }
+
+  .glyph-wrapper {
+    position: absolute;
+    left: 25px;
+    font-size: 8pt !important;
+    height: .9em !important;
+    padding: 0 !important;
+    line-height: .9em !important;
+  }
+
+  .altcode-content {
+    background-color: #ebf0ff !important;
+  }
+
 }
 
 td.trash {

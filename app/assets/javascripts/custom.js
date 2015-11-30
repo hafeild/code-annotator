@@ -368,7 +368,7 @@ var OCA = function($){
       clearTimeout(target.data('timeout'));
     }
 
-    // TODO: This needs to actually save the comment changes.
+    // Save the comment changes.
     target.data('timeout', setTimeout(function(){
 
       console.log('Sending to: /api/comments/'+ 
@@ -1042,13 +1042,106 @@ var OCA = function($){
         location.end_line > 0 && location.end_column > 0;
   };
 
-
+  /**
+   * Returns the size of the given list of files.
+   *
+   * @param {array of Files} files The list of files.
+   * @return {int} The total size of the list of files.
+   */
   var getFileSizes = function(files){
     var i, totalSize = 0;
     for(i = 0; i < files.length; i++){
       totalSize += files[i].size;
     }
     return totalSize;
+  }
+
+  /**
+   * Creates the highlighted version of the given code.
+   *
+   * @param {string} code The code to highlight.
+   * @param {string} brush (Optional) The SyntaxHighlighter class to attached.
+   *                       Defaults to the brush class for the current loaded
+   *                       file based on its extension.
+   * @return The SyntaxHighter highlighted lines of the code with line number
+   *         an index classes removed.
+   */
+  var syntaxHighlightCodeString = function(code, brushClass){
+    brushClass = brushClass || getHighlighterClass(curFileInfo.name);
+
+    var codePre = $('<pre>');
+    $('#code-to-highlight').html('').append(codePre);
+    codePre.attr('class', brushClass).html(escapeHtml(code));
+
+    SyntaxHighlighter.highlight(undefined, codePre[0]);
+
+    var highlightedCode = $('#code-to-highlight .code .line').clone();
+    highlightedCode.attr('class', 'line');
+
+    return highlightedCode;
+  };
+
+  /**
+   * Adds in a block of alternative code at the given line.
+   *
+   * @param {simple object} altcode An altcode object that contains the fields:
+   *                                lid, start_line, start_column, end_line, 
+   *                                end_column, content, creator_email.
+   */
+  var addAltCode = function(altcode){
+    var i, contentLineElms, gutterEndElm, codeEndElm;
+
+    // Highlight the content.
+    contentLineElms = syntaxHighlightCodeString(altcode.content);
+
+    // The line under which the altcode will appear.
+    gutterEndElm = $('.gutter .line.number'+ altcode.end_line);
+    codeEndElm = $('.code .line.number'+ altcode.end_line);
+
+    // The gutter lines (each line has a "alternate" symbol).
+    for(i = 0; i < contentLineElms.length; i++){
+      var newGutterElm = $('<div>').addClass('altcode altcode-gutter line');
+      newGutterElm.html('&nbsp;<span class="glyph-wrapper">'+
+        '<span class="glyphicon glyphicon-random"></span></span>');
+      newGutterElm.insertAfter(gutterEndElm);
+    }
+
+    // Add the content.
+    $(contentLineElms).addClass('altcode altcode-content').
+      insertAfter(codeEndElm);
+
+
+    // TODO: Go through and strikeout the code being replaced.
+    $('')
+
+  };
+
+   /**
+    * Removes the altcode specified, or all altcode if no altcode is specified.
+    *
+    * @param {array of ints} altcodeLids (OPTIONAL) A list of altcode local ids.
+    *                                    If not present, all altcode is removed.
+    */
+  var removeAltCode = function(altcodeLids){
+    // TODO: Implement altcode removal.
+  };
+
+  /**
+   * Creates a new altcode.
+   *
+   * 
+   */
+  var createAltCode = function(){
+    // TODO: Impelment altcode creation.
+  }
+
+  /**
+   * Updates altcode.
+   *
+   * 
+   */
+  var updateAltCode = function(){
+    // TODO: Impelment altcode update.
   }
 
   // LISTENERS
@@ -1504,6 +1597,8 @@ var OCA = function($){
   this.getSelectionLocation = getSelectionLocation;
   this.highlightSelection = highlightSelection;
   this.displayError = displayError;
+  this.addAltCode = addAltCode;
+  this.syntaxHighlightCodeString = syntaxHighlightCodeString;
   return this;
 };
 
