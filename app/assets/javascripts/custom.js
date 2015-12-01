@@ -1124,10 +1124,8 @@ var OCA = function($){
       'altcode altcode-content altcode-'+ altcode.lid).
       insertAfter(codeEndElm);
 
-
-    // TODO: Go through and strikeout the code being replaced.
-    highlightSelection(altcode, 'altcode-strikeout altcode-'+ altcode.lid);
-
+    // Add strikeouts to the replaced code.
+    highlightSelection(altcode, 'altcode altcode-strikeout altcode-'+ altcode.lid);
   };
 
    /**
@@ -1137,7 +1135,24 @@ var OCA = function($){
     *                                    If not present, all altcode is removed.
     */
   var removeAltCode = function(altcodeLids){
-    // TODO: Implement altcode removal.
+    // TODO: Implement altcode removal for specific ids.
+
+    // Easy -- remove all.
+    if(altcodeLids === undefined || altcodeLids.length === 0){
+      $('.altcode-content,.altcode-gutter').remove();
+      $('.altcode').each(function(i,e){
+        var i, classes = this.classList;
+        console.log(classes);
+        for(i = 0; i < classes.length; i++){
+          console.log('Looking at class '+ classes[i]);
+          if(classes[i].match(/^altcode/)){
+            console.log('This is an altcode class!');
+            $(this).removeClass(classes[i]);
+            i--;
+          }
+        }
+      });
+    }
   };
 
   /**
@@ -1612,6 +1627,7 @@ var OCA = function($){
   this.highlightSelection = highlightSelection;
   this.displayError = displayError;
   this.addAltCode = addAltCode;
+  this.removeAltCode = removeAltCode;
   this.syntaxHighlightCodeString = syntaxHighlightCodeString;
   return this;
 };
