@@ -1,3 +1,5 @@
+
+
 class FilesController < ApplicationController
   before_action :logged_in_user
 
@@ -6,6 +8,7 @@ class FilesController < ApplicationController
 
 
   def create
+
     project = Project.find_by(id: params[:project_id])
     file = nil;
 
@@ -38,8 +41,9 @@ class FilesController < ApplicationController
 
           begin
             tmp_file = create_file(file_io, project.id)
-          rescue 
-            flash.now[:danger] = "Error: Bad file type."
+          rescue => e
+            ## DEBUG ONLY
+            flash.now[:danger] = "Error: Bad file type. #{e}"
             raise ActiveRecord::Rollback, "Bad file type."
           end
 
@@ -75,9 +79,14 @@ class FilesController < ApplicationController
     def create_file(file_io, project_id)
       # original_filename
       file_content = file_io.read
-      if file_content.encoding == Encoding::ASCII_8BIT
-        file_content = file_content.encode(Encoding::UTF_8)
-      end
+      file_info = CharlockHolmes::EncodingDetector.detect file_content
+      
+      raise "Not a text file!" unless file_info[:type] == :text
+
+      ## Convert everything to UTF-8.
+      file_content = CharlockHolmes::Converter.convert file_content, 
+        file_info[:encoding], 'UTF-8'
+
       ProjectFile.create!(project_id: project_id, content: file_content, 
         added_by: current_user.id, name: file_io.original_filename,
         size: get_file_size(file_content))
