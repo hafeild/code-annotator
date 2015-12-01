@@ -31,8 +31,11 @@
 		var r = SyntaxHighlighter.regexLib;
 		
 		this.regexList = [
-			{ regex: r.multiLineDoubleQuotedString,					css: 'string' },			// double quoted strings
-			{ regex: r.multiLineSingleQuotedString,					css: 'string' },			// single quoted strings
+			// The following two lines were causing issues with single quotes.
+			// { regex: r.multiLineDoubleQuotedString,					css: 'string' },			// double quoted strings
+			// { regex: r.multiLineSingleQuotedString,					css: 'string' },			// single quoted strings
+			{ regex: r.doubleQuotedString,					css: 'string' },			// double quoted strings
+			{ regex: r.singleQuotedString,					css: 'string' },			// single quoted strings
 			{ regex: r.singleLineCComments,							css: 'comments' },			// one line comments
 			{ regex: r.multiLineCComments,							css: 'comments' },			// multiline comments
 			{ regex: /\s*#.*/gm,									css: 'preprocessor' },		// preprocessor tags like #region and #endregion
