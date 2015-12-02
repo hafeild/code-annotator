@@ -1171,7 +1171,8 @@ var OCA = function($){
       insertAfter(codeEndElm);
 
     // Add strikeouts to the replaced code.
-    highlightSelection(altcode, 'altcode altcode-strikeout altcode-'+ altcode.lid);
+    highlightSelection(altcode, 'altcode altcode-strikeout altcode-'+ 
+        altcode.lid);
   };
 
    /**
@@ -1605,7 +1606,7 @@ var OCA = function($){
     var entryElm = $(this).parents('.project');
     var projectId = entryElm.attr('id');
 
-    console.log('Trash can for project '+ projectId +' clicked; now removing...');
+    console.log('Trash can for project '+projectId+' clicked; now removing...');
 
     // Remove the project.
     deleteProject(projectId, function(data){
@@ -1644,7 +1645,8 @@ var OCA = function($){
 
         var newPermission = $('#new-permission-template').clone().attr('id','');
         newPermission.data('permission-id', data.permissions.id);
-        newPermission.find('.permission-email').html(data.permissions.user_email);
+        newPermission.find('.permission-email').
+          html(data.permissions.user_email);
         newPermission.find('.permission-options').val('view');
         newPermission.insertAfter($('#add-permission-row'));
       },
@@ -1691,7 +1693,7 @@ var OCA = function($){
         }
       },
       error: function(xhr, status, error){
-        displayError('There was an error updating permissions for '+ email +'. '+
+        displayError('There was an error updating permissions for '+ email+'. '+
           error);
       }
     });
@@ -1772,7 +1774,7 @@ var OCA = function($){
     } else if(btnElm.hasClass('save')){
       var altcodeInfo = altcodeElm.data('altcodeInfo');
 
-      altcodeInfo.content = altcodeElm.find('.altcode-editor').html();
+      altcodeInfo.content = altcodeElm.find('.altcode-editor').val();
 
       console.log(altcodeInfo);
 
