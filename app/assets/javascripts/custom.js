@@ -1179,8 +1179,11 @@ var OCA = function($){
     *
     * @param {array of ints} altcodeLids (OPTIONAL) A list of altcode local ids.
     *                                    If not present, all altcode is removed.
+    * @param {boolean} deleteFromServer (OPTIONAL) If true, each altcode in
+    *                                   altcodeLids will be removed. This only 
+    *                                   works when altcodeLids is present.
     */
-  var removeAltCode = function(altcodeLids){
+  var removeAltCode = function(altcodeLids, deleteFromServer){
     // If no altcode lids are given, this is easy -- remove all altcode.
     if(altcodeLids === undefined || altcodeLids.length === 0){
 
@@ -1230,6 +1233,23 @@ var OCA = function($){
           // one altcode associated with this element.
           if(isOnlyAltcode){
             $(this).removeClass('altcode altcode-strikeout');
+          }
+        });
+
+        $.ajax('/api/altcode/'+ altcodeLidToSidMap[lid].id, {
+          method: 'POST',
+          data: {
+            _method: 'delete'
+          },
+          success: function(data){
+            console.log('Heard back about removing altcode:', data);
+            if(data.error){
+              displayError('There was an error removing the altcode. '+ 
+                data.error);
+            }
+          },
+          error: function(xhr, status, error){
+            displayError('There was an error removing the altcode. '+ error);
           }
         });
       }
@@ -1719,7 +1739,7 @@ var OCA = function($){
   // associated altcode.
   $(document).on('click', '.altcode-removal-button', function(){
     var lid = $(this).data('lid');
-    removeAltCode([lid]);
+    removeAltCode([lid], true);
   });
 
   // INITIALIZATIONS.
