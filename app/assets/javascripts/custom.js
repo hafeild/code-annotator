@@ -68,6 +68,9 @@ var OCA = function($){
   var locationLidLastSelected = -1;
   var locationIndexLastSelected = 0;
   var locationToAddToComment;
+  var altcodeLidToSidMap = {};
+  var altcodeLookup = {};
+  var altcodeLidCounter = 0;
 
   // FUNCTIONS
 
@@ -919,6 +922,7 @@ var OCA = function($){
           addColumnsToHighlightedCode($('#file-display .code')[0])
 
           loadFileComments(data.file.comments);
+          loadFileAltcode(data.file.altcode);
         }
       },
       error: function(req, status, error){
@@ -1013,6 +1017,23 @@ var OCA = function($){
     }
   };
 
+  var loadFileAltcode = function(altcode){
+    var i;
+    altcodeLidToSidMap = {};
+    altcodeLookup = {};
+    altcodeLidCounter = 0;
+
+    for (i = 0; i < altcode.length; i++) {
+      // Add lid and take care of some book keeping.
+      altcode[i].lid = altcodeLidCounter++;
+      altcodeLidToSidMap[altcode[i].lid] = altcode[i].id;
+      altcodeLookup[altcode[i].lid] = altcode[i];
+
+      // Add the altcode to the UI.
+      addAltCode(altcode[i]);
+    };
+  };
+
   /**
    * Hides all remove location buttons.
    */
@@ -1101,14 +1122,22 @@ var OCA = function($){
    *                                end_column, content, creator_email.
    */
   var addAltCode = function(altcode){
-    var i, contentLineElms, gutterEndElm, codeEndElm;
+    var i, contentLineElms, gutterEndElm, codeEndElm, endLine;
+
+    // This will help us get around situations where altcode ends at the
+    // beginning of a line.
+    endLine = altcode.end_line;
+    if(altcode.end_line != altcode.start_line && altcode.end_column === 0) {
+      endLine--;
+    }
 
     // Highlight the content.
     contentLineElms = syntaxHighlightCodeString(altcode.content);
 
     // The line under which the altcode will appear.
-    gutterEndElm = $('.gutter .line.number'+ altcode.end_line);
-    codeEndElm = $('.code .line.number'+ altcode.end_line);
+    gutterEndElm = $('.gutter .line.number'+ endLine);
+    codeEndElm = $('.code .line.number'+ endLine);
+
 
     // The gutter lines (each line has a "alternate" symbol).
     for(i = 0; i < contentLineElms.length; i++){
