@@ -1646,6 +1646,28 @@ var OCA = function($){
     });
   });
 
+  // Listen for clicks on alt code.
+  $(document).on('click', '.altcode-gutter,.altcode-content', function(){
+    var elm = $(this), classes = this.classList, i, lidClass;
+
+    // Remove old highlights.
+    $('.altcode-selected').removeClass('altcode-selected');
+
+    // Extract lid from classes.
+    for(i = 0; i < classes.length; i++){
+      if(classes[i].match(/^altcode-\d/)){
+        lidClass = classes[i];
+        break;
+      }
+    }
+
+    console.log(lidClass);
+    // Add new highlights.
+    if(lidClass){
+      $('.'+ lidClass).addClass('altcode-selected');
+    }
+
+  });
 
   // INITIALIZATIONS.
 
