@@ -631,7 +631,7 @@ input {
   }
 
   .altcode-gutter {
-    position: relative;
+    position: relative !important;
     color: $brand-primary;
    /* color: $brand-primary;
     font-size: 1em !important;
@@ -641,7 +641,8 @@ input {
 
   .glyph-wrapper {
     position: absolute;
-    left: 25px;
+    /*left: 25px;*/
+    right: 5px;
     font-size: 8pt !important;
     height: .9em !important;
     padding: 0 !important;
@@ -654,6 +655,10 @@ input {
 
   .altcode-strikeout {
     text-decoration: line-through;
+  }
+
+  .altcode-selected {
+    background-color: lightgreen;
   }
 }
 
