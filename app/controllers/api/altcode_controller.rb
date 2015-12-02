@@ -94,7 +94,25 @@ class Api::AltcodeController < ApplicationController
   end
 
   def destroy
-    render json: "", serializer: SuccessSerializer
+    success = false
+    error = nil
+
+    altcode = AlternativeCode.find_by(id: params[:id])
+    if altcode and user_can_access_project(
+        altcode.project_file.project.id, [:can_annotate])
+
+      if altcode.destroy
+        render json: "", serializer: SuccessSerializer
+        success = true
+      else
+        error = "Altcode couldn't be deleted."
+      end
+
+    end
+
+    unless success
+      render_error error
+    end
   end
 
 

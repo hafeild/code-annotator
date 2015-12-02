@@ -1236,22 +1236,25 @@ var OCA = function($){
           }
         });
 
-        $.ajax('/api/altcode/'+ altcodeLidToSidMap[lid].id, {
-          method: 'POST',
-          data: {
-            _method: 'delete'
-          },
-          success: function(data){
-            console.log('Heard back about removing altcode:', data);
-            if(data.error){
-              displayError('There was an error removing the altcode. '+ 
-                data.error);
+        if(deleteFromServer){
+          console.log('Deletion URL: /api/altcode/'+ altcodeLidToSidMap[lid]);
+          $.ajax('/api/altcode/'+ altcodeLidToSidMap[lid], {
+            method: 'POST',
+            data: {
+              _method: 'delete'
+            },
+            success: function(data){
+              console.log('Heard back about removing altcode:', data);
+              if(data.error){
+                displayError('There was an error removing the altcode. '+ 
+                  data.error);
+              }
+            },
+            error: function(xhr, status, error){
+              displayError('There was an error removing the altcode. '+ error);
             }
-          },
-          error: function(xhr, status, error){
-            displayError('There was an error removing the altcode. '+ error);
-          }
-        });
+          });
+        }
       }
     }
   };

@@ -197,9 +197,37 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   end
 
 
-  test "should return success message on delete" do
+  ## DESTROY
+
+  test "should return remove altcode and return success on destroy" do
     log_in_as @user
-    response = delete :destroy, id: 1
-    assert JSON.parse(response.body)['success']
+    altcode = alternative_codes(:altcode1)
+    assert_difference 'AlternativeCode.count', -1, "No altcode removed." do 
+      response = delete :destroy, id: altcode.id
+      assert JSON.parse(response.body)['success'], 
+        "Success message not returned: #{response.body}"
+      assert AlternativeCode.find_by(id: altcode.id).nil?, 
+        "Deleted altcode still in database."
+    end
   end
+
+  test "should return error message on destroy when not logged in" do
+    altcode = alternative_codes(:altcode1)
+    assert_no_difference 'AlternativeCode.count', "Altcode removed." do 
+      response = delete :destroy, id: altcode.id
+      assert JSON.parse(response.body)['error'] == "You are not logged in.",
+        "Unexpected error message: #{response.body}"
+    end
+  end
+
+  test "should return error message on destroy with bad permissions" do
+    log_in_as @user
+    altcode = alternative_codes(:altcode2)
+    assert_no_difference 'AlternativeCode.count', "Altcode removed." do 
+      response = delete :destroy, id: altcode.id
+      assert JSON.parse(response.body)['error'] == "Resource not available.",
+        "Unexpected error message: #{response.body}"
+    end
+  end
+
 end
