@@ -1135,23 +1135,58 @@ var OCA = function($){
     *                                    If not present, all altcode is removed.
     */
   var removeAltCode = function(altcodeLids){
-    // TODO: Implement altcode removal for specific ids.
-
-    // Easy -- remove all.
+    // If no altcode lids are given, this is easy -- remove all altcode.
     if(altcodeLids === undefined || altcodeLids.length === 0){
+
+      // Remove the gutter and altcode content.
       $('.altcode-content,.altcode-gutter').remove();
-      $('.altcode').each(function(i,e){
+
+      // Remove altcode classes from all other characters.
+      $('.code .altcode').each(function(i,e){
         var i, classes = this.classList;
-        console.log(classes);
+
+        // Remove any classes with an altcode prefix.
         for(i = 0; i < classes.length; i++){
-          console.log('Looking at class '+ classes[i]);
           if(classes[i].match(/^altcode/)){
-            console.log('This is an altcode class!');
             $(this).removeClass(classes[i]);
             i--;
           }
         }
       });
+    // Remove only altcode associated with the provided ids.
+    } else {
+      var i, j, lid;
+      for(i = 0; i < altcodeLids.length; i++){
+        lid = altcodeLids[i];
+
+        // Remove the gutter and altcode content.
+        $('.altcode-content.altcode-'+ lid +',.altcode-gutter.altcode-'+ lid).
+          remove();
+
+        // We need to be careful about removing the strikeouts, since more than
+        // one altcode may be attached to each character.
+        $('.altcode-'+lid).each(function(){
+          var classes, isOnlyAltcode = true;
+
+          $(this).removeClass('altcode-'+ lid);
+
+
+          // Check if any other altcodes are attached to this element.
+          classes = this.classList;
+          for(j = 0; j < classes.length; j++){
+            if(classes[j].match(/^altcode-\d/)){
+              isOnlyAltcode = false;
+              break;
+            }
+          }
+
+          // Remove the altcode/altcode-strikeout classes if this is the only
+          // one altcode associated with this element.
+          if(isOnlyAltcode){
+            $(this).removeClass('altcode altcode-strikeout');
+          }
+        });
+      }
     }
   };
 
