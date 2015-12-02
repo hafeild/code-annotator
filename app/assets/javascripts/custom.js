@@ -1017,6 +1017,12 @@ var OCA = function($){
     }
   };
 
+  /**
+   * Loads all of the given altcode. Also takes care of assigning lids to each
+   * one and entering them in the global altcode lookups.
+   *
+   * @param {array of simple objects} altcode The altcode to add.
+   */
   var loadFileAltcode = function(altcode){
     var i;
     altcodeLidToSidMap = {};
@@ -1135,8 +1141,8 @@ var OCA = function($){
     contentLineElms = syntaxHighlightCodeString(altcode.content);
 
     // The line under which the altcode will appear.
-    gutterEndElm = $('.gutter .line.number'+ endLine);
-    codeEndElm = $('.code .line.number'+ endLine);
+    gutterEndElm = $('#file-display .gutter .line.number'+ endLine);
+    codeEndElm = $('#file-display .code .line.number'+ endLine);
 
 
     // The gutter lines (each line has a "alternate" symbol).
@@ -1146,6 +1152,17 @@ var OCA = function($){
       newGutterElm.html('&nbsp;<span class="glyph-wrapper">'+
         '<span class="glyphicon glyphicon-random"></span></span>');
       newGutterElm.insertAfter(gutterEndElm);
+
+      // Add a remove button if this is the first line (which is the last to be 
+      // added).
+      if(i === contentLineElms.length-1){
+        var closeElm = $('<span>').attr('id', 'altcode-remove-'+ altcode.lid).
+          addClass('altcode-removal-button').
+          html('<span class="glyphicon glyphicon-remove-circle"></span>').
+          data('lid', altcode.lid);
+        newGutterElm.find('.glyph-wrapper span').replaceWith(closeElm);
+      }
+
     }
 
     // Add the content.
@@ -1696,6 +1713,13 @@ var OCA = function($){
       $('.'+ lidClass).addClass('altcode-selected');
     }
 
+  });
+
+  // Listen for the altcode removal button to be clicked and remove the
+  // associated altcode.
+  $(document).on('click', '.altcode-removal-button', function(){
+    var lid = $(this).data('lid');
+    removeAltCode([lid]);
   });
 
   // INITIALIZATIONS.

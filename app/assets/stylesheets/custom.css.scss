@@ -658,9 +658,15 @@ input {
   }
 
   .altcode-selected {
-    background-color: #63a0d4 !important;
+    background-color: #9fc5e5 !important;
     font-weight: bold;
   }
+
+  .altcode-removal-button:hover {
+    color: red;
+    cursor: pointer;
+  }
+
 }
 
 td.trash {
