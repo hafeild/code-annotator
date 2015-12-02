@@ -223,9 +223,18 @@
 
 <!-- Templates. -->
 <div id="templates" class="hidden">
+
+  <!-- Altcode editor. -->
   <div id="altcode-template" class="altcode-container">
-  <pre>
-  </pre>
+    <div class="panel panel-primary">
+      <div class="panel-heading">Alternative code editor</div>
+      <pre class="panel-body altcode-editor" contenteditable="true"
+          placeholder="Enter your code here..."></pre>
+      <div class="panel-footer">
+        <button type="button" class="btn btn-default btn-md cancel">Cancel</button>
+        <button type="button" class="btn btn-default btn-md save">Save</button>
+      </div>
+    </div>
   </div>
 
 
@@ -245,6 +254,7 @@
 
 
   <table>
+    <!-- Permissions table row. -->
     <tr id="new-permission-template" data-permission-id="">
       <td class="permission-email"></td>
       <td>

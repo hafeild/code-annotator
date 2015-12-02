@@ -627,7 +627,22 @@ input {
 
   .altcode-container {
     position: absolute;
+    top: 50px;
+    left: 50px;
+    width: 50%;
+    min-width: 600px;
+    z-index: 1000;
 
+    .altcode-editor {
+      font-family: monospace;
+      font-size: 10pt;
+      outline: none;
+      white-space: pre-wrap;
+    }
+
+    .panel-heading {
+      cursor: move;
+    }
   }
 
   .altcode-gutter {
@@ -667,6 +682,9 @@ input {
     cursor: pointer;
   }
 
+  .select-altcode {
+    background-color: lightblue !important;
+  }
 }
 
 td.trash {

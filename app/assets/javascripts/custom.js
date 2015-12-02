@@ -1373,17 +1373,28 @@ var OCA = function($){
 
     var location = getSelectionLocation();
     if(!locationIsValid(location)){ return; }
-    highlightSelection(location);
 
+    // Add to comment.
     if(e.target.id === 'add-comment'){
-      console.log('Adding comment');
+      highlightSelection(location);
       createComment([location], '', true);
+
+    // Add to existing comment.
     } else if(e.target.id === 'add-to-comment'){
+      highlightSelection(location);
       loadProjectComments($('#all-project-comments'))
       locationToAddToComment = location;
-      console.log('Adding to existing comment');
+
+    // Add alternative code.
     } else if(e.target.id === 'add-alt-code'){
-      console.log('Adding alternate code');
+      highlightSelection(location, 'select-altcode');
+      var altcodeElm = $('#altcode-template').clone().attr('id', '');
+      altcodeElm.appendTo('#file-display');
+      altcodeElm.draggable({
+        handle: ".panel-heading"
+      });
+      altcodeElm.find('.altcode-editor').focus();
+      altcodeElm.data('altcodeInfo', location);
     }
 
   });
@@ -1744,6 +1755,41 @@ var OCA = function($){
     var lid = $(this).data('lid');
     removeAltCode([lid], true);
   });
+
+  // Listen for clicks on the save/cancel buttons in the altcode editor.
+  $(document).on('click', '.altcode-container .btn', function(){
+    var btnElm = $(this);
+    var altcodeElm = btnElm.parents('.altcode-container');
+
+    // Remove any selections made for the altcode editor.
+    $('.select-altcode').removeClass('select-altcode');
+
+    // Destroy the editor on cancel.
+    if(btnElm.hasClass('cancel')){
+     altcodeElm.remove();
+
+    // Create or edit an altcode instance.
+    } else if(btnElm.hasClass('save')){
+      var altcodeInfo = altcodeElm.data('altcodeInfo');
+
+      altcodeInfo.content = altcodeElm.find('.altcode-editor').html();
+
+      console.log(altcodeInfo);
+
+      // Check if there is a lid; if not, assign one.
+      if(altcodeInfo.lid === undefined){
+        altcodeInfo.lid = altcodeLidCounter++;
+        createAltCode([altcodeInfo], true);
+        altcodeElm.remove();
+
+
+      // Otherwise, update the existing one.
+      } else {
+        // TODO: implement this to update existing altcode.
+      }
+    }
+  });
+
 
   // INITIALIZATIONS.
 
