@@ -1886,8 +1886,14 @@ var OCA = function($){
     }
   });
 
+  // Listen for the 'Remove files' button to be pressed.
+  $(document).on('click', '.toggle-file-removal', function(){
+    $('.remove-file-indicator').toggle();
+  });
 
   // INITIALIZATIONS.
+
+  $('.hidden').removeClass('hidden').hide();
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){
     // loadProjectComments();

@@ -35,9 +35,17 @@
               Download files
             </button>
             <% if @projectPermission.can_author %>
-              <button type="button" class="btn btn-default btn-xs"><span 
+              <button
+                type="button" class="btn btn-default btn-xs toggle-file-removal
+                  remove-file-indicator"><span 
                 class="glyphicon glyphicon-remove-circle"></span> 
                 Remove files
+              </button>
+              <button
+                type="button" class="btn btn-default btn-xs toggle-file-removal 
+                  remove-file-indicator hidden"><span 
+                class="glyphicon glyphicon-remove-circle"></span> 
+                Done removing files
               </button>
               <button type="button" id="share-project"
                 class="btn btn-default btn-xs"

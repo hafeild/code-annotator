@@ -2,6 +2,9 @@
   <% if file.is_directory %>
     <div class="entry directory-entry" data-directory-id="<%= file.id %>" data-expand-state="expanded">
       <div class="directory-name">
+        <span class="remove-file-indicator remove-file hidden">
+          <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+        </span>
         <span class="collapsed">
           <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
         </span>
@@ -9,6 +12,7 @@
           <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
         </span>
         <%= file.name %>
+
       </div>
       <div class="directory">
         <%= render template: "projects/_project_file_listing", 
@@ -17,6 +21,9 @@
     </div>
   <% else %>
     <div class="entry file-entry" id="file-<%= file.id %>">
+      <span class="remove-file-indicator remove-file hidden">
+        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+      </span>
       <a href="#<%= file.id %>"
         data-file-id="<%= file.id %>"
         ><%= file.name %></a>
@@ -28,6 +35,7 @@
         <span class="glyphicon glyphicon-random"></span>
         <span class="badge"><%= file.alternative_codes.count %></span>
       </span>
+
     </div>
   <% end %>
 </li>
