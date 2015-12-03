@@ -1156,14 +1156,20 @@ var OCA = function($){
         '<span class="glyphicon glyphicon-random"></span></span>');
       newGutterElm.insertAfter(gutterEndElm);
 
-      // Add a remove button if this is the first line (which is the last to be 
-      // added).
+      // Add a remove and edit button if this is the first line (which is the
+      // last to be added).
       if(i === contentLineElms.length-1){
         var closeElm = $('<span>').attr('id', 'altcode-remove-'+ altcode.lid).
           addClass('altcode-removal-button').
           html('<span class="glyphicon glyphicon-remove-circle"></span>').
           data('lid', altcode.lid);
+        var editElm = $('<span>').attr('id', 'altcode-edit-'+ altcode.lid).
+          addClass('altcode-edit-button').
+          html('<span class="glyphicon glyphicon-pencil"></span>').
+          data('lid', altcode.lid);
+
         newGutterElm.find('.glyph-wrapper span').replaceWith(closeElm);
+        editElm.insertAfter(closeElm);
       }
 
     }
@@ -1268,7 +1274,12 @@ var OCA = function($){
   /**
    * Creates a new altcode.
    *
-   * @param {simple object} altcodeInfo 
+   * @param {simple object} altcodeInfo The altcode information to be sent to
+   *                                    the server: lid, content, start_line, 
+   *                                    start_column, end_line, end_column. The 
+   *                                    file_id will be added before upload; the
+   *                                    id field will be added after hearing
+   *                                    back. 
    */
   var createAltCode = function(altcodeInfo){
     $.ajax(PROJECT_API +'/altcode', {
@@ -1306,10 +1317,55 @@ var OCA = function($){
   /**
    * Updates altcode.
    *
-   * 
+   * @param {simple object} altcodeInfo The altcode information to be sent to
+   *                                    the server: id, content, start_line, 
+   *                                    start_column, end_line, end_column, 
+   *                                    file_id.
    */
-  var updateAltCode = function(){
-    // TODO: Impelment altcode update.
+  var updateAltCode = function(altcodeInfo){
+    $.ajax('/api/altcode/'+ altcodeInfo.id, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        altcode: {
+          content:      altcodeInfo.content,
+          start_line:   altcodeInfo.start_line,
+          start_column: altcodeInfo.start_column,
+          end_line:     altcodeInfo.end_line,
+          end_column:   altcodeInfo.end_column,
+          file_id:      altcodeInfo.file_id
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error updating your altcode: '+data.error);
+          return;
+        }
+
+        removeAltCode([altcodeInfo.lid]);
+        addAltCode(altcodeInfo);
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error updating your altcode. '+ error);
+      }
+    });
+  }
+
+  /**
+   * Adds an altcode editing dialog and returns the instance.
+   *
+   * @param {string} content (Optional) The initial content of the editor.
+   */
+  var createAltCodeEditor = function(content){
+    content = content || '';
+    var altcodeElm = $('#altcode-template').clone().attr('id', '');
+    altcodeElm.appendTo('#file-display');
+    altcodeElm.css('top', $('#file-display').scrollTop()+50+'px');
+    altcodeElm.draggable({
+      handle: ".panel-heading"
+    });
+    altcodeElm.find('.altcode-editor').focus().val(content);
+    return altcodeElm;
   }
 
   // LISTENERS
@@ -1425,13 +1481,8 @@ var OCA = function($){
     // Add alternative code.
     } else if(e.target.id === 'add-alt-code'){
       highlightSelection(location, 'select-altcode');
-      var altcodeElm = $('#altcode-template').clone().attr('id', '');
-      altcodeElm.appendTo('#file-display');
-      altcodeElm.draggable({
-        handle: ".panel-heading"
-      });
-      altcodeElm.find('.altcode-editor').focus();
-      altcodeElm.data('altcodeInfo', location);
+
+      createAltCodeEditor().data('altcodeInfo', location);
     }
 
   });
@@ -1794,6 +1845,12 @@ var OCA = function($){
     removeAltCode([lid], true);
   });
 
+  // Listen for clicks on the altcode edit button.
+  $(document).on('click', '.altcode-edit-button', function(){
+    var altcodeInfo = altcodeLookup[$(this).data('lid')];
+    createAltCodeEditor(altcodeInfo.content).data('altcodeInfo', altcodeInfo);
+  });  
+
   // Listen for clicks on the save/cancel buttons in the altcode editor.
   $(document).on('click', '.altcode-container .btn', function(){
     var btnElm = $(this);
@@ -1823,7 +1880,8 @@ var OCA = function($){
 
       // Otherwise, update the existing one.
       } else {
-        // TODO: implement this to update existing altcode.
+        updateAltCode(altcodeInfo);
+        altcodeElm.remove();
       }
     }
   });

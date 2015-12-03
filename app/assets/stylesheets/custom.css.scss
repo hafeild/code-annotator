@@ -650,6 +650,7 @@ input {
     }
   }
 
+
   .altcode-gutter {
     position: relative !important;
     color: $brand-primary;
@@ -685,6 +686,15 @@ input {
   .altcode-removal-button:hover {
     color: red;
     cursor: pointer;
+  }
+
+  .altcode-edit-button {
+    margin-left: 3px;
+
+    :hover {
+      color: green;
+      cursor: pointer;
+    }
   }
 
   .select-altcode {
