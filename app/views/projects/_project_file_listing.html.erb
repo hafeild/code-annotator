@@ -1,6 +1,6 @@
 <% files.each do |file| %>
   <% if file.is_directory %>
-    <div class="entry directory-entry" data-directory-id="<%= file.id %>" data-expand-state="expanded">
+    <div class="entry directory-entry" data-file-id="<%= file.id %>" data-expand-state="expanded">
       <div class="directory-name">
         <span class="remove-file-indicator remove-file hidden">
           <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
@@ -20,7 +20,8 @@
       </div>
     </div>
   <% else %>
-    <div class="entry file-entry" id="file-<%= file.id %>">
+    <div class="entry file-entry" data-file-id="<%= file.id %>" 
+        id="file-<%= file.id %>">
       <span class="remove-file-indicator remove-file hidden">
         <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
       </span>
