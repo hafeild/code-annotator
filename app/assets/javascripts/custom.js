@@ -2,7 +2,8 @@ var OCA = function($){
   // CONSTANTS / GLOBAL VARIABLES
   const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
   const FILES_API = '/api/files/';
-  const COMMENT_API = '/api/projects/'+ PROJECT_ID +'/comments';
+  const PROJECT_API = '/api/projects/'+ PROJECT_ID;
+  const COMMENT_API = PROJECT_API +'/comments';
   const MAX_PROJECT_SIZE_BYTES = 1024*1024; // 1MB.
   const MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024;
   const KNOWN_FILE_EXTENSIONS = {
@@ -122,7 +123,7 @@ var OCA = function($){
     var locations = $('#comment-'+ commentLid).data('locations');
     var i, commentId;
 
-    // incrementCommentCount(-1);
+    // incrementBadgeCount(-1);
 
 
     commentId = commentLidToSidMap[commentLid];
@@ -210,7 +211,7 @@ var OCA = function($){
           // Determine if we need to decrement comments.
           if(getCommentLocationCountInCurrentFile(locations, 
               curLocation.file_id) === 0){
-            incrementCommentCount(-1, curLocation.file_id);
+            incrementBadgeCount('comment-count', -1, curLocation.file_id);
           }
 
         }
@@ -521,19 +522,22 @@ var OCA = function($){
   };
 
   /**
-   * Increments the comment count badge for the current file.
+   * Increments the annotation count badge for the current file based on a
+   * counter class.
    *
+   * @param {string} counterClass The class of the counter to increment. E.g., 
+   *                              'comment-count', 'altcode-count', etc.
    * @param {int} amount The amount to increment the comment count by. Defaults
    *                     to 1; can be set to a negative number to decrement.
    * @param {int} fileId The id of the file whose counter should be adjusted.
    *                     Defaults to the current file id.
    */
-  var incrementCommentCount = function(amount, fileId){
+  var incrementBadgeCount = function(counterClass, amount, fileId){
       amount = (amount === undefined) ? 1 : amount;
       fileId = (fileId === undefined) ? curFileInfo.id : fileId;
-      var commentCountElm = $('#file-'+ fileId).
-        find('.comment-count .badge');
-      commentCountElm.html(parseInt(commentCountElm.html())+amount);
+      var badgeCounterElm = $('#file-'+ fileId).
+        find('.'+counterClass +' .badge');
+      badgeCounterElm.html(parseInt(badgeCounterElm.text())+amount);
   };
 
   /**
@@ -587,7 +591,7 @@ var OCA = function($){
     // If new, we need to save the comment to the server.
     if(isNew){
       saveComment(commentLid, content, locations);
-      incrementCommentCount();
+      incrementBadgeCount('comment-count');
     }
 
     // Set the real id if the server comment is available.
@@ -814,7 +818,6 @@ var OCA = function($){
       selection.focusOffset);
 
     var location = normalizeLocation({
-      lid:              locationLidCounter++,
       file_id:          curFileInfo.id,
       start_line:       startLocInfo.line,
       start_column:     startLocInfo.col, 
@@ -1238,7 +1241,6 @@ var OCA = function($){
         });
 
         if(deleteFromServer){
-          console.log('Deletion URL: /api/altcode/'+ altcodeLidToSidMap[lid]);
           $.ajax('/api/altcode/'+ altcodeLidToSidMap[lid], {
             method: 'POST',
             data: {
@@ -1249,7 +1251,10 @@ var OCA = function($){
               if(data.error){
                 displayError('There was an error removing the altcode. '+ 
                   data.error);
+                return;
               }
+
+              incrementBadgeCount('altcode-count', -1);
             },
             error: function(xhr, status, error){
               displayError('There was an error removing the altcode. '+ error);
@@ -1263,11 +1268,40 @@ var OCA = function($){
   /**
    * Creates a new altcode.
    *
-   * 
+   * @param {simple object} altcodeInfo 
    */
-  var createAltCode = function(){
-    // TODO: Impelment altcode creation.
-  }
+  var createAltCode = function(altcodeInfo){
+    $.ajax(PROJECT_API +'/altcode', {
+      method: 'POST',
+      data: {
+        altcode: {
+          content: altcodeInfo.content,
+          start_line: altcodeInfo.start_line,
+          start_column: altcodeInfo.start_column,
+          end_line: altcodeInfo.end_line,
+          end_column: altcodeInfo.end_column,
+          file_id: curFileInfo.id
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error saving your altcode: '+ data.error);
+          return;
+        }
+
+        altcodeInfo.id = data.id;
+        altcodeInfo.creator_email = $('#current-email').text();
+        altcodeInfo.file_id = curFileInfo.id;
+        addAltCode(altcodeInfo, true);
+        altcodeLidToSidMap[altcodeInfo.lid] = data.id;
+        altcodeLookup[altcodeInfo.lid] = altcodeInfo;
+        incrementBadgeCount('altcode-count');
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error saving your altcode. '+ error);
+      }
+    });
+  };
 
   /**
    * Updates altcode.
@@ -1377,11 +1411,13 @@ var OCA = function($){
 
     // Add to comment.
     if(e.target.id === 'add-comment'){
+      location.lid = locationLidCounter++,
       highlightSelection(location);
       createComment([location], '', true);
 
     // Add to existing comment.
     } else if(e.target.id === 'add-to-comment'){
+      location.lid = locationLidCounter++,
       highlightSelection(location);
       loadProjectComments($('#all-project-comments'))
       locationToAddToComment = location;
@@ -1518,7 +1554,7 @@ var OCA = function($){
         tmpComment.data('server-comment'));
       lid = newComment.data('lid');
       saveCommentLocations(lid, [location]);
-      incrementCommentCount();
+      incrementBadgeCount('comment-count');
     }
 
     $('#project-comments-modal').modal('hide');
@@ -1781,7 +1817,7 @@ var OCA = function($){
       // Check if there is a lid; if not, assign one.
       if(altcodeInfo.lid === undefined){
         altcodeInfo.lid = altcodeLidCounter++;
-        createAltCode([altcodeInfo], true);
+        createAltCode(altcodeInfo);
         altcodeElm.remove();
 
 

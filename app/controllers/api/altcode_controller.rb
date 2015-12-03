@@ -56,7 +56,8 @@ class Api::AltcodeController < ApplicationController
     if project and user_can_access_project(project.id, [:can_annotate])
 
       if params.key?(:altcode) and has_keys?(params[:altcode],
-            [:file_id, :start_line, :start_column, :end_line, :end_column])
+            [:file_id, :start_line, :start_column, :end_line, :end_column, 
+             :content])
 
         file = ProjectFile.find_by(id: params[:altcode][:file_id])
         if file and file.project != project
