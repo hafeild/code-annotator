@@ -1,13 +1,31 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+file1Root:
+  name: ""
+  creator: foo
+  project: p1
+  size: 0
+  directory_id:
+
 file1:
   name: "main.cpp"
   creator: foo
   project: p1
   size:    0
+  directory_id: file1Root
+
+
+file2Root:
+  name: ""
+  creator: var
+  project: p2
+  size: 0
+  directory_id:
+
 
 file2:
   name: "project.cpp"
   creator: bar
   project: p2
   size:    1048576
+  directory_id: file2Root

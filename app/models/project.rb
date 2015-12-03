@@ -1,50 +1,3 @@
-class ProjectItem
-  attr_accessor :project_file, :is_directory, :name
-
-  def initialize(name="", project_file=nil)
-    @project_file = project_file
-    @is_directory = false
-    @name = name
-  end
-end
-
-class ProjectDirectory < ProjectItem
-  attr_accessor :files
-
-  def initialize(name="", project_file=nil)
-    super(name, project_file)
-    @is_directory = true
-    @files = []
-    @directories = {}
-
-  end
-
-  ## Breaks the path into two parts: the next directory and the
-  ## remaining path.
-  def breakPath(path)
-    dividerIndex = path.index("/")
-    if dividerIndex.nil?
-      ["", path]
-    else
-      [path[0..dividerIndex], path[dividerIndex+1..-1]]
-    end
-  end
-
-  def addSubFile(path, project_file)
-    (nextPath, remainingPath) = breakPath(path)
-    if remainingPath == "" and project_file.is_directory?
-      @files << ProjectDirectory.new(nextPath, project_file)
-      @directories[nextPath] = @files.last
-    elsif nextPath == ""
-      @files << ProjectItem.new(remainingPath, project_file)
-    elsif @directories.has_key?(nextPath)
-      @directories[nextPath].addSubFile(remainingPath, project_file)
-    else
-      raise "Found file that couldn't be added!! #{project_file.name}"
-    end
-  end
-end
-
 class Project < ActiveRecord::Base
   belongs_to :creator, class_name: "User", foreign_key: :created_by
   has_many :users, through: :project_permissions
@@ -71,5 +24,9 @@ class Project < ActiveRecord::Base
     all_altcode = []
     project_files.each{|file| all_altcode.concat(file.alternative_codes)}
     all_altcode
+  end
+
+  def root
+    ProjectFile.find_by(project_id: id, directory_id: nil)
   end
 end

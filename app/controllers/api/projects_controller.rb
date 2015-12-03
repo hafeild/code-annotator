@@ -22,17 +22,20 @@ class Api::ProjectsController < ApplicationController
 
     ActiveRecord::Base.transaction do
       project = Project.create(p)
-      if project.valid? and project.save!
-        ## Create the permissions that go along with it.
-        permissions = ProjectPermission.create(project_id: project.id,
-          user_id: current_user.id, can_author: true, can_view: true,
-          can_annotate: true)
-        permissions.save!
+      ## Create the permissions that go along with it.
+      ProjectPermission.create!(project_id: project.id,
+        user_id: current_user.id, can_author: true, can_view: true,
+        can_annotate: true)
+      #permissions.save!
 
-        render json: project, serializer: SessionCreationSuccessSerializer
-        # render json: project.id, serializer: SuccessWithIdSerializer
-        return
-      end
+      ## Create a new root directory for the project.
+      ProjectFile.create!(name: "", is_directory: true, size: 0, 
+        directory_id: nil, project_id: project.id, content: "", 
+        added_by: current_user.id)
+
+      render json: project, serializer: SessionCreationSuccessSerializer
+      # render json: project.id, serializer: SuccessWithIdSerializer
+      return
     end
 
     render_error "There was a problem creating the project."

@@ -6,8 +6,10 @@
       <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-remove-circle"></span> Hide file list</span>
       <span class="project-title"><%= @project.name %></span>
       <div class="root-directory directory">
-      <%= render template: "projects/_project_file_listing", 
-                 locals: { :files => @project.getFilesAsDirectories.files } %>
+        <%= render template: "projects/_project_file_listing", 
+                 #locals: { :files => @project.getFilesAsDirectories.files } 
+                locals: { :files => @project.root.sub_tree }
+        %>
         <% #render @project.project_files.sort{|x,y| x.name <=> y.name} %>
       </div>
     </div>

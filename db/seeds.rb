@@ -60,24 +60,36 @@ projectCount.times do
 
   ## Preset directories. Files will be distributed across these.
   directories = [
-    "",
-    "src/",
-    "src/main/",
-    "src/main/util/",
-    "src/test/",
-    "lib/"
+    ["", 0],
+    ["src", 0],
+    ["main", 1],
+    ["util", 2],
+    ["test", 1],
+    ["lib", 0]
   ]
 
+  directoryIds = [];
+
   ## Every directory is part of every project.
-  directories.each do |d|
-    unless d == ""
-      ProjectFile.create!(
+  directories.each do |d,i|
+    if d == ""
+      directoryIds << ProjectFile.create!(
         name: d, 
         content: "",
         size: 0,
         added_by: owner.id,
         project_id: project.id,
-        is_directory: true)
+        is_directory: true,
+        directory_id: nil).id
+    else
+      directoryIds << ProjectFile.create!(
+        name: d, 
+        content: "",
+        size: 0,
+        added_by: owner.id,
+        project_id: project.id,
+        is_directory: true,
+        directory_id: directoryIds[i]).id
     end
   end
 
@@ -92,15 +104,19 @@ projectCount.times do
   # files.each do |fid|
   fileCount.times do |fid|
     # cur_file_id += 1s
-    dir = directories.shuffle.first
+    #dir = directories.shuffle.first
+    dirId = directoryIds.shuffle.first
 
     file = fileContents.shuffle.first
-    projectFile = ProjectFile.create!(name: "#{dir}file-#{fid}#{file[0]}", 
+    projectFile = ProjectFile.create!(
+      name: "file-#{fid}#{file[0]}",
+      # "#{dir}file-#{fid}#{file[0]}", 
       content: file[1],
       size: 1000,
       added_by: owner.id,
       project_id: project.id,
-      is_directory: false
+      is_directory: false,
+      directory_id: dirId
     )
     files << projectFile
 
