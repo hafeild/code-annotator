@@ -2,14 +2,16 @@ class Api::CommentsController < ApplicationController
   before_action :logged_in_user_api
 
   def index
-    ## Should be coming in as: projects/:project_id/comments
+    ## Should be coming in as: api/projects/:project_id/comments or
+    ## api/projects/:project_id/files/:file_id/comments.
     file = nil
     if params.has_key?(:file_id)
       file = ProjectFile.find_by(id: params[:file_id])
     end
     project = Project.find_by(id: params[:project_id])
     if not project.nil? and user_can_access_project(project.id, [:can_view]) and
-        (not params.has_key?(:file_id) or (params.has_key?(:file_id) and not file.nil?))
+        (not params.has_key?(:file_id) or 
+          (params.has_key?(:file_id) and not file.nil?))
       if file.nil?
         comments = project.comments
       else

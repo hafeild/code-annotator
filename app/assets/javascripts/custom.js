@@ -2,7 +2,8 @@ var OCA = function($){
   // CONSTANTS / GLOBAL VARIABLES
   const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
   const FILES_API = '/api/files/';
-  const COMMENT_API = '/api/projects/'+ PROJECT_ID +'/comments';
+  const PROJECT_API = '/api/projects/'+ PROJECT_ID;
+  const COMMENT_API = PROJECT_API +'/comments';
   const MAX_PROJECT_SIZE_BYTES = 1024*1024; // 1MB.
   const MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024;
   const KNOWN_FILE_EXTENSIONS = {
@@ -68,6 +69,9 @@ var OCA = function($){
   var locationLidLastSelected = -1;
   var locationIndexLastSelected = 0;
   var locationToAddToComment;
+  var altcodeLidToSidMap = {};
+  var altcodeLookup = {};
+  var altcodeLidCounter = 0;
 
   // FUNCTIONS
 
@@ -119,7 +123,7 @@ var OCA = function($){
     var locations = $('#comment-'+ commentLid).data('locations');
     var i, commentId;
 
-    // incrementCommentCount(-1);
+    // incrementBadgeCount(-1);
 
 
     commentId = commentLidToSidMap[commentLid];
@@ -207,7 +211,7 @@ var OCA = function($){
           // Determine if we need to decrement comments.
           if(getCommentLocationCountInCurrentFile(locations, 
               curLocation.file_id) === 0){
-            incrementCommentCount(-1, curLocation.file_id);
+            incrementBadgeCount('comment-count', -1, curLocation.file_id);
           }
 
         }
@@ -368,7 +372,7 @@ var OCA = function($){
       clearTimeout(target.data('timeout'));
     }
 
-    // TODO: This needs to actually save the comment changes.
+    // Save the comment changes.
     target.data('timeout', setTimeout(function(){
 
       console.log('Sending to: /api/comments/'+ 
@@ -518,19 +522,22 @@ var OCA = function($){
   };
 
   /**
-   * Increments the comment count badge for the current file.
+   * Increments the annotation count badge for the current file based on a
+   * counter class.
    *
+   * @param {string} counterClass The class of the counter to increment. E.g., 
+   *                              'comment-count', 'altcode-count', etc.
    * @param {int} amount The amount to increment the comment count by. Defaults
    *                     to 1; can be set to a negative number to decrement.
    * @param {int} fileId The id of the file whose counter should be adjusted.
    *                     Defaults to the current file id.
    */
-  var incrementCommentCount = function(amount, fileId){
+  var incrementBadgeCount = function(counterClass, amount, fileId){
       amount = (amount === undefined) ? 1 : amount;
       fileId = (fileId === undefined) ? curFileInfo.id : fileId;
-      var commentCountElm = $('#file-'+ fileId).
-        find('.comment-count .badge');
-      commentCountElm.html(parseInt(commentCountElm.html())+amount);
+      var badgeCounterElm = $('#file-'+ fileId).
+        find('.'+counterClass +' .badge');
+      badgeCounterElm.html(parseInt(badgeCounterElm.text())+amount);
   };
 
   /**
@@ -584,7 +591,7 @@ var OCA = function($){
     // If new, we need to save the comment to the server.
     if(isNew){
       saveComment(commentLid, content, locations);
-      incrementCommentCount();
+      incrementBadgeCount('comment-count');
     }
 
     // Set the real id if the server comment is available.
@@ -718,26 +725,16 @@ var OCA = function($){
    *                      from the selected elements. Defaults to true.
    */
   var highlightSelection = function(loc, cssClass, add){
-    var i, j;
     cssClass = cssClass || 'selected';
     add = add === undefined ? true : add;
-    for(i = loc.start_line; i <= loc.end_line; i++){
-      var start = (i === loc.start_line) ? loc.start_column : 1;
-      var end = (i === loc.end_line) ? loc.end_column : 
-        $('.content-line'+ i).size();
 
-      for(j = start; j <= end; j++){
-        if(add){
-          $('#'+ i +'_'+ j).addClass(cssClass);
-        } else {
-          $('#'+ i +'_'+ j).removeClass(cssClass);
-        }
-        // Highlight the endcap if the selection spans to lines below.
-        // if(i !== loc.end_line){
-        //   $('#'+ i +'_endcap').addClass('selected');
-        // }
+    applyToCodeRange(loc, function(charElm){
+      if(add){
+        charElm.addClass(cssClass);
+      } else {
+        charElm.removeClass(cssClass);
       }
-    }
+    });
   };
 
   /**
@@ -821,7 +818,6 @@ var OCA = function($){
       selection.focusOffset);
 
     var location = normalizeLocation({
-      lid:              locationLidCounter++,
       file_id:          curFileInfo.id,
       start_line:       startLocInfo.line,
       start_column:     startLocInfo.col, 
@@ -929,6 +925,7 @@ var OCA = function($){
           addColumnsToHighlightedCode($('#file-display .code')[0])
 
           loadFileComments(data.file.comments);
+          loadFileAltcode(data.file.altcode);
         }
       },
       error: function(req, status, error){
@@ -1024,6 +1021,29 @@ var OCA = function($){
   };
 
   /**
+   * Loads all of the given altcode. Also takes care of assigning lids to each
+   * one and entering them in the global altcode lookups.
+   *
+   * @param {array of simple objects} altcode The altcode to add.
+   */
+  var loadFileAltcode = function(altcode){
+    var i;
+    altcodeLidToSidMap = {};
+    altcodeLookup = {};
+    altcodeLidCounter = 0;
+
+    for (i = 0; i < altcode.length; i++) {
+      // Add lid and take care of some book keeping.
+      altcode[i].lid = altcodeLidCounter++;
+      altcodeLidToSidMap[altcode[i].lid] = altcode[i].id;
+      altcodeLookup[altcode[i].lid] = altcode[i];
+
+      // Add the altcode to the UI.
+      addAltCode(altcode[i]);
+    };
+  };
+
+  /**
    * Hides all remove location buttons.
    */
   var hideRemoveLocationButtons = function(){
@@ -1042,13 +1062,310 @@ var OCA = function($){
         location.end_line > 0 && location.end_column > 0;
   };
 
-
+  /**
+   * Returns the size of the given list of files.
+   *
+   * @param {array of Files} files The list of files.
+   * @return {int} The total size of the list of files.
+   */
   var getFileSizes = function(files){
     var i, totalSize = 0;
     for(i = 0; i < files.length; i++){
       totalSize += files[i].size;
     }
     return totalSize;
+  }
+
+  /**
+   * Creates the highlighted version of the given code.
+   *
+   * @param {string} code The code to highlight.
+   * @param {string} brush (Optional) The SyntaxHighlighter class to attached.
+   *                       Defaults to the brush class for the current loaded
+   *                       file based on its extension.
+   * @return The SyntaxHighter highlighted lines of the code with line number
+   *         an index classes removed.
+   */
+  var syntaxHighlightCodeString = function(code, brushClass){
+    brushClass = brushClass || getHighlighterClass(curFileInfo.name);
+
+    var codePre = $('<pre>');
+    $('#code-to-highlight').html('').append(codePre);
+    codePre.attr('class', brushClass).html(escapeHtml(code));
+
+    SyntaxHighlighter.highlight(undefined, codePre[0]);
+
+    var highlightedCode = $('#code-to-highlight .code .line').clone();
+    highlightedCode.attr('class', 'line');
+
+    return highlightedCode;
+  };
+
+  /**
+   * Applies the given function to each character in the given range of
+   * characters in the code.
+   *
+   * @param {simple object} loc A map with four fields: start_line,
+   *                            end_line, start_column, end_column.
+   * @param {function} fnc The function to invoke for each character. Should
+   *                       take one arg: a jQuery instance of the character.
+   */
+  var applyToCodeRange = function(loc, fnc){
+    var i, j;
+    for(i = loc.start_line; i <= loc.end_line; i++){
+      var start = (i === loc.start_line) ? loc.start_column : 1;
+      var end = (i === loc.end_line) ? loc.end_column : 
+        $('.content-line'+ i).size();
+
+      for(j = start; j <= end; j++){
+        fnc($('#'+ i +'_'+ j));
+      }
+    }
+  };
+
+  /**
+   * Adds in a block of alternative code at the given line.
+   *
+   * @param {simple object} altcode An altcode object that contains the fields:
+   *                                lid, start_line, start_column, end_line, 
+   *                                end_column, content, creator_email.
+   */
+  var addAltCode = function(altcode){
+    var i, contentLineElms, gutterEndElm, codeEndElm, endLine;
+
+    // This will help us get around situations where altcode ends at the
+    // beginning of a line.
+    endLine = altcode.end_line;
+    if(altcode.end_line != altcode.start_line && altcode.end_column === 0) {
+      endLine--;
+    }
+
+    // Highlight the content.
+    contentLineElms = syntaxHighlightCodeString(altcode.content);
+
+    // The line under which the altcode will appear.
+    gutterEndElm = $('#file-display .gutter .line.number'+ endLine);
+    codeEndElm = $('#file-display .code .line.number'+ endLine);
+
+
+    // The gutter lines (each line has a "alternate" symbol).
+    for(i = 0; i < contentLineElms.length; i++){
+      var newGutterElm = $('<div>').addClass(
+        'altcode altcode-gutter line altcode-'+ altcode.lid);
+      newGutterElm.html('&nbsp;<span class="glyph-wrapper">'+
+        '<span class="glyphicon glyphicon-random"></span></span>');
+      newGutterElm.insertAfter(gutterEndElm);
+
+      // Add a remove and edit button if this is the first line (which is the
+      // last to be added).
+      if(i === contentLineElms.length-1){
+        var closeElm = $('<span>').attr('id', 'altcode-remove-'+ altcode.lid).
+          addClass('altcode-removal-button').
+          html('<span class="glyphicon glyphicon-remove-circle"></span>').
+          data('lid', altcode.lid);
+        var editElm = $('<span>').attr('id', 'altcode-edit-'+ altcode.lid).
+          addClass('altcode-edit-button').
+          html('<span class="glyphicon glyphicon-pencil"></span>').
+          data('lid', altcode.lid);
+
+        newGutterElm.find('.glyph-wrapper span').replaceWith(closeElm);
+        editElm.insertAfter(closeElm);
+      }
+
+    }
+
+    // Add the content.
+    $(contentLineElms).addClass(
+      'altcode altcode-content altcode-'+ altcode.lid).
+      insertAfter(codeEndElm);
+
+    // Add strikeouts to the replaced code.
+    highlightSelection(altcode, 'altcode altcode-strikeout altcode-'+ 
+        altcode.lid);
+  };
+
+   /**
+    * Removes the altcode specified, or all altcode if no altcode is specified.
+    *
+    * @param {array of ints} altcodeLids (OPTIONAL) A list of altcode local ids.
+    *                                    If not present, all altcode is removed.
+    * @param {boolean} deleteFromServer (OPTIONAL) If true, each altcode in
+    *                                   altcodeLids will be removed. This only 
+    *                                   works when altcodeLids is present.
+    */
+  var removeAltCode = function(altcodeLids, deleteFromServer){
+    // If no altcode lids are given, this is easy -- remove all altcode.
+    if(altcodeLids === undefined || altcodeLids.length === 0){
+
+      // Remove the gutter and altcode content.
+      $('.altcode-content,.altcode-gutter').remove();
+
+      // Remove altcode classes from all other characters.
+      $('.code .altcode').each(function(i,e){
+        var i, classes = this.classList;
+
+        // Remove any classes with an altcode prefix.
+        for(i = 0; i < classes.length; i++){
+          if(classes[i].match(/^altcode/)){
+            $(this).removeClass(classes[i]);
+            i--;
+          }
+        }
+      });
+    // Remove only altcode associated with the provided ids.
+    } else {
+      var i, j, lid;
+      for(i = 0; i < altcodeLids.length; i++){
+        lid = altcodeLids[i];
+
+        // Remove the gutter and altcode content.
+        $('.altcode-content.altcode-'+ lid +',.altcode-gutter.altcode-'+ lid).
+          remove();
+
+        // We need to be careful about removing the strikeouts, since more than
+        // one altcode may be attached to each character.
+        $('.altcode-'+lid).each(function(){
+          var classes, isOnlyAltcode = true;
+
+          $(this).removeClass('altcode-'+ lid);
+
+
+          // Check if any other altcodes are attached to this element.
+          classes = this.classList;
+          for(j = 0; j < classes.length; j++){
+            if(classes[j].match(/^altcode-\d/)){
+              isOnlyAltcode = false;
+              break;
+            }
+          }
+
+          // Remove the altcode/altcode-strikeout classes if this is the only
+          // one altcode associated with this element.
+          if(isOnlyAltcode){
+            $(this).removeClass('altcode altcode-strikeout');
+          }
+        });
+
+        if(deleteFromServer){
+          $.ajax('/api/altcode/'+ altcodeLidToSidMap[lid], {
+            method: 'POST',
+            data: {
+              _method: 'delete'
+            },
+            success: function(data){
+              console.log('Heard back about removing altcode:', data);
+              if(data.error){
+                displayError('There was an error removing the altcode. '+ 
+                  data.error);
+                return;
+              }
+
+              incrementBadgeCount('altcode-count', -1);
+            },
+            error: function(xhr, status, error){
+              displayError('There was an error removing the altcode. '+ error);
+            }
+          });
+        }
+      }
+    }
+  };
+
+  /**
+   * Creates a new altcode.
+   *
+   * @param {simple object} altcodeInfo The altcode information to be sent to
+   *                                    the server: lid, content, start_line, 
+   *                                    start_column, end_line, end_column. The 
+   *                                    file_id will be added before upload; the
+   *                                    id field will be added after hearing
+   *                                    back. 
+   */
+  var createAltCode = function(altcodeInfo){
+    $.ajax(PROJECT_API +'/altcode', {
+      method: 'POST',
+      data: {
+        altcode: {
+          content: altcodeInfo.content,
+          start_line: altcodeInfo.start_line,
+          start_column: altcodeInfo.start_column,
+          end_line: altcodeInfo.end_line,
+          end_column: altcodeInfo.end_column,
+          file_id: curFileInfo.id
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error saving your altcode: '+ data.error);
+          return;
+        }
+
+        altcodeInfo.id = data.id;
+        altcodeInfo.creator_email = $('#current-email').text();
+        altcodeInfo.file_id = curFileInfo.id;
+        addAltCode(altcodeInfo, true);
+        altcodeLidToSidMap[altcodeInfo.lid] = data.id;
+        altcodeLookup[altcodeInfo.lid] = altcodeInfo;
+        incrementBadgeCount('altcode-count');
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error saving your altcode. '+ error);
+      }
+    });
+  };
+
+  /**
+   * Updates altcode.
+   *
+   * @param {simple object} altcodeInfo The altcode information to be sent to
+   *                                    the server: id, content, start_line, 
+   *                                    start_column, end_line, end_column, 
+   *                                    file_id.
+   */
+  var updateAltCode = function(altcodeInfo){
+    $.ajax('/api/altcode/'+ altcodeInfo.id, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        altcode: {
+          content:      altcodeInfo.content,
+          start_line:   altcodeInfo.start_line,
+          start_column: altcodeInfo.start_column,
+          end_line:     altcodeInfo.end_line,
+          end_column:   altcodeInfo.end_column,
+          file_id:      altcodeInfo.file_id
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error updating your altcode: '+data.error);
+          return;
+        }
+
+        removeAltCode([altcodeInfo.lid]);
+        addAltCode(altcodeInfo);
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error updating your altcode. '+ error);
+      }
+    });
+  }
+
+  /**
+   * Adds an altcode editing dialog and returns the instance.
+   *
+   * @param {string} content (Optional) The initial content of the editor.
+   */
+  var createAltCodeEditor = function(content){
+    content = content || '';
+    var altcodeElm = $('#altcode-template').clone().attr('id', '');
+    altcodeElm.appendTo('#file-display');
+    altcodeElm.css('top', $('#file-display').scrollTop()+50+'px');
+    altcodeElm.draggable({
+      handle: ".panel-heading"
+    });
+    altcodeElm.find('.altcode-editor').focus().val(content);
+    return altcodeElm;
   }
 
   // LISTENERS
@@ -1147,17 +1464,25 @@ var OCA = function($){
 
     var location = getSelectionLocation();
     if(!locationIsValid(location)){ return; }
-    highlightSelection(location);
 
+    // Add to comment.
     if(e.target.id === 'add-comment'){
-      console.log('Adding comment');
+      location.lid = locationLidCounter++,
+      highlightSelection(location);
       createComment([location], '', true);
+
+    // Add to existing comment.
     } else if(e.target.id === 'add-to-comment'){
+      location.lid = locationLidCounter++,
+      highlightSelection(location);
       loadProjectComments($('#all-project-comments'))
       locationToAddToComment = location;
-      console.log('Adding to existing comment');
+
+    // Add alternative code.
     } else if(e.target.id === 'add-alt-code'){
-      console.log('Adding alternate code');
+      highlightSelection(location, 'select-altcode');
+
+      createAltCodeEditor().data('altcodeInfo', location);
     }
 
   });
@@ -1280,7 +1605,7 @@ var OCA = function($){
         tmpComment.data('server-comment'));
       lid = newComment.data('lid');
       saveCommentLocations(lid, [location]);
-      incrementCommentCount();
+      incrementBadgeCount('comment-count');
     }
 
     $('#project-comments-modal').modal('hide');
@@ -1368,7 +1693,7 @@ var OCA = function($){
     var entryElm = $(this).parents('.project');
     var projectId = entryElm.attr('id');
 
-    console.log('Trash can for project '+ projectId +' clicked; now removing...');
+    console.log('Trash can for project '+projectId+' clicked; now removing...');
 
     // Remove the project.
     deleteProject(projectId, function(data){
@@ -1407,7 +1732,8 @@ var OCA = function($){
 
         var newPermission = $('#new-permission-template').clone().attr('id','');
         newPermission.data('permission-id', data.permissions.id);
-        newPermission.find('.permission-email').html(data.permissions.user_email);
+        newPermission.find('.permission-email').
+          html(data.permissions.user_email);
         newPermission.find('.permission-options').val('view');
         newPermission.insertAfter($('#add-permission-row'));
       },
@@ -1454,7 +1780,7 @@ var OCA = function($){
         }
       },
       error: function(xhr, status, error){
-        displayError('There was an error updating permissions for '+ email +'. '+
+        displayError('There was an error updating permissions for '+ email+'. '+
           error);
       }
     });
@@ -1489,6 +1815,77 @@ var OCA = function($){
     });
   });
 
+  // Listen for clicks on alt code.
+  $(document).on('click', '.altcode-gutter,.altcode-content', function(){
+    var elm = $(this), classes = this.classList, i, lidClass;
+
+    // Remove old highlights.
+    $('.altcode-selected').removeClass('altcode-selected');
+
+    // Extract lid from classes.
+    for(i = 0; i < classes.length; i++){
+      if(classes[i].match(/^altcode-\d/)){
+        lidClass = classes[i];
+        break;
+      }
+    }
+
+    console.log(lidClass);
+    // Add new highlights.
+    if(lidClass){
+      $('.'+ lidClass).addClass('altcode-selected');
+    }
+
+  });
+
+  // Listen for the altcode removal button to be clicked and remove the
+  // associated altcode.
+  $(document).on('click', '.altcode-removal-button', function(){
+    var lid = $(this).data('lid');
+    removeAltCode([lid], true);
+  });
+
+  // Listen for clicks on the altcode edit button.
+  $(document).on('click', '.altcode-edit-button', function(){
+    var altcodeInfo = altcodeLookup[$(this).data('lid')];
+    createAltCodeEditor(altcodeInfo.content).data('altcodeInfo', altcodeInfo);
+  });  
+
+  // Listen for clicks on the save/cancel buttons in the altcode editor.
+  $(document).on('click', '.altcode-container .btn', function(){
+    var btnElm = $(this);
+    var altcodeElm = btnElm.parents('.altcode-container');
+
+    // Remove any selections made for the altcode editor.
+    $('.select-altcode').removeClass('select-altcode');
+
+    // Destroy the editor on cancel.
+    if(btnElm.hasClass('cancel')){
+     altcodeElm.remove();
+
+    // Create or edit an altcode instance.
+    } else if(btnElm.hasClass('save')){
+      var altcodeInfo = altcodeElm.data('altcodeInfo');
+
+      altcodeInfo.content = altcodeElm.find('.altcode-editor').val();
+
+      console.log(altcodeInfo);
+
+      // Check if there is a lid; if not, assign one.
+      if(altcodeInfo.lid === undefined){
+        altcodeInfo.lid = altcodeLidCounter++;
+        createAltCode(altcodeInfo);
+        altcodeElm.remove();
+
+
+      // Otherwise, update the existing one.
+      } else {
+        updateAltCode(altcodeInfo);
+        altcodeElm.remove();
+      }
+    }
+  });
+
 
   // INITIALIZATIONS.
 
@@ -1504,6 +1901,9 @@ var OCA = function($){
   this.getSelectionLocation = getSelectionLocation;
   this.highlightSelection = highlightSelection;
   this.displayError = displayError;
+  this.addAltCode = addAltCode;
+  this.removeAltCode = removeAltCode;
+  this.syntaxHighlightCodeString = syntaxHighlightCodeString;
   return this;
 };
 
