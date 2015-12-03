@@ -70,15 +70,11 @@ class Api::PermissionsController < ApplicationController
             elsif get_with_default(p, 'can_annotate', false)
               p['can_view']     = true
             end
-             
-            Rails.logger.debug "p: #{p.to_json}; "+
-              "can_annotate: #{get_with_default(p, :can_annotate, permissions.can_annotate)}, "+
-              "can_author: #{get_with_default(p, :can_author, permissions.can_author)}"
 
             ## Make sure that can_view is not being taken away from a user with
             ## authoring or annotation permissions.
             if p.key?('can_view') and not p['can_view']
-                (get_with_default(p, 'can_annotate', permissions.can_annotate) or
+                (get_with_default(p, 'can_annotate',permissions.can_annotate) or
                  get_with_default(p, 'can_author', permissions.can_author))
                 Rails.logger.debug "Hello -- ILLEGAL STATE REACHED!"
                 error = "Illegal state of permissions: you cannot revoke "+

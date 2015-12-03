@@ -92,6 +92,9 @@ class ApplicationController < ActionController::Base
       file.alternative_codes.each do |altcode|
         altcode.destroy!
       end
+      file.sub_tree.each do |sub_file|
+        delete_file(file)
+      end
       file.destroy!
     end
 

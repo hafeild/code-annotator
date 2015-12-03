@@ -90,9 +90,16 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on delete" do
+  test "should return success message on destroy" do
     log_in_as @user
-    response = delete :destroy, id: 1
+    file_to_remove = project_files(:file1Root)
+    assert_difference 'ProjectFile.count', -2, "Files not removed" do
+      response = delete :destroy, id: file_to_remove.id
+      assert JSON.parse(response.body)['success'], "Success not returned."
+      assert ProjectFile.where(project_id: projects(:p1)).size == 0, 
+        "Files to delete not deleted."
+    end
+
     assert JSON.parse(response.body)['success']
   end
 end
