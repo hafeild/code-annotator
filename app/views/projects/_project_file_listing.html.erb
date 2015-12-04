@@ -1,7 +1,10 @@
 <% files.each do |file| %>
   <% if file.is_directory %>
-    <div class="entry directory-entry" data-directory-id="<%= file.project_file.id %>" data-expand-state="expanded">
+    <div class="entry directory-entry" data-file-id="<%= file.id %>" data-expand-state="expanded">
       <div class="directory-name">
+        <span class="remove-file-indicator remove-file hidden">
+          <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+        </span>
         <span class="collapsed">
           <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
         </span>
@@ -9,26 +12,33 @@
           <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
         </span>
         <%= file.name %>
+
       </div>
       <div class="directory">
         <%= render template: "projects/_project_file_listing", 
-                   locals: { :files => file.files } %>
+                   locals: { :files => file.sub_tree } %>
       </div>
     </div>
   <% else %>
-    <div class="entry file-entry" id="file-<%= file.project_file.id %>">
-      <a href="#<%= file.project_file.id %>"
-        data-file-id="<%= file.project_file.id %>"
+    <div class="entry file-entry" data-file-id="<%= file.id %>" 
+        id="file-<%= file.id %>">
+      <span class="remove-file-indicator remove-file hidden">
+        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+      </span>
+      <a href="#<%= file.id %>"
+        data-file-id="<%= file.id %>"
         ><%= file.name %></a>
       <span class="count comment-count">
         <span class="glyphicon glyphicon-comment"></span>
-        <span class="badge"><%= file.project_file.comments.uniq.count %></span>
+        <span class="badge"><%= file.comments.uniq.count %></span>
       </span>
       <span class="count altcode-count">
         <span class="glyphicon glyphicon-random"></span>
-        <span class="badge"><%= file.project_file.alternative_codes.count %></span>
+        <span class="badge"><%= file.alternative_codes.count %></span>
       </span>
+
     </div>
   <% end %>
 </li>
 <% end %>
+

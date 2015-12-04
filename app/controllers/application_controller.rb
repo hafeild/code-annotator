@@ -87,11 +87,26 @@ class ApplicationController < ActionController::Base
     ## Deletes a file and all of its alt code. This will raise exceptions
     ## and can be used within a transaction.
     ## @param comment The project file to delete.
-    def delete_file(file)
+    ## @param destroy_subtree Whether to delete all subfiles of this file (if
+    ##                        it's a directory). Default: false.
+    def delete_file(file, delete_subtree=false)
       ## Delete all altcode.
       file.alternative_codes.each do |altcode|
         altcode.destroy!
       end
+
+      ## Delete all comment locations.
+      file.comment_locations.each do |comment_location|
+        comment_location.destroy!
+      end
+
+      ## Remove the subtree if requested to do so.
+      if delete_subtree
+        file.sub_tree.each do |sub_file|
+          delete_file(sub_file, true)
+        end
+      end
+
       file.destroy!
     end
 

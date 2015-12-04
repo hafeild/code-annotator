@@ -346,7 +346,7 @@ input {
 
   .entry {
     padding-left: 3px;
-    padding-right: 3px;
+    /*padding-right: 3px;*/
     width: auto;
   }
 
@@ -356,6 +356,16 @@ input {
     margin-left: -3px;
     padding-left: 3px;
     padding-right: 3px;
+  }
+
+  .remove-file {
+    display: inline-block;
+    font-size: 90%;
+    color: darkred;    
+    :hover {
+      color: red;
+    }
+
   }
 
   .collapsed {
@@ -700,6 +710,8 @@ input {
   .select-altcode {
     background-color: lightblue !important;
   }
+
+
 }
 
 td.trash {

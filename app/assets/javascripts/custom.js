@@ -1401,14 +1401,21 @@ var OCA = function($){
 
   // Detects when a file's content needs loading.
   if($('#file-display').size() == 1){
-    // Check if the initial url contain a hash.
-    if(location.hash){
-      displayFile(stripHash(location.hash));
+    var processHash = function(){
+      if(location.hash && stripHash(location.hash) !== ''){
+        displayFile(stripHash(location.hash));
+      } else {
+        $('#file-display').html('');
+        $('#comments').html('');
+      }
     }
+
+    // Check if the initial url contain a hash.
+    processHash();
 
     // Wait for any changes to the location hash.
     $(window).on('hashchange', function(){
-      displayFile(stripHash(location.hash));
+      processHash();
       if($('.main').hasClass('main-collapse')){
         toggleFileView();
       }
@@ -1886,8 +1893,45 @@ var OCA = function($){
     }
   });
 
+  // Listen for the 'Remove files' button to be pressed.
+  $(document).on('click', '.toggle-file-removal', function(){
+    $('.remove-file-indicator').toggle();
+  });
+
+  // List for file removals.
+  $(document).on('click', '.remove-file', function(){
+    var entryElm = $(this).closest('.entry');
+    var fileId = entryElm.data('file-id');
+
+    console.log('Attempting to remove '+ fileId);
+
+    $.ajax('/api/files/'+ fileId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error deleting the file/directory: '+ 
+            data.error);
+          return;
+        }
+
+        entryElm.remove();
+
+        if(curFileInfo && curFileInfo.id === fileId){
+          window.location.hash = '';
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error deleting the file/directory. '+ error);
+      }
+    });
+  });
 
   // INITIALIZATIONS.
+
+  $('.hidden').removeClass('hidden').hide();
 
   if(window.location.pathname.match(/^\/projects\/\d+$/)){
     // loadProjectComments();

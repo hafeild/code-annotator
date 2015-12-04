@@ -1,13 +1,35 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+file1Root:
+  name: ""
+  creator: foo
+  project: p1
+  size: 0
+  is_directory: true
+  directory_id: NULL
+
 file1:
   name: "main.cpp"
   creator: foo
   project: p1
   size:    0
+  is_directory: false
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file1Root) %>
+
+
+file2Root:
+  name: ""
+  creator: var
+  project: p2
+  size: 0
+  is_directory: true
+  directory_id: NULL
+
 
 file2:
   name: "project.cpp"
   creator: bar
   project: p2
   size:    1048576
+  is_directory: false
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file2Root) %>

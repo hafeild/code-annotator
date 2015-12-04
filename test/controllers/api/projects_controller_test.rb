@@ -31,6 +31,8 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         assert permission.can_view, "User cannot view."
         assert permission.can_author, "User cannot author."
         assert permission.can_annotate, "User cannot annotate."
+        assert_not ProjectFile.find_by(project_id: Project.last.id, 
+          directory_id: nil).nil?
       end
     end
   end
