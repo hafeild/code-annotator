@@ -90,16 +90,74 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on destroy" do
+
+
+  ## Destroy.
+
+  test "should return delete all files, locations, and altocde on root delete"do
     log_in_as @user
     file_to_remove = project_files(:file1Root)
-    assert_difference 'ProjectFile.count', -2, "Files not removed" do
+
+    commentloc = comment_locations(:cl1)
+    altcode = alternative_codes(:altcode1)
+
+    assert_difference 'ProjectFile.count', -2, "Files not removed." do
       response = delete :destroy, id: file_to_remove.id
       assert JSON.parse(response.body)['success'], "Success not returned."
-      assert ProjectFile.where(project_id: projects(:p1)).size == 0, 
+      assert ProjectFile.where(project_id: projects(:p1).id).size == 0, 
         "Files to delete not deleted."
-    end
 
-    assert JSON.parse(response.body)['success']
+      ## Make sure that all comment locations and altcode for this file have
+      ## been removed.
+      assert CommentLocation.find_by(id: commentloc.id).nil?,
+        "CommentLocations not destroyed."
+      assert AlternativeCode.find_by(id: altcode.id).nil?,
+        "Altcode not destroyed."
+    end
+  end
+
+  test "should delete file, locations, and altcode message on destroy" do
+    log_in_as @user
+    file_to_remove = project_files(:file1)
+
+    commentloc = comment_locations(:cl1)
+    altcode = alternative_codes(:altcode1)
+
+    assert_difference 'ProjectFile.count', -1, "File not removed." do
+      response = delete :destroy, id: file_to_remove.id
+      assert JSON.parse(response.body)['success'], "Success not returned."
+      assert ProjectFile.where(project_id: projects(:p1).id).size == 1, 
+        "Files to delete not deleted."
+
+      ## Make sure that all comment locations and altcode for this file have
+      ## been removed.
+      assert CommentLocation.find_by(id: commentloc.id).nil?,
+        "CommentLocations not destroyed."
+      assert AlternativeCode.find_by(id: altcode.id).nil?,
+        "Altcode not destroyed."
+    end
+  end
+
+
+  test "should return error message on destroy without permissions" do
+    log_in_as @user
+    file_to_remove = project_files(:file2Root)
+
+    commentloc = comment_locations(:cl2)
+    altcode = alternative_codes(:altcode2)
+
+    assert_no_difference 'ProjectFile.count', "Files removed." do
+      response = delete :destroy, id: file_to_remove.id
+      assert JSON.parse(response.body)['error'], "Error not returned."
+      assert ProjectFile.where(project_id: projects(:p1).id).size == 2, 
+        "Files deleted."
+
+      ## Make sure that all comment locations and altcode for this file have
+      ## been removed.
+      assert_not CommentLocation.find_by(id: commentloc.id).nil?,
+        "CommentLocations destroyed."
+      assert_not AlternativeCode.find_by(id: altcode.id).nil?,
+        "Altcode destroyed."
+    end
   end
 end

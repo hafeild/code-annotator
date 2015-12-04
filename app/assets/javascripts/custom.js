@@ -1919,7 +1919,7 @@ var OCA = function($){
 
         entryElm.remove();
 
-        if(curFileInfo.id == fileId){
+        if(curFileInfo && curFileInfo.id === fileId){
           window.location.hash = '';
         }
       },

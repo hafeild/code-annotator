@@ -5,14 +5,16 @@ file1Root:
   creator: foo
   project: p1
   size: 0
-  directory_id:
+  is_directory: true
+  directory_id: NULL
 
 file1:
   name: "main.cpp"
   creator: foo
   project: p1
   size:    0
-  directory_id: file1Root
+  is_directory: false
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file1Root) %>
 
 
 file2Root:
@@ -20,7 +22,8 @@ file2Root:
   creator: var
   project: p2
   size: 0
-  directory_id:
+  is_directory: true
+  directory_id: NULL
 
 
 file2:
@@ -28,4 +31,5 @@ file2:
   creator: bar
   project: p2
   size:    1048576
-  directory_id: file2Root
+  is_directory: false
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file2Root) %>

@@ -114,7 +114,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   test "should return altcode message on show" do
     log_in_as @user
     exp_altcode = alternative_codes(:altcode1)
-    response = get :show, id: exp_altcode
+    response = get :show, id: exp_altcode.id
 
     response_json = JSON.parse(response.body)
 

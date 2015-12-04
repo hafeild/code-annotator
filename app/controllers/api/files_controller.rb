@@ -32,7 +32,7 @@ class Api::FilesController < ApplicationController
     ## it.
     if not file.nil? and user_can_access_project(file.project.id, [:can_author])
       ActiveRecord::Base.transaction do
-        delete_file(file);
+        delete_file(file, true);
         render json: "", serializer: SuccessSerializer
         return
       end
