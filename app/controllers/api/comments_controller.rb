@@ -69,7 +69,7 @@ class Api::CommentsController < ApplicationController
     if comment.valid? and comment.save
       render json: comment.id, serializer: SuccessWithIdSerializer
     else
-      render_error("There was a problem saving the comment.")
+      render_error "There was a problem saving the comment."
     end
   end
 

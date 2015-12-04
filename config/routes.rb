@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
     ## Files (by project).
     get   'projects/:project_id/files'    => 'files#index'
+    post  'projects/:project_id/files'    => 'files#create_directory'
     get   'projects/:project_id/download' => 'files#download'
     get   'projects/:project_id/print'    => 'files#print'
     resources :files,       only: [:show,:update,:destroy]

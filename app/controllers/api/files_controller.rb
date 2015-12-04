@@ -9,10 +9,38 @@ class Api::FilesController < ApplicationController
     render json: "", serializer: SuccessSerializer
   end
 
-  def create
-    render json: "", serializer: SuccessSerializer
+  ## Creates a new directory. Can only be accessed by users with
+  ## authoring permissions.
+  def create_directory
+    error = nil
+
+    project = Project.find_by(id: params[:project_id])
+
+    ## Only provide the file to the user if they have authorization to author
+    ## it.
+    if not project and user_can_access_project(project.id, [:can_author])
+      dir_params = params.require(:directory).permit(:directory_id, :name)
+
+      dir_params[:content]      = ""
+      dir_params[:project_id]   = project.id
+      dir_params[:added_by]     = current_user.id
+      dir_params[:size]         = 0
+      dir_params[:is_directory] = true
+
+      file = ProjectFile.create(dir_params)
+      if file
+         render json: file.id, serializer: SuccessWithIdSerializer
+        return
+      end
+
+      error = "Directory couldn't be created."
+    end
+    
+    render_error error
   end
 
+  ## Retrieves the file and accompaning information (comment locations and
+  ## altcode). This can be accessed by anyone with view permissions.
   def show
     file = ProjectFile.find_by(id: params[:id])
 
@@ -24,6 +52,9 @@ class Api::FilesController < ApplicationController
     end
   end
 
+  ## Removes a file and all associated comment locations and altcode. If it's
+  ## a directory, removes all subfiles and directories. The user must have
+  ## author permissions.
   def destroy
     error = nil
     file = ProjectFile.find_by(id: params[:id])
@@ -36,7 +67,7 @@ class Api::FilesController < ApplicationController
         render json: "", serializer: SuccessSerializer
         return
       end
-      error = "Files could be deleted."
+      error = "Files could not be deleted."
     end
     render_error error
   end
