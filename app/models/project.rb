@@ -5,27 +5,17 @@ class Project < ActiveRecord::Base
   has_many :project_files
   has_many :comments
 
-
-
   validates :created_by, presence: true
   validates :name, presence: true, length: {maximum: 255}
 
-  def getFilesAsDirectories()
-    dirs = ProjectDirectory.new()
-
-    self.project_files.sort{|x,y| x.name <=> y.name}.each do |f|
-      dirs.addSubFile(f.name, f)
-    end
-
-    dirs
-  end
-
+  ## Returns all of the altcode for this project.
   def altcode 
     all_altcode = []
     project_files.each{|file| all_altcode.concat(file.alternative_codes)}
     all_altcode
   end
 
+  ## Returns the root directory for this project.
   def root
     ProjectFile.find_by(project_id: id, directory_id: nil)
   end

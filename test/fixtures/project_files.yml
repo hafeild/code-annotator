@@ -8,23 +8,38 @@ file1Root:
   is_directory: true
   directory_id: NULL
 
+dir1:
+  name: "My dir"
+  creator: foo
+  project: p1
+  size: 0
+  is_directory: true
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file1Root) %>
+
 file1:
   name: "main.cpp"
   creator: foo
   project: p1
   size:    0
   is_directory: false
-  directory_id: <%= ActiveRecord::FixtureSet.identify(:file1Root) %>
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:dir1) %>
 
 
 file2Root:
   name: ""
-  creator: var
+  creator: bar
   project: p2
   size: 0
   is_directory: true
   directory_id: NULL
 
+dir2:
+  name: "Bar's dir"
+  creator: var
+  project: p2
+  size: 0
+  is_directory: true
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file2Root) %>
 
 file2:
   name: "project.cpp"
@@ -32,4 +47,4 @@ file2:
   project: p2
   size:    1048576
   is_directory: false
-  directory_id: <%= ActiveRecord::FixtureSet.identify(:file2Root) %>
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:dir2) %>

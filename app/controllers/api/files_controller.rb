@@ -18,8 +18,15 @@ class Api::FilesController < ApplicationController
 
     ## Only provide the file to the user if they have authorization to author
     ## it.
-    if not project and user_can_access_project(project.id, [:can_author])
+    if project and user_can_access_project(project.id, [:can_author])
+
       dir_params = params.require(:directory).permit(:directory_id, :name)
+
+      ## If no directory_id is given, attach this file to the root directory
+      ## for this project.
+      if not dir_params.key?(:directory_id) or dir_params[:directory_id].nil?
+        dir_params[:directory_id] = project.root.id
+      end
 
       dir_params[:content]      = ""
       dir_params[:project_id]   = project.id
@@ -54,7 +61,7 @@ class Api::FilesController < ApplicationController
 
   ## Removes a file and all associated comment locations and altcode. If it's
   ## a directory, removes all subfiles and directories. The user must have
-  ## author permissions.
+  ## author permissions. Root file may not be removed.
   def destroy
     error = nil
     file = ProjectFile.find_by(id: params[:id])
@@ -62,12 +69,17 @@ class Api::FilesController < ApplicationController
     ## Only provide the file to the user if they have authorization to author
     ## it.
     if not file.nil? and user_can_access_project(file.project.id, [:can_author])
-      ActiveRecord::Base.transaction do
-        delete_file(file, true);
-        render json: "", serializer: SuccessSerializer
-        return
+
+      if file.directory_id.nil?
+        error = "Cannot remove root directory. Delete the project, instead."
+      else
+        ActiveRecord::Base.transaction do
+          delete_file(file, true);
+          render json: "", serializer: SuccessSerializer
+          return
+        end
+        error = "Files could not be deleted."
       end
-      error = "Files could not be deleted."
     end
     render_error error
   end
