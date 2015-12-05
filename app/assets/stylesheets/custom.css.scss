@@ -711,7 +711,23 @@ input {
     background-color: lightblue !important;
   }
 
+ .add-file-or-directory {
+    display: none;
+    font-size: 90%;
+    color: green;
+  }
+  .directory-name:hover .add-file-or-directory {
+    display: inline;
 
+    :hover {
+      color: darkgreen;
+    }
+  }
+
+
+  #add-directory-container {
+    margin-bottom: 50px;
+  }
 }
 
 td.trash {

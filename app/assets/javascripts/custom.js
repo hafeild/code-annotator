@@ -72,6 +72,7 @@ var OCA = function($){
   var altcodeLidToSidMap = {};
   var altcodeLookup = {};
   var altcodeLidCounter = 0;
+  var selectedDirectory;
 
   // FUNCTIONS
 
@@ -1927,6 +1928,13 @@ var OCA = function($){
         displayError('There was an error deleting the file/directory. '+ error);
       }
     });
+  });
+
+  // Listen for "add file/directory".
+  $(document).on('click', '.add-file-or-directory', function(e){
+    selectedDirectory = $(this).closest('.directory-entry').data('file-id');
+    e.preventDefault();
+    return false;
   });
 
   // INITIALIZATIONS.
