@@ -72,6 +72,7 @@ var OCA = function($){
   var altcodeLidToSidMap = {};
   var altcodeLookup = {};
   var altcodeLidCounter = 0;
+  var selectedDirectory;
 
   // FUNCTIONS
 
@@ -1639,6 +1640,7 @@ var OCA = function($){
 
   // Listen for files to be submitted.
   $(document).on('click', '#file-upload-submit', function(){
+    $('#directory_id').val(selectedDirectory);
     $('#upload-files form').submit();
   });
 
@@ -1928,6 +1930,57 @@ var OCA = function($){
       }
     });
   });
+
+  // Listen for "add file/directory".
+  $(document).on('click', '.add-file-or-directory', function(e){
+    selectedDirectory = $(this).closest('.directory-entry').data('file-id');
+    e.preventDefault();
+    return false;
+  });
+
+
+  // Listen for "add directory" form to be submitted.
+  $(document).on('submit', '#add-directory-form', function(e){
+    e.preventDefault();
+
+    var textBox = $(this).find('#new-directory-name');
+    var parentDirectoryId = selectedDirectory;
+    var directoryName = textBox.val();
+
+
+    if(directoryName === '') return;
+
+    $.ajax(PROJECT_API +'/files', {
+      method: 'POST',
+      data: {
+        // directory_id is the id of the parent directory.
+        directory: {name: directoryName, directory_id: parentDirectoryId}
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error creating the directory: '+ 
+            data.error);
+          return;
+        }
+
+        var newDirElm = $('#directory-template').clone().attr('id', 
+          'directory-'+ data.id);
+        $('#directory-'+ parentDirectoryId).children('.directory').
+          prepend(newDirElm);
+        newDirElm.data('file-id', data.id);
+        newDirElm.find('.directory-name-placeholder').html(directoryName);
+
+        textBox.val('');
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error creating the directory. '+ error);
+      }
+    });
+
+    $('#upload-files').modal('hide');
+
+  });
+
 
   // INITIALIZATIONS.
 

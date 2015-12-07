@@ -6,11 +6,71 @@ class Api::FilesControllerTest < ActionController::TestCase
     @user = users(:foo)
   end
 
-  # test "should return success message on create" do
-  #   log_in_as @user
-  #   response = post :create, project_id: 1, file: {}
-  #   assert JSON.parse(response.body)['success']
-  # end
+  ## Create a directory.
+
+  test "should return success message on create_directory" do
+    log_in_as @user
+    project = projects(:p1)
+    assert_difference "ProjectFile.count", 1, "Directory not added" do
+      response = post :create_directory, project_id: project.id, directory: {
+        directory_id: project_files(:file1Root).id, name: "My new dir"
+      }
+      json_response = JSON.parse(response.body)
+      assert json_response['success'], "Success not returned."
+      assert_not json_response['id'].nil?, "No id returned."
+      directory = ProjectFile.find_by(id: json_response['id'])
+      assert directory, "Invalid id returned."
+      assert directory.is_directory, "is_directory not set correctly."
+      assert directory.name == "My new dir", "name not set correctly."
+      assert directory.directory_id == project_files(:file1Root).id, 
+        "directory_id not set correctly."
+      assert directory.size == 0, "size not set correctly."
+      assert directory.added_by == @user.id, "added_by not set correctly."
+      assert directory.project_id == project.id, "project_id not set correctly."
+      assert directory.content == "", "content not set correctly."
+    end
+  end
+
+
+  test "should return attach created directory to root when no dir_id given" do
+    log_in_as @user
+    project = projects(:p1)
+    root = project_files(:file1Root)
+    assert_difference "ProjectFile.count", 1, "Directory not added" do
+      response = post :create_directory, project_id: project.id, directory: {
+        name: "My new dir"
+      }
+      json_response = JSON.parse(response.body)
+      assert json_response['success'], "Success not returned."
+      assert_not json_response['id'].nil?, "No id returned."
+      directory = ProjectFile.find_by(id: json_response['id'])
+      assert directory, "Invalid id returned."
+      assert directory.is_directory, "is_directory not set correctly."
+      assert directory.name == "My new dir", "name not set correctly."
+      assert directory.directory_id == root.id, 
+        "directory_id not set correctly. #{directory.to_json} : #{root.to_json}"
+      assert directory.size == 0, "size not set correctly."
+      assert directory.added_by == @user.id, "added_by not set correctly."
+      assert directory.project_id == project.id, "project_id not set correctly."
+      assert directory.content == "", "content not set correctly."
+    end
+  end
+
+
+  test "should return error message on unauthorized create_directory" do
+    log_in_as users(:bar)
+    project = projects(:p1)
+    assert_no_difference "ProjectFile.count", "Directory added" do
+      response = post :create_directory, project_id: project.id, directory: {
+        directory_id: project_files(:file1Root).id, name: "My new dir"
+      }
+      json_response = JSON.parse(response.body)
+      assert json_response['error'], "Error not returned."
+    end
+  end
+
+
+  ## Index.
 
   test "should return success message on index" do
     log_in_as @user
@@ -18,11 +78,17 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
+
+  ## Download
+
   test "should return success message on download" do
     log_in_as @user
     response = get :download, project_id: 1
     assert JSON.parse(response.body)['success']
   end
+
+
+  ## Print.
 
   test "should return success message on print" do
     log_in_as @user
@@ -30,6 +96,8 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
+
+  ## Show.
 
   test "should return error message on show when not logged in" do
     file = project_files(:file1)
@@ -94,9 +162,22 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   ## Destroy.
 
-  test "should return delete all files, locations, and altocde on root delete"do
+  test "should return return error on root delete"do
     log_in_as @user
     file_to_remove = project_files(:file1Root)
+
+    commentloc = comment_locations(:cl1)
+    altcode = alternative_codes(:altcode1)
+
+    assert_no_difference 'ProjectFile.count', "Files removed." do
+      response = delete :destroy, id: file_to_remove.id
+      assert JSON.parse(response.body)['error'], "Error not returned."
+    end
+  end
+
+  test "should return delete all sub files, locations, and altocde on dir delete"do
+    log_in_as @user
+    file_to_remove = project_files(:dir1)
 
     commentloc = comment_locations(:cl1)
     altcode = alternative_codes(:altcode1)
@@ -104,7 +185,9 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert_difference 'ProjectFile.count', -2, "Files not removed." do
       response = delete :destroy, id: file_to_remove.id
       assert JSON.parse(response.body)['success'], "Success not returned."
-      assert ProjectFile.where(project_id: projects(:p1).id).size == 0, 
+
+      ## Only root should be left.      
+      assert ProjectFile.where(project_id: projects(:p1).id).size == 1, 
         "Files to delete not deleted."
 
       ## Make sure that all comment locations and altcode for this file have
@@ -126,7 +209,7 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert_difference 'ProjectFile.count', -1, "File not removed." do
       response = delete :destroy, id: file_to_remove.id
       assert JSON.parse(response.body)['success'], "Success not returned."
-      assert ProjectFile.where(project_id: projects(:p1).id).size == 1, 
+      assert ProjectFile.where(project_id: projects(:p1).id).size == 2, 
         "Files to delete not deleted."
 
       ## Make sure that all comment locations and altcode for this file have
@@ -141,7 +224,7 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   test "should return error message on destroy without permissions" do
     log_in_as @user
-    file_to_remove = project_files(:file2Root)
+    file_to_remove = project_files(:dir2)
 
     commentloc = comment_locations(:cl2)
     altcode = alternative_codes(:altcode2)
@@ -149,7 +232,7 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert_no_difference 'ProjectFile.count', "Files removed." do
       response = delete :destroy, id: file_to_remove.id
       assert JSON.parse(response.body)['error'], "Error not returned."
-      assert ProjectFile.where(project_id: projects(:p1).id).size == 2, 
+      assert ProjectFile.where(project_id: projects(:p1).id).size == 3, 
         "Files deleted."
 
       ## Make sure that all comment locations and altcode for this file have

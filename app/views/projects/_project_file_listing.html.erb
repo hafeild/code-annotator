@@ -1,17 +1,28 @@
 <% files.each do |file| %>
   <% if file.is_directory %>
-    <div class="entry directory-entry" data-file-id="<%= file.id %>" data-expand-state="expanded">
+    <div id="directory-<%= file.id %>" class="entry directory-entry" 
+        data-file-id="<%= file.id %>" data-expand-state="expanded">
       <div class="directory-name">
-        <span class="remove-file-indicator remove-file hidden">
-          <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
-        </span>
+        <% unless file.directory_id.nil? %>
+          <span class="remove-file-indicator remove-file hidden">
+            <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+          </span>
+        <% end %>
         <span class="collapsed">
           <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
         </span>
         <span class="expanded">
           <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
         </span>
-        <%= file.name %>
+        <% if file.directory_id.nil? %>
+          /
+        <% else %>
+          <%= file.name %>
+        <% end %>
+        <span class="add-file-or-directory" data-toggle="modal" 
+            data-target="#upload-files">
+          <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
+        </span>
 
       </div>
       <div class="directory">

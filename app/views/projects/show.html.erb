@@ -8,7 +8,7 @@
       <div class="root-directory directory">
         <%= render template: "projects/_project_file_listing", 
                  #locals: { :files => @project.getFilesAsDirectories.files } 
-                locals: { :files => @project.root.sub_tree }
+                locals: { :files => [@project.root]  }
         %>
         <% #render @project.project_files.sort{|x,y| x.name <=> y.name} %>
       </div>
@@ -19,21 +19,14 @@
         <div class="button-bar">
           <span class="sidebar-toggle btn btn-default btn-xs"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
           <div class="btn-group" id="file-ops" role="group" aria-label="file operations">
-            <% if @projectPermission.can_author %>
-              <button type="button" class="btn btn-default btn-xs"
-                data-toggle="modal" data-target="#upload-files"><span 
-                class="glyphicon glyphicon-cloud-upload"></span> 
-                Upload files
-              </button>
-            <% end %>
-            <button type="button" class="btn btn-default btn-xs"><span 
+<!--             <button type="button" class="btn btn-default btn-xs"><span 
               class="glyphicon glyphicon-print"></span> 
               Print files
             </button>
             <button type="button" class="btn btn-default btn-xs"><span 
               class="glyphicon glyphicon-cloud-download"></span> 
               Download files
-            </button>
+            </button> -->
             <% if @projectPermission.can_author %>
               <button
                 type="button" class="btn btn-default btn-xs toggle-file-removal
@@ -146,17 +139,40 @@
 
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="upload-files-title">Upload files</h4>
+            <h4 class="modal-title" id="upload-files-title">Add directory or files</h4>
           </div>
           <div class="modal-body">
-          <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
-              <% f.file_field :files, multiple: true, class: "form-control" %>
-          <% end %>
+
+            <div id="add-directory-container">
+              <h4>Add directory</h4>
+              <form id="add-directory-form">
+                <div class="input-group" style="width: 100%">
+                  <span class="input-group-btn">
+                    <button id="add-directory-btn" 
+                      class="btn btn-primary" type="submit"><span 
+                        class="glyphicon glyphicon-plus"></span
+                    ></button>
+                  </span>
+                  <input type="text" id="new-directory-name" 
+                    class="form-control" 
+                    placeholder="Enter a directory name...">
+                </div>
+              </form>
+            </div>
+
+            <div id="add-files-container">
+              <h4>Add files</h4>
+              <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
+                  <%= f.file_field :files, multiple: true, class: "form-control" %>
+                  <input type="hidden" id="directory_id" 
+                  name="project_file[directory_id]" value=""/>
+              <% end %>
+              
+              <button type="button" id="file-upload-submit" disabled=disabled
+                  class="btn btn-default" data-dismiss="modal">Upload</button>
+            </div>
           </div>
           <div class="modal-footer">
-            <button type="button" id="file-upload-submit" disabled=disabled
-              class="btn btn-default" data-dismiss="modal">Upload</button>
-
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
 
@@ -279,6 +295,31 @@
       </td>
     </tr>
   </table>
+
+
+  <!-- Directory template. -->
+  <div id="directory-template" class="entry directory-entry" data-file-id="" 
+      data-expand-state="expanded">
+    <div class="directory-name">
+      <span class="remove-file-indicator remove-file hidden">
+        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+      </span>
+      <span class="collapsed">
+        <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
+      </span>
+      <span class="expanded">
+        <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
+      </span>
+      <span class="directory-name-placeholder"></span>
+      <span class="add-file-or-directory" data-toggle="modal" 
+          data-target="#upload-files">
+        <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
+      </span>
+
+    </div>
+    <div class="directory">
+    </div>
+  </div>
 
   <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
