@@ -1937,6 +1937,50 @@ var OCA = function($){
     return false;
   });
 
+
+  // Listen for "add directory" form to be submitted.
+  $(document).on('submit', '#add-directory-form', function(e){
+    e.preventDefault();
+
+    var textBox = $(this).find('#new-directory-name');
+    var parentDirectoryId = selectedDirectory;
+    var directoryName = textBox.val();
+
+
+    if(directoryName === '') return;
+
+    $.ajax(PROJECT_API +'/files', {
+      method: 'POST',
+      data: {
+        // directory_id is the id of the parent directory.
+        directory: {name: directoryName, directory_id: parentDirectoryId}
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error creating the directory: '+ 
+            data.error);
+          return;
+        }
+
+        var newDirElm = $('#directory-template').clone().attr('id', 
+          'directory-'+ data.id);
+        $('#directory-'+ parentDirectoryId).children('.directory').
+          prepend(newDirElm);
+        newDirElm.data('file-id', data.id);
+        newDirElm.find('.directory-name-placeholder').html(directoryName);
+
+        textBox.val('');
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error creating the directory. '+ error);
+      }
+    });
+
+    $('#upload-files').modal('hide');
+
+  });
+
+
   // INITIALIZATIONS.
 
   $('.hidden').removeClass('hidden').hide();

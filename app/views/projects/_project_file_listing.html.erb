@@ -1,6 +1,7 @@
 <% files.each do |file| %>
   <% if file.is_directory %>
-    <div class="entry directory-entry" data-file-id="<%= file.id %>" data-expand-state="expanded">
+    <div id="directory-<%= file.id %>" class="entry directory-entry" 
+        data-file-id="<%= file.id %>" data-expand-state="expanded">
       <div class="directory-name">
         <% unless file.directory_id.nil? %>
           <span class="remove-file-indicator remove-file hidden">

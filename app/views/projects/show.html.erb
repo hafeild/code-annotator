@@ -145,10 +145,10 @@
 
             <div id="add-directory-container">
               <h4>Add directory</h4>
-              <form id="add-project-form">
+              <form id="add-directory-form">
                 <div class="input-group" style="width: 100%">
                   <span class="input-group-btn">
-                    <button id="add-project-btn" 
+                    <button id="add-directory-btn" 
                       class="btn btn-primary" type="submit"><span 
                         class="glyphicon glyphicon-plus"></span
                     ></button>
@@ -292,6 +292,31 @@
       </td>
     </tr>
   </table>
+
+
+  <!-- Directory template. -->
+  <div id="directory-template" class="entry directory-entry" data-file-id="" 
+      data-expand-state="expanded">
+    <div class="directory-name">
+      <span class="remove-file-indicator remove-file hidden">
+        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+      </span>
+      <span class="collapsed">
+        <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
+      </span>
+      <span class="expanded">
+        <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
+      </span>
+      <span class="directory-name-placeholder"></span>
+      <span class="add-file-or-directory" data-toggle="modal" 
+          data-target="#upload-files">
+        <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
+      </span>
+
+    </div>
+    <div class="directory">
+    </div>
+  </div>
 
   <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
