@@ -16,6 +16,12 @@ class ApplicationController < ActionController::Base
       end
     end
 
+    ## Confirms the correct user.
+    def correct_user
+      @user = User.find(params[:id])
+      redirect_to(root_url) unless current_user?(@user)
+    end
+
     ## For the JSON API; confirms if a user is logged in, if not,
     ## returns an error message.
     def logged_in_user_api
