@@ -28,6 +28,11 @@ class FilesController < ApplicationController
       ActiveRecord::Base.transaction do
         tmp_file = nil
 
+        parent_directory_id = project.root.id
+        if params[:project_file].key? :directory_id
+          parent_directory_id = params[:project_file][:directory_id]
+        end
+
         params[:project_file][:files].each do |file_io|
 
           project_size += file_io.size
@@ -39,8 +44,10 @@ class FilesController < ApplicationController
               "#{MAX_PROJECT_SIZE_BYTES} bytes."
           end
 
+
+
           begin
-            tmp_file = create_file(file_io, project.id)
+            tmp_file = create_file(file_io, project.id, parent_directory_id)
           rescue => e
             ## DEBUG ONLY
             flash.now[:danger] = "Error: Bad file type. #{e}"
@@ -76,7 +83,7 @@ class FilesController < ApplicationController
 
 
   private
-    def create_file(file_io, project_id)
+    def create_file(file_io, project_id, parent_directory_id)
       # original_filename
       file_content = file_io.read
       file_info = CharlockHolmes::EncodingDetector.detect file_content
@@ -89,7 +96,7 @@ class FilesController < ApplicationController
 
       ProjectFile.create!(project_id: project_id, content: file_content, 
         added_by: current_user.id, name: file_io.original_filename,
-        size: get_file_size(file_content))
+        size: get_file_size(file_content), directory_id: parent_directory_id)
 
     end
 

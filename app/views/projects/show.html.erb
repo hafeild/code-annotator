@@ -163,8 +163,11 @@
             <div id="add-files-container">
               <h4>Add files</h4>
               <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
-                  <% f.file_field :files, multiple: true, class: "form-control" %>
+                  <%= f.file_field :files, multiple: true, class: "form-control" %>
+                  <input type="hidden" id="directory_id" 
+                  name="project_file[directory_id]" value=""/>
               <% end %>
+              
               <button type="button" id="file-upload-submit" disabled=disabled
                   class="btn btn-default" data-dismiss="modal">Upload</button>
             </div>

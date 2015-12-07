@@ -1640,6 +1640,7 @@ var OCA = function($){
 
   // Listen for files to be submitted.
   $(document).on('click', '#file-upload-submit', function(){
+    $('#directory_id').val(selectedDirectory);
     $('#upload-files form').submit();
   });
 
