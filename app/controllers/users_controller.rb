@@ -33,13 +33,19 @@ class UsersController < ApplicationController
 
   def update
     @user = User.find(params[:id])
-    if @user.update_attributes(user_params)
-      flash[:success] = "Profile updated"
-      #redirect_to @user
-      render 'edit'
+    ## Authenticate password.
+    if params.key?(:user) and params[:user].key?(:current_password) and
+        @user.authenticate(params[:user][:current_password])
+      if @user.update_attributes(user_params)
+        flash[:success] = "Profile updated"
+      else
+        flash[:danger] = "Please try again."
+      end
     else
-      render 'edit'
+      flash[:danger] = "Could not authenticate. Please try again."
     end
+
+    redirect_to edit_user_path(current_user)
   end
 
   def edit

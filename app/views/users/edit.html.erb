@@ -1,24 +1,57 @@
 <% provide(:title, "Settings") %>
 <h1>Update your profile</h1>
 
-<div class="row">
+<div class="row settings">
   <div class="col-md-6 col-md-offset-3">
-    <%= form_for(@user) do |f| %>
-      <%= render 'shared/error_messages', object: f.object %>
 
-      <%= f.label :name %>
-      <%= f.text_field :name, class: 'form-control' %>
+    <div class="info-block">
+      <div class="current-info">
+        <span class="info-label">Name:</span> <%= @user.name %>  <a href="#" class="edit"><span class="glyphicon glyphicon-pencil"></span></a>
+      </div>
+      <%= form_for(@user) do |f| %>
+        <%= render 'shared/error_messages', object: f.object %>
+        <%= f.label :name %>
+        <%= f.text_field :name, class: 'form-control' %>
 
-      <%= f.label :email %>
-      <%= f.email_field :email, class: 'form-control' %>
+        <%= f.label :current_password %>
+        <%= f.password_field :current_password, class: 'form-control', placeholder: "Enter your current password"  %>
+        <%= f.submit "Change name", class: "btn btn-primary" %>
+      <% end %>
+    </div>
 
-      <%= f.label :password %>
-      <%= f.password_field :password, class: 'form-control' %>
 
-      <%= f.label :password_confirmation, "Confirmation" %>
-      <%= f.password_field :password_confirmation, class: 'form-control' %>
+    <div class="info-block">
+      <div class="current-info">
+        <span class="info-label">Email:</span> <%= @user.email %>  <a href="#" class="edit"><span class="glyphicon glyphicon-pencil"></span></a>
+      </div>
+      <%= form_for(@user) do |f| %>
+        <%= render 'shared/error_messages', object: f.object %>
+        <%= f.label :email %>
+        <%= f.email_field :email, class: 'form-control' %>
 
-      <%= f.submit "Save changes", class: "btn btn-primary" %>
-    <% end %>
+        <%= f.label :current_password %>
+        <%= f.password_field :current_password, class: 'form-control', placeholder: "Enter your current password"  %>
+        <%= f.submit "Change email", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+
+    <div class="info-block">
+      <div class="current-info">
+        <span class="info-label">Password:</span> ***********  <a href="#" class="edit"><span class="glyphicon glyphicon-pencil"></span></a>
+      </div>
+      <%= form_for(@user) do |f| %>
+        <%= render 'shared/error_messages', object: f.object %>
+        <%= f.label :current_password %>
+        <%= f.password_field :current_password, class: 'form-control', placeholder: "Enter your current password" %>
+
+        <%= f.label :new_password %>
+        <%= f.password_field :password, class: 'form-control', placeholder: "Enter your new password" %>
+
+        <%= f.label :password_confirmation, "Confirmation" %>
+        <%= f.password_field :password_confirmation, class: 'form-control', placeholder: "Repeat your new password" %>
+
+        <%= f.submit "Change password", class: "btn btn-primary" %>
+      <% end %>
+    </div>
   </div>
 </div>
