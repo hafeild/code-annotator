@@ -9,4 +9,9 @@ class UserMailer < ApplicationMailer
     @user = user
     mail to: user.email, subject: "OCA account activation"
   end
+
+  def email_verification(user)
+    @user = user
+    mail to: user.email, subject: "OCA email verification"
+  end
 end

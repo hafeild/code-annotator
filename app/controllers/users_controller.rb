@@ -32,14 +32,29 @@ class UsersController < ApplicationController
   end
 
   def update
+    email_updated = false
     @user = User.find(params[:id])
     ## Authenticate password.
     if params.key?(:user) and params[:user].key?(:current_password) and
         @user.authenticate(params[:user][:current_password])
+      if user_params.key?(:email) and user_params[:email] != @user.email
+        email_updated = true
+      end
       if @user.update_attributes(user_params)
-        flash[:success] = "Profile updated"
+
+        if email_updated
+          flash[:success] = "Please check your email to re-activate your "+
+            "account with your new email address."
+          @user.send_email_verification_email
+        else
+          flash[:success] = "Profile updated"
+        end
       else
-        flash[:danger] = "Please try again."
+        if email_updated
+          flash[:danger] = "The email you entered may not be available."
+        else
+          flash[:danger] = "There was an error updating your information."
+        end
       end
     else
       flash[:danger] = "Could not authenticate. Please try again."

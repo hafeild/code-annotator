@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :users,         only: [:create,:update,:edit,:destroy]
   resources :projects,      only: [:index,:show]
   resources :account_activations, only: [:edit]
+  resources :email_verifications, only: [:edit]
   post  'projects/:project_id/files'    => 'files#create'
 
   ## For the JSON api.
