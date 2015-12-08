@@ -20,7 +20,8 @@ class UsersControllerTest < ActionController::TestCase
     newUser = User.find(@user.id)
     assert newUser.name == "New Name", "New name not saved."
     assert newUser.email == @user.email, "Email changed."
-    assert newUser.password_digest == @user.password_digest
+    assert newUser.password_digest == @user.password_digest, "Password changed."
+    assert newUser.activated, "Activation removed."
   end
 
   test "should accept update of email" do
@@ -34,6 +35,7 @@ class UsersControllerTest < ActionController::TestCase
     assert newUser.name == @user.name, "Name changed."
     assert newUser.email == "new@email.com", "Email not changed."
     assert newUser.password_digest == @user.password_digest, "Password changed."
+    assert_not newUser.activated, "Activation not removed."
   end
 
 
@@ -49,10 +51,11 @@ class UsersControllerTest < ActionController::TestCase
     assert newUser.name == @user.name, "Name changed."
     assert newUser.email == @user.email, "Email changed."
     assert newUser.authenticate("password2"), "Password not saved."
+    assert newUser.activated, "Activation removed."
   end
 
 
-  test "a user should be able to change another users information." do
+  test "a user shouldn't be able to change another users information." do
     log_in_as users(:bar)
     patch :update, id: @user.id, user: {
       name: "New name",
@@ -66,6 +69,7 @@ class UsersControllerTest < ActionController::TestCase
     assert newUser.name == @user.name, "Name changed."
     assert newUser.email == @user.email, "Email changed."
     assert newUser.password_digest == @user.password_digest, "Password changed."
+    assert newUser.activated, "Activation removed."
   end
 
   test "a user shouldn't be able to change information if not logged in." do
@@ -81,6 +85,7 @@ class UsersControllerTest < ActionController::TestCase
     assert newUser.name == @user.name, "Name changed."
     assert newUser.email == @user.email, "Email changed."
     assert newUser.password_digest == @user.password_digest, "Password changed."
+    assert newUser.activated, "Activation removed."
   end
 
 
