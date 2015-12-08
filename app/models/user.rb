@@ -65,6 +65,14 @@ class User < ActiveRecord::Base
     UserMailer.account_activation(self).deliver_now
   end
 
+  def send_email_verification_email
+    update_attribute(:activated, false)
+    update_attribute(:activation_token, User.new_token)
+    update_attribute(:activation_digest, User.digest(activation_token))
+    save
+    UserMailer.email_verification(self).deliver_now
+  end
+
   private
     ## Converts email to all lower-case.
     def downcase_email

@@ -1982,6 +1982,18 @@ var OCA = function($){
   });
 
 
+  // One settings page, listen for edits.
+  $(document).on('click', '.settings .edit', function(e){
+    console.log('In click listener');
+    var infoBlockElm = $(this).parents('.info-block');
+    infoBlockElm.find('.current-info').hide();
+    infoBlockElm.find('form').show();
+
+    e.preventDefault();
+    return false;
+  });
+
+
   // INITIALIZATIONS.
 
   $('.hidden').removeClass('hidden').hide();

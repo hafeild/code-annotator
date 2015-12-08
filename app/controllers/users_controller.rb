@@ -1,4 +1,6 @@
 class UsersController < ApplicationController
+  before_action :logged_in_user, only: [:edit, :update]
+  before_action :correct_user,   only: [:edit, :update]
 
   def new
     @user = User.new
@@ -30,10 +32,39 @@ class UsersController < ApplicationController
   end
 
   def update
-    redirect_to :root
+    email_updated = false
+    @user = User.find(params[:id])
+    ## Authenticate password.
+    if params.key?(:user) and params[:user].key?(:current_password) and
+        @user.authenticate(params[:user][:current_password])
+      if user_params.key?(:email) and user_params[:email] != @user.email
+        email_updated = true
+      end
+      if @user.update_attributes(user_params)
+
+        if email_updated
+          flash[:success] = "Please check your email to re-activate your "+
+            "account with your new email address."
+          @user.send_email_verification_email
+        else
+          flash[:success] = "Profile updated"
+        end
+      else
+        if email_updated
+          flash[:danger] = "The email you entered may not be available."
+        else
+          flash[:danger] = "There was an error updating your information."
+        end
+      end
+    else
+      flash[:danger] = "Could not authenticate. Please try again."
+    end
+
+    redirect_to edit_user_path(current_user)
   end
 
   def edit
+    @user = User.find(params[:id])
   end
 
   private
@@ -45,10 +76,12 @@ class UsersController < ApplicationController
 
     # Before filters
 
-    # Confirms the correct user.
-    def correct_user
-      @user = User.find(params[:id])
-      redirect_to(root_url) unless current_user?(@user)
+    # Confirms a logged-in user.
+    def logged_in_user
+      unless logged_in?
+        store_location
+        flash[:danger] = "Please log in."
+        redirect_to login_url
+      end
     end
-
 end

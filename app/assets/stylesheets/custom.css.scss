@@ -730,6 +730,23 @@ input {
   }
 }
 
+.settings {
+  /* Hide the forms on the settings page by default. */
+  form {
+    display: none;
+  }
+
+  .info-label {
+    display: inline-block;
+    font-weight: bold;
+    width: 100px;
+  }
+
+  .info-block {
+    margin-bottom: 20px;
+  }
+}
+
 td.trash {
   text-align: center;
   cursor: pointer;
