@@ -10,7 +10,14 @@ class PasswordResetsController < ApplicationController
   end
 
   def create
+    if params[:password_reset][:email] == ""
+      flash[:warning] = "You must supply an email."
+      render 'new'
+      return
+    end
+
     @user = User.find_by(email: params[:password_reset][:email].downcase)
+
     if @user
       @user.create_reset_digest
       @user.send_password_reset_email
