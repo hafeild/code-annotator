@@ -14,8 +14,6 @@ class PasswordResetsController < ApplicationController
     if @user
       @user.create_reset_digest
       @user.send_password_reset_email
-
-      Rails.logger.debug(">>>>> TIME:  #{@user.reset_sent_at}")
     end
 
     flash[:info] = "If the email entered is valid, an email has been sent "+
@@ -46,8 +44,6 @@ class PasswordResetsController < ApplicationController
 
     def get_user
       @user = User.find_by(email: params[:email])
-
-      Rails.logger.debug(">>>>> USER:  #{@user.to_json}")
     end
 
 
