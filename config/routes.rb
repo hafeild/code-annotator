@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
 
 
+  get 'password_resets/new'
+
+  get 'password_resets/edit'
+
   root    'static_pages#home'
   get     'home'   => 'static_pages#home'
   get     'info'   => 'static_pages#information'
@@ -13,6 +17,7 @@ Rails.application.routes.draw do
   resources :projects,      only: [:index,:show]
   resources :account_activations, only: [:edit]
   resources :email_verifications, only: [:edit]
+  resources :password_resets,     only: [:new, :create, :edit, :update]
   post  'projects/:project_id/files'    => 'files#create'
 
   ## For the JSON api.

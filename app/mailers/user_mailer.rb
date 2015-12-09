@@ -14,4 +14,9 @@ class UserMailer < ApplicationMailer
     @user = user
     mail to: user.email, subject: "OCA email verification"
   end
+
+    def password_reset(user)
+    @user = user
+    mail to: user.email, subject: "OCA password reset"
+  end
 end
