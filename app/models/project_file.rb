@@ -4,7 +4,6 @@ class ProjectFile < ActiveRecord::Base
   has_many :comment_locations
   has_many :comments, through: :comment_locations
   has_many :alternative_codes
-  belongs_to :project_file
   validate :validate_name_uniqueness
   
   ## Checks if this name is unique within its directory.
@@ -31,5 +30,21 @@ class ProjectFile < ActiveRecord::Base
         x.name <=> y.name
       end
     }
+  end
+
+  def parent_directory
+    root? ? nil : ProjectFile.find(directory_id)
+  end
+
+  def root?
+    directory_id.nil?
+  end
+
+  def path
+    if is_directory
+      root? ? "" : "#{parent_directory.directory_path}#{name}/"
+    else
+      "#{parent_directory.directory_path}#{name}"
+    end
   end
 end
