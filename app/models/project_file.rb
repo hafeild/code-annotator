@@ -42,9 +42,9 @@ class ProjectFile < ActiveRecord::Base
 
   def path
     if is_directory
-      root? ? "" : "#{parent_directory.directory_path}#{name}/"
+      root? ? "" : "#{parent_directory.path}#{name}/"
     else
-      "#{parent_directory.directory_path}#{name}"
+      "#{parent_directory.path}#{name}"
     end
   end
 end
