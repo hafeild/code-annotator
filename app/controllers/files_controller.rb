@@ -50,7 +50,7 @@ class FilesController < ApplicationController
             tmp_file = create_file(file_io, project.id, parent_directory_id)
           rescue => e
             ## DEBUG ONLY
-            flash.now[:danger] = "Error: Bad file type. #{e}"
+            flash.now[:danger] = e.to_s
             raise ActiveRecord::Rollback, "Bad file type."
           end
 
