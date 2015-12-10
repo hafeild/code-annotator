@@ -1,0 +1,31 @@
+<form id="download-form" method="get">
+  Project: <input type="text" id="project_id" name="project_id" value="47"/><br/>
+  Files: <input type="text" id="file_ids" name="files[file_ids]" value="1204"/>
+  <button type="submit">submit</button>
+</form>
+
+<script>
+$(document).ready(function(){
+  $('#download-form').on('submit', function(e){
+    this.action = '/api/projects/'+ this.project_id.value +'/download';
+
+    // e.preventDefault();
+
+    // console.log('Submitted!');
+    // $.ajax('/api/projects/'+ this.project_id.value +'/download', {
+    //   method: 'POST',
+    //   data: {
+    //     files: this.file_ids.value.split(',')
+    //   },
+    //   success: function(data){
+    //     console.log(data);
+    //   },
+    //   error: function(xhr, status, error){
+    //     console.log('ERROR', error);
+    //   }
+    // });
+
+    // return false;
+  });
+});
+</script>

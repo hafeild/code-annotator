@@ -40,4 +40,9 @@ class ProjectsController < ApplicationController
   def destroy
     redirect_to :root
   end
+
+
+  def download
+  end
+  
 end

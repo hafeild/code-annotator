@@ -1,9 +1,9 @@
 class Api::FilesController < ApplicationController
+  before_action :logged_in_user_api
   before_action :get_file, only: [:show, :destroy]
   before_action :get_project
   before_action :has_author_permissions, only: [:create_directory, :destroy]
   before_action :has_view_permissions, only: [:show, :download]
-  before_action :logged_in_user_api
 
   def index
     render json: "", serializer: SuccessSerializer
@@ -69,7 +69,22 @@ class Api::FilesController < ApplicationController
   end
 
   def download
-    
+
+    fileIds = params[:files][:file_ids].split(/,/)
+
+    if fileIds.size > 1
+      zip = Zip::File.open('project.zip', Zip::File::CREATE) do |zipfile|
+        fileIds.each do |fileId|
+          file = ProjectFile.find_by(id: fileId)
+          zipfile.get_output_stream(file.name){|f| f.puts(file.content)}
+        end
+      end
+
+      sendata zip, filename: 'project.zip', type: 'application/zip'
+    elsif fileIds.size == 1
+      file = ProjectFile.find_by(id: fileIds.shift)
+      send_data file.content, filename: file.name, type: "text/plain"
+    end
   end
 
   def print
