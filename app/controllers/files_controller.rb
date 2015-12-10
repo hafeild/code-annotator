@@ -51,7 +51,7 @@ class FilesController < ApplicationController
           rescue => e
             ## DEBUG ONLY
             flash.now[:danger] = e.to_s
-            raise ActiveRecord::Rollback, "Bad file type."
+            raise ActiveRecord::Rollback, e.to_s
           end
 
           
@@ -88,7 +88,8 @@ class FilesController < ApplicationController
       file_content = file_io.read
       file_info = CharlockHolmes::EncodingDetector.detect file_content
       
-      raise "Not a text file!" unless file_info[:type] == :text
+      raise "#{file_io.original_filename} is not a text file; only text files "+
+        "may be uploaded." unless file_info[:type] == :text
 
       ## Convert everything to UTF-8.
       file_content = CharlockHolmes::Converter.convert file_content, 
