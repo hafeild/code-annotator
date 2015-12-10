@@ -73,14 +73,17 @@ class Api::FilesController < ApplicationController
     fileIds = params[:files][:file_ids].split(/,/)
 
     if fileIds.size > 1
-      zip = Zip::File.open('project.zip', Zip::File::CREATE) do |zipfile|
+      zip = Zip::OutputStream.write_buffer do |zipstream|
         fileIds.each do |fileId|
           file = ProjectFile.find_by(id: fileId)
-          zipfile.get_output_stream(file.name){|f| f.puts(file.content)}
+          zipstream.put_next_entry file.name
+          zipstream.print file.content
         end
       end
 
-      sendata zip, filename: 'project.zip', type: 'application/zip'
+      zip.rewind
+      send_data zip.read, filename: "project.zip", type: "application/zip"
+
     elsif fileIds.size == 1
       file = ProjectFile.find_by(id: fileIds.shift)
       send_data file.content, filename: file.name, type: "text/plain"

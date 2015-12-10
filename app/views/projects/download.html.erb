@@ -1,6 +1,6 @@
 <form id="download-form" method="get">
-  Project: <input type="text" id="project_id" name="project_id" value="47"/><br/>
-  Files: <input type="text" id="file_ids" name="files[file_ids]" value="1204"/>
+  Project: <input type="text" id="project_id" name="project_id" value="10"/><br/>
+  Files: <input type="text" id="file_ids" name="files[file_ids]" value="251,253"/>
   <button type="submit">submit</button>
 </form>
 
@@ -13,9 +13,9 @@ $(document).ready(function(){
 
     // console.log('Submitted!');
     // $.ajax('/api/projects/'+ this.project_id.value +'/download', {
-    //   method: 'POST',
+    //   method: 'get',
     //   data: {
-    //     files: this.file_ids.value.split(',')
+    //     files: {file_ids: this.file_ids.value}
     //   },
     //   success: function(data){
     //     console.log(data);
