@@ -23,6 +23,8 @@ file1:
   size:    0
   is_directory: false
   directory_id: <%= ActiveRecord::FixtureSet.identify(:dir1) %>
+  content: "Hello there"
+
 
 
 file2Root:
@@ -48,3 +50,22 @@ file2:
   size:    1048576
   is_directory: false
   directory_id: <%= ActiveRecord::FixtureSet.identify(:dir2) %>
+
+
+
+file3Root:
+  name: ""
+  creator: foo
+  project: p3
+  size: 0
+  is_directory: true
+  directory_id: NULL
+
+file3:
+  name: "main.cpp"
+  creator: foo
+  project: p3
+  size:    0
+  is_directory: false
+  directory_id: <%= ActiveRecord::FixtureSet.identify(:file3Root) %>
+  content: "Hello there"

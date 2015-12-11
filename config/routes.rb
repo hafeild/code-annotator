@@ -12,15 +12,15 @@ Rails.application.routes.draw do
   post    'login'  => 'sessions#create'
   delete  'logout' => 'sessions#destroy'
   get     'signup' => 'users#new'
-  get     'download' => 'projects#download'
+  # get     'download' => 'projects#download'
 
   resources :users,         only: [:create,:update,:edit,:destroy]
   resources :projects,      only: [:index,:show]
   resources :account_activations, only: [:edit]
   resources :email_verifications, only: [:edit]
   resources :password_resets,     only: [:new, :create, :edit, :update]
-  post  'projects/:project_id/files'    => 'files#create'
-  get  'projects/:project_id/download'    => 'projects#download'
+  post 'projects/:project_id/files'    => 'files#create'
+  get  'projects/:project_id/download' => 'projects#download'
 
   ## For the JSON api.
   namespace :api do

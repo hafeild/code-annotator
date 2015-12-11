@@ -13,3 +13,10 @@ pp2:
   can_author: true
   can_view: true
   can_annotate: true
+
+pp3:
+  project: p3
+  user: foo
+  can_author: true
+  can_view: true
+  can_annotate: true

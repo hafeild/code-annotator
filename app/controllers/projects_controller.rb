@@ -44,27 +44,28 @@ class ProjectsController < ApplicationController
     redirect_to :root
   end
 
-  ## Downloads the specified files.
-  # def download
-  #   if @files.size > 1
-  #     files_by_name = get_files_by_name(@files).sort{|x,y| x <=> y}
-  #     zip = Zip::OutputStream.write_buffer do |zip_stream|
-  #       files_by_name.each do |name, file|
-  #         zip_stream.put_next_entry name
-  #         zip_stream.print file.content
-  #       end
-  #     end
+  # Downloads the specified files.
+  def download
+    if @files.size > 1 or (@files.size == 1 and @files.first.is_directory)
+      files_by_name = get_files_by_name(@files).sort{|x,y| x <=> y}
 
-  #     zip.rewind
-  #     send_data zip.read, filename: "project.zip", type: "application/zip"
+      zip = Zip::OutputStream.write_buffer do |zip_stream|
+        files_by_name.each do |name, file|
+          zip_stream.put_next_entry name
+          zip_stream.print file.content
+        end
+      end
 
-  #   elsif @files.size == 1
-  #     file = @files.shift
-  #     send_data file.content, filename: file.name, type: "text/plain"
-  #   else
-  #     render_error "No files specified."
-  #   end
-  # end
+      zip.rewind
+      send_data zip.read, filename: "project.zip", type: "application/zip"
+
+    elsif @files.size == 1
+      file = @files.shift
+      send_data file.content, filename: file.name, type: "text/plain"
+    else
+      render_error "No files specified."
+    end
+  end
 
   private
     def get_project
@@ -74,8 +75,9 @@ class ProjectsController < ApplicationController
     def has_permissions(permissions)
       ## Only provide the file to the user if they have permissions to author.
       unless @project and user_can_access_project(@project.id, permissions)
-        redirect_back_or "This project may not exist or you do no have "+
+        flash[:danger] = "This project may not exist or you do no have "+
           "permissions to view it."
+        redirect_back_or root_url
       end
     end
 
@@ -97,7 +99,7 @@ class ProjectsController < ApplicationController
         if file and file.project_id == @project.id
           @files << file
         else
-          flash[:warning] = "Some files specified are not part of this project."
+          flash[:danger] = "Some files specified are not part of this project."
           redirect_back_or root_url
         end
       end
