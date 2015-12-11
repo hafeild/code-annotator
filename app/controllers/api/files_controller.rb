@@ -3,8 +3,7 @@ class Api::FilesController < ApplicationController
   before_action :get_file, only: [:show, :destroy]
   before_action :get_project
   before_action :has_author_permissions, only: [:create_directory, :destroy]
-  before_action :has_view_permissions, only: [:show, :download]
-  before_action :get_files, only: [:download]
+  before_action :has_view_permissions, only: [:show]
 
   def index
     render json: "", serializer: SuccessSerializer
@@ -69,29 +68,6 @@ class Api::FilesController < ApplicationController
     render_error error
   end
 
-  def download
-
-
-    if @files.size > 1
-      files_by_name = get_files_by_name(@files).sort{|x,y| x <=> y}
-      zip = Zip::OutputStream.write_buffer do |zip_stream|
-        files_by_name.each do |name, file|
-          zip_stream.put_next_entry name
-          zip_stream.print file.content
-        end
-      end
-
-      zip.rewind
-      send_data zip.read, filename: "project.zip", type: "application/zip"
-
-    elsif @files.size == 1
-      file = @files.shift
-      send_data file.content, filename: file.name, type: "text/plain"
-    else
-      render_error "No files specified."
-    end
-  end
-
   def print
     render json: "", serializer: SuccessSerializer
   end
@@ -124,31 +100,4 @@ class Api::FilesController < ApplicationController
       has_permissions [:can_view]
     end
 
-    ## Makes a list of file ids and ensures that only files for the project are
-    ## included.
-    def get_files
-      @file_ids = params[:files][:file_ids].split(/,/).map{|x| x.to_i}
-      @files = []
-      @file_ids.each do |id|
-        file = ProjectFile.find_by(id: id)
-        if file and file.project_id == @project.id
-          @files << file
-        else
-          render_error
-        end
-      end
-    end
-
-    ## Creates a list of ProjectFiles in the order they should be zipped.
-    def get_files_by_name(files)
-      files_by_name = {} ## Will hold filename => ProjectFile mapping.
-      files.each do |file|
-        if file.is_directory
-          files_by_name.merge!(get_files_by_name file.sub_tree)
-        else
-          files_by_name[file.path] = file
-        end
-      end
-      files_by_name
-    end
 end

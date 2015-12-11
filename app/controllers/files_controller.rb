@@ -1,5 +1,3 @@
-
-
 class FilesController < ApplicationController
   before_action :logged_in_user
 
@@ -56,7 +54,7 @@ class FilesController < ApplicationController
 
           
           if not tmp_file.save
-            flash.now[:danger] = "Error: couldn't save files."
+            flash.now[:danger] = tmp_file.errors.full_messages
             raise ActiveRecord::Rollback, "Couldn't save file!"
           end
         end

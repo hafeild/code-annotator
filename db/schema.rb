@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151209155645) do
+ActiveRecord::Schema.define(version: 20151211031314) do
 
   create_table "alternative_codes", force: :cascade do |t|
     t.text     "content"
@@ -62,6 +62,7 @@ ActiveRecord::Schema.define(version: 20151209155645) do
   end
 
   add_index "project_files", ["directory_id"], name: "index_project_files_on_directory_id"
+  add_index "project_files", ["project_id", "name", "directory_id"], name: "index_project_files_on_project_id_and_name_and_directory_id", unique: true
   add_index "project_files", ["project_id"], name: "index_project_files_on_project_id"
 
   create_table "project_permissions", force: :cascade do |t|

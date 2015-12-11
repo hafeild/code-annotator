@@ -8,9 +8,12 @@ class ProjectFile < ActiveRecord::Base
   
   ## Checks if this name is unique within its directory.
   def validate_name_uniqueness
-    unless ProjectFile.where(directory_id: directory_id, name: name).empty?
+    existing_files = ProjectFile.where(directory_id: directory_id, 
+        project_id: project_id, name: name)
+    unless existing_files.empty? or (existing_files.size == 1 and 
+        existing_files[0] == self)
       errors.add(:name, "must be unique within a folder; please "+
-        "change \"#{name}\" to something different.")
+        "change \"#{name}\" to something different")
     end
   end
 
