@@ -23,10 +23,24 @@
               class="glyphicon glyphicon-print"></span> 
               Print files
             </button>
-            <button type="button" class="btn btn-default btn-xs"><span 
+-->
+
+            <button type="button" class="btn btn-default btn-xs 
+              file-select toggle-file-download show-file-download-selectors"><span 
               class="glyphicon glyphicon-cloud-download"></span> 
-              Download files
-            </button> -->
+              Select files to download
+            </button> 
+            <button type="button" class="btn btn-default btn-xs 
+              file-select toggle-file-download remove-file-download-selectors hidden"><span 
+              class="glyphicon glyphicon-remove"></span> 
+              Finish selecting files for download
+            </button> 
+            <button type="button" class="btn btn-default btn-xs 
+              file-select download-files hidden"><span 
+              class="glyphicon glyphicon-cloud-download"></span> 
+              Download selected files
+            </button>
+
             <% if @projectPermission.can_author %>
               <button
                 type="button" class="btn btn-default btn-xs toggle-file-removal
@@ -301,6 +315,8 @@
   <div id="directory-template" class="entry directory-entry" data-file-id="" 
       data-expand-state="expanded">
     <div class="directory-name">
+      <input class="dir-select file-select hidden" type="checkbox">
+
       <span class="remove-file-indicator remove-file hidden">
         <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
       </span>
@@ -320,8 +336,16 @@
     <div class="directory">
     </div>
   </div>
+</div>
+
+<!-- Other hidden things. -->
+<div class="hidden">
 
   <!-- Not a template, but is hidden data for use in templates. -->
   <div id="current-email"><%= current_user.email %></div>
 
+  <form id="file-download-form" method="get" action="/projects/<%= @project.id %>/download">
+    <input type="text" id="project_id" name="project_id" value="<%= @project.id %>"/>
+    <input type="text" id="file_ids" name="files[file_ids]"/>
+  </form>
 </div>

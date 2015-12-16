@@ -1,5 +1,3 @@
-
-
 class FilesController < ApplicationController
   before_action :logged_in_user
 
@@ -50,13 +48,13 @@ class FilesController < ApplicationController
             tmp_file = create_file(file_io, project.id, parent_directory_id)
           rescue => e
             ## DEBUG ONLY
-            flash.now[:danger] = "Error: Bad file type. #{e}"
-            raise ActiveRecord::Rollback, "Bad file type."
+            flash.now[:danger] = e.to_s
+            raise ActiveRecord::Rollback, e.to_s
           end
 
           
           if not tmp_file.save
-            flash.now[:danger] = "Error: couldn't save files."
+            flash.now[:danger] = tmp_file.errors.full_messages
             raise ActiveRecord::Rollback, "Couldn't save file!"
           end
         end
@@ -88,7 +86,8 @@ class FilesController < ApplicationController
       file_content = file_io.read
       file_info = CharlockHolmes::EncodingDetector.detect file_content
       
-      raise "Not a text file!" unless file_info[:type] == :text
+      raise "#{file_io.original_filename} is not a text file; only text files "+
+        "may be uploaded." unless file_info[:type] == :text
 
       ## Convert everything to UTF-8.
       file_content = CharlockHolmes::Converter.convert file_content, 

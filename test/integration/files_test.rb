@@ -49,8 +49,8 @@ class FilesTest < ActionDispatch::IntegrationTest
     post "/projects/#{@project.id}/files", project_file: {
       files: [fixture_file_upload("files/test.cpp", "text/plain")]
     }
-
-    assert_redirected_to "#{projects_url}/#{@project.id}##{ProjectFile.last.id}"
+    assert_redirected_to "#{projects_url}/#{@project.id}##{ProjectFile.last.id}",
+      "Errors: #{flash.to_json}; #{ProjectFile.where(project_id: @project.id).to_json}"
     assert flash.empty?, "An error message was displayed: #{flash.to_json}"
   end
 

@@ -4,8 +4,19 @@ class ProjectFile < ActiveRecord::Base
   has_many :comment_locations
   has_many :comments, through: :comment_locations
   has_many :alternative_codes
-  belongs_to :project_file
+  validate :validate_name_uniqueness
   
+  ## Checks if this name is unique within its directory.
+  def validate_name_uniqueness
+    existing_files = ProjectFile.where(directory_id: directory_id, 
+        project_id: project_id, name: name)
+    unless existing_files.empty? or (existing_files.size == 1 and 
+        existing_files[0] == self)
+      errors.add(:name, "must be unique within a folder; please "+
+        "change \"#{name}\" to something different")
+    end
+  end
+
   ## Lists all of the files and directories that are children of this directory.
   ## Will return [] if this is a file or has no children. Files and directories
   ## are listed alphabetically, with directories coming before all files.
@@ -22,5 +33,21 @@ class ProjectFile < ActiveRecord::Base
         x.name <=> y.name
       end
     }
+  end
+
+  def parent_directory
+    root? ? nil : ProjectFile.find(directory_id)
+  end
+
+  def root?
+    directory_id.nil?
+  end
+
+  def path
+    if is_directory
+      root? ? "" : "#{parent_directory.path}#{name}/"
+    else
+      "#{parent_directory.path}#{name}"
+    end
   end
 end

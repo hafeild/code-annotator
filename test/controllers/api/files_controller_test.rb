@@ -79,15 +79,6 @@ class Api::FilesControllerTest < ActionController::TestCase
   end
 
 
-  ## Download
-
-  test "should return success message on download" do
-    log_in_as @user
-    response = get :download, project_id: 1
-    assert JSON.parse(response.body)['success']
-  end
-
-
   ## Print.
 
   test "should return success message on print" do

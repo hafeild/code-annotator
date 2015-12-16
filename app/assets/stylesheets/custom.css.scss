@@ -728,6 +728,15 @@ input {
   #add-directory-container {
     margin-bottom: 50px;
   }
+
+  .file-select {
+    width: auto;
+  }  
+
+  .download-files {
+    background-color: $brand-primary;
+    color: white;
+  }
 }
 
 .settings {
