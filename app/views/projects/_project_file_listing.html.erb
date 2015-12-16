@@ -1,13 +1,17 @@
 <% files.each do |file| %>
   <% if file.is_directory %>
     <div id="directory-<%= file.id %>" class="entry directory-entry" 
-        data-file-id="<%= file.id %>" data-expand-state="expanded">
+        data-file-id="<%= file.id %>" data-expand-state="expanded">        
       <div class="directory-name">
         <% unless file.directory_id.nil? %>
           <span class="remove-file-indicator remove-file hidden">
             <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
           </span>
         <% end %>
+
+        <!-- <div class="checkbox"><input type="checkbox"></div> -->
+        <input class="dir-select file-select hidden" type="checkbox">
+
         <span class="collapsed">
           <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
         </span>
@@ -36,6 +40,7 @@
       <span class="remove-file-indicator remove-file hidden">
         <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
       </span>
+      <input class="file-select hidden" type="checkbox">
       <a href="#<%= file.id %>"
         data-file-id="<%= file.id %>"
         ><%= file.name %></a>

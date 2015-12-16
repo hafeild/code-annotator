@@ -1384,8 +1384,10 @@ var OCA = function($){
 
 
   // Collapses/expands directories in the file listings.
-  $(document).on('click', '.directory-name', function(){
+  $(document).on('click', '.directory-name', function(event){
     var elm = $(this), parent = elm.parent();
+
+    if(event.target.tagName === 'INPUT') return;
 
     if(parent.data('expand-state') === 'expanded'){
       parent.children('.directory').hide();
@@ -1991,6 +1993,30 @@ var OCA = function($){
 
     e.preventDefault();
     return false;
+  });
+
+  // Wait for the 'Download' button to be pressed.
+  $(document).on('click', '.toggle-file-download', function(e){
+    var targetElm = $(this);
+    $('.file-select').toggle();
+  });
+
+
+  // Listen for the "Download files" button to be clicked.
+  $(document).on('click', '.download-files', function(){
+
+    // Gather the ids of all the files/directories to download.
+    var ids = [];
+    $('input.file-select:checked').each(function(i,elm){
+      elm = $(elm);
+      ids.push(elm.closest('.entry').data('file-id'));
+    });
+
+    // Add them to the form.
+    $('#file_ids').val(ids.join(','));
+
+    // Submit the form.
+    $('#file-download-form').submit();
   });
 
 
