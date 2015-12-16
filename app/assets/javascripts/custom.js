@@ -1387,7 +1387,17 @@ var OCA = function($){
   $(document).on('click', '.directory-name', function(event){
     var elm = $(this), parent = elm.parent();
 
-    if(event.target.tagName === 'INPUT') return;
+    if(event.target.tagName === 'INPUT'){
+      // Check all elements below.
+      if(event.target.checked){
+        elm.closest('.directory-entry').find('input.file-select').
+          prop('checked', true);
+      } else {
+        elm.closest('.directory-entry').find('input.file-select').
+          prop('checked', false);
+      }
+      return;
+    }
 
     if(parent.data('expand-state') === 'expanded'){
       parent.children('.directory').hide();
