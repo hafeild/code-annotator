@@ -45,7 +45,7 @@ class FilesController < ApplicationController
 
 
           begin
-            tmp_file = create_file(file_io, project.id, parent_directory_id)
+            tmp_file = process_file(file_io, project.id, parent_directory_id)
           rescue => e
             ## DEBUG ONLY
             flash.now[:danger] = e.to_s
@@ -53,10 +53,10 @@ class FilesController < ApplicationController
           end
 
           
-          if not tmp_file.save
-            flash.now[:danger] = tmp_file.errors.full_messages
-            raise ActiveRecord::Rollback, "Couldn't save file!"
-          end
+          # if not tmp_file.save
+          #   flash.now[:danger] = tmp_file.errors.full_messages
+          #   raise ActiveRecord::Rollback, "Couldn't save file!"
+          # end
         end
 
         file = tmp_file
@@ -81,22 +81,65 @@ class FilesController < ApplicationController
 
 
   private
-    def create_file(file_io, project_id, parent_directory_id)
+    def process_file(file_io, project_id, parent_directory_id)
       # original_filename
-      file_content = file_io.read
-      file_info = CharlockHolmes::EncodingDetector.detect file_content
+
+      ## Check if this is a zip or not.
+      if file_io.original_filename =~ /\.zip$/
+        process_zip_file file_io, project_id, parent_directory_id
+      else
+        create_file(file_io.read, file_io.original_filename, project_id,
+          parent_directory_id)
+      end
+
+    end
+
+    def process_zip_file(file_io, project_id, parent_directory_id)
+      last_file = nil
+      Zip::InputStream.open(StringIO.new(file_io.read)) do |io|
+        while entry = io.get_next_entry
+          directory_id = create_directories_in_path(project_id, 
+            parent_directory_id, entry.name)
+          last_file = create_file(io.read, 
+            entry.name.split(/\//).last, project_id, directory_id)
+        end
+      end
+      last_file
+    end
+
+    def create_file(content, name, project_id, parent_directory_id)
+      file_info = CharlockHolmes::EncodingDetector.detect content
       
-      raise "#{file_io.original_filename} is not a text file; only text files "+
+      raise "#{name} is not a text file; only text files "+
         "may be uploaded." unless file_info[:type] == :text
 
       ## Convert everything to UTF-8.
-      file_content = CharlockHolmes::Converter.convert file_content, 
+      content = CharlockHolmes::Converter.convert content, 
         file_info[:encoding], 'UTF-8'
 
-      ProjectFile.create!(project_id: project_id, content: file_content, 
-        added_by: current_user.id, name: file_io.original_filename,
-        size: get_file_size(file_content), directory_id: parent_directory_id)
+      ProjectFile.create!(project_id: project_id, content: content, 
+        added_by: current_user.id, name: name,
+        size: get_file_size(content), directory_id: parent_directory_id)
+    end
 
+
+    def create_directories_in_path(project_id, parent, path, treat_last_as_file=true)
+      dirs = path.split(/\//)
+
+      ## Remove the last file if necessary.
+      dirs.pop if treat_last_as_file
+
+      dirs.each do |dir_name|
+        dir = ProjectFile.find_by(name: dir_name, directory_id: parent)
+        unless dir
+          dir = ProjectFile.create!(name: dir_name, directory_id: parent,
+            content: nil, is_directory: true, added_by: current_user.id,
+            project_id: project_id)
+        end
+        parent = dir.id
+      end
+
+      parent
     end
 
     def get_project_size(project)
