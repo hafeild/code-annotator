@@ -200,7 +200,7 @@ var OCA = function($){
           for(i = 0; i < locations.length; i++){
             curLocation = locations[i];
             if(locations[i].lid === locationLid){
-              locations.splice(i);
+              locations.splice(i,1);
               break;
             }
           }
@@ -217,6 +217,7 @@ var OCA = function($){
         // locations associated with it.
         if(commentLidToSidMap[commentLid] !== undefined &&
             locations && locations.length === 0){
+
           deleteComment(commentLid);
           comment.remove();
 
@@ -226,6 +227,7 @@ var OCA = function($){
         } else if(commentLidToSidMap[commentLid] !== undefined &&
             locations && locations.length > 0 && 
             getCommentLocationCountInCurrentFile(locations) === 0){
+
           comment.remove();
           delete commentLidToSidMap[commentLid];
         }
