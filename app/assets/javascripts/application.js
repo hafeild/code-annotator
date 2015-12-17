@@ -17,7 +17,8 @@
 // require turbolinks
 //= require sortable.min
 // require xregexp
-//= require syntax-highlighter/shCore
+// require syntax-highlighter/shCore
+//= require syntax-highlighter/shCore-full
 //= require syntax-highlighter/shBrushAS3
 // require syntax-highlighter/shBrushAppleScript
 //= require syntax-highlighter/shBrushBash

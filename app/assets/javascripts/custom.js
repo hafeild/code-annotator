@@ -1095,7 +1095,8 @@ var OCA = function($){
 
     SyntaxHighlighter.highlight(undefined, codePre[0]);
 
-    var highlightedCode = $('#code-to-highlight .code .line').clone();
+    var highlightedCode = $('#code-to-highlight .code .line').clone().
+      attr('id', '');
     highlightedCode.attr('class', 'line');
 
     return highlightedCode;
