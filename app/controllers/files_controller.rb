@@ -8,7 +8,8 @@ class FilesController < ApplicationController
   def create
 
     project = Project.find_by(id: params[:project_id])
-    file = nil;
+    last_file = nil;
+    files_ignored = false
 
 
     ## Make sure the user has permissions to edit this project.
@@ -24,7 +25,6 @@ class FilesController < ApplicationController
       project_size = get_project_size(project)
 
       ActiveRecord::Base.transaction do
-        tmp_file = nil
 
         parent_directory_id = project.root.id
         if params[:project_file].key? :directory_id
@@ -33,39 +33,40 @@ class FilesController < ApplicationController
 
         params[:project_file][:files].each do |file_io|
 
-          project_size += file_io.size
-          if project_size > MAX_PROJECT_SIZE_BYTES
-            flash.now[:danger] = "Error: couldn't save files -- Project size "+
-              "exceeded #{MAX_PROJECT_SIZE_MB} MB."
-            raise ActiveRecord::Rollback, 
-              "Couldn't save file -- project size exceeded "+
-              "#{MAX_PROJECT_SIZE_BYTES} bytes."
-          end
-
-
-
           begin
-            tmp_file = process_file(file_io, project.id, parent_directory_id)
+            save_info = process_file(file_io, project.id, parent_directory_id)
+            files_ignored ||= save_info[:files_ignored]
+
+            last_file = save_info[:last_file]
+
+            project_size += save_info[:size]
+            if project_size > MAX_PROJECT_SIZE_BYTES
+              flash.now[:danger] = "Error: couldn't save files -- Project "+
+                "size exceeded #{MAX_PROJECT_SIZE_MB} MB."
+              raise ActiveRecord::Rollback, 
+                "Couldn't save file -- project size exceeded "+
+                "#{MAX_PROJECT_SIZE_BYTES} bytes."
+            end
           rescue => e
+            Rails.logger.debug(e.to_s)
+            Rails.logger.debug(e.backtrace)
             ## DEBUG ONLY
             flash.now[:danger] = e.to_s
             raise ActiveRecord::Rollback, e.to_s
           end
-
-          
-          # if not tmp_file.save
-          #   flash.now[:danger] = tmp_file.errors.full_messages
-          #   raise ActiveRecord::Rollback, "Couldn't save file!"
-          # end
-        end
-
-        file = tmp_file
+        end        
       end
 
-      if file.nil?
+
+      if files_ignored
+        flash[:warning] = "FYI, one or more non-text files were ignored."
+      end
+
+
+      if last_file.nil?
         redirect_url = "/projects/#{project.id}"
       else
-        redirect_url = "/projects/#{project.id}##{file.id}"
+        redirect_url = "/projects/#{project.id}##{last_file.id}"
       end
 
       if flash.now[:danger].nil?
@@ -89,37 +90,61 @@ class FilesController < ApplicationController
         process_zip_file file_io, project_id, parent_directory_id
       else
         create_file(file_io.read, file_io.original_filename, project_id,
-          parent_directory_id)
+          parent_directory_id, ignore_binary=true)
       end
 
     end
 
     def process_zip_file(file_io, project_id, parent_directory_id)
-      last_file = nil
-      Zip::InputStream.open(StringIO.new(file_io.read)) do |io|
-        while entry = io.get_next_entry
-          directory_id = create_directories_in_path(project_id, 
-            parent_directory_id, entry.name)
-          last_file = create_file(io.read, 
-            entry.name.split(/\//).last, project_id, directory_id)
+      save_data = {last_file: nil, size: 0, files_ignored: false}
+      
+      Zip::File.open(file_io.tempfile) do |zipfile|
+        zipfile.each do |entry|
+          next if entry.name =~ /(^|[\/])__MACOSX(\/|$)/
+
+          if entry.directory?
+            create_directories_in_path(project_id, parent_directory_id, 
+              entry.name, treat_last_as_file=false)
+          elsif entry.file?
+            directory_id = create_directories_in_path(project_id, 
+              parent_directory_id, entry.name)
+
+            content = entry.get_input_stream.read
+
+            cur_save_data = create_file(content, entry.name.split(/\//).last, 
+              project_id, directory_id, ignore_binary=true)
+            if cur_save_data[:last_file].nil?
+              save_data[:files_ignored] = true
+            else
+              save_data[:last_file] = cur_save_data[:last_file]
+              save_data[:size] += cur_save_data[:size]
+            end
+          end
         end
       end
-      last_file
+      save_data
     end
 
-    def create_file(content, name, project_id, parent_directory_id)
+    def create_file(content, name, project_id, parent_directory_id, ignore_binary=false)
       file_info = CharlockHolmes::EncodingDetector.detect content
       
-      raise "#{name} is not a text file; only text files "+
-        "may be uploaded." unless file_info[:type] == :text
+
+      unless file_info[:type] == :text 
+        if ignore_binary
+          return {last_file: nil, size: 0, files_ignored: true}
+        else
+          raise "#{name} is not a text file; only text files may be uploaded."  
+        end
+      end
 
       ## Convert everything to UTF-8.
       content = CharlockHolmes::Converter.convert content, 
         file_info[:encoding], 'UTF-8'
 
-      ProjectFile.create!(project_id: project_id, content: content, 
+      file = ProjectFile.create!(project_id: project_id, content: content, 
         added_by: current_user.id, name: name,
         size: get_file_size(content), directory_id: parent_directory_id)
+      {last_file: file, size: file.size, files_ignored: false}
     end
 
 
@@ -145,7 +170,7 @@ class FilesController < ApplicationController
     def get_project_size(project)
       total_bytes = 0
       project.project_files.each do |file|
-        total_bytes += file.size
+        total_bytes += file.size || 0
       end
       total_bytes
     end
