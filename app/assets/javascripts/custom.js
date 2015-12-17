@@ -120,18 +120,11 @@ var OCA = function($){
    * @param {string} commentLid The local id of the comment to remove.
    */
   var deleteComment = function(commentLid){
-    var locations = $('#comment-'+ commentLid).data('locations');
-    var i, commentId;
+    var commentElm = $('#comment-'+ commentLid);
+    var locations = commentElm.data('locations');
+    var commentId = commentLidToSidMap[commentLid];
 
-    // incrementBadgeCount(-1);
-
-
-    commentId = commentLidToSidMap[commentLid];
-    delete commentLidToSidMap[commentLid];
-
-    for(i = 0; i < locations.length; i++){
-      deleteCommentLocation(commentLid, locations[i].lid, true);
-    }
+    if(commentElm.data('deletedFromServer')) return;
 
     $.ajax('/api/comments/'+ commentId,{
       method: 'POST',
@@ -141,7 +134,16 @@ var OCA = function($){
       success: function(data){
         if(data.error){
           displayError('There was an error deleting the comment: '+ data.error);
+          return;
         }
+
+        // Mark the commented as deleted from the server.
+        commentElm.data('deletedFromServer', true);
+
+        while(locations.length > 0){
+          removeCommentLocationFromUI(commentLid, locations[0].lid, true);
+        }
+
       },
       error: function(xhr, status, error){
         displayError('There was an error deleting the comment. '+ error);
@@ -171,62 +173,7 @@ var OCA = function($){
           return;
         }
 
-        hideCommentLocationHighlights();
-        $('#remove-'+ locationLid).remove();
-
-        // hideHighlights();
-        $('.comment_loc_'+ locationLid).each(function(){
-          var elm = $(this);
-          elm.removeClass('comment_loc_'+locationLid);
-
-          removeFromDataArray(elm, 'locationLids', locationLid);
-
-          if(removeComment || elm.data('locationLids').length === 0){
-            removeFromDataArray(elm, 'commentLids', commentLid);
-            elm.removeClass('comment_'+ commentLid);
-          }
-          if(elm.data('locationLids').length === 0){
-            elm.removeClass('selected');
-          }
-        });
-
-        // Remove the comment location from the comment itself.
-        var comment = $('#comment-'+ commentLid),
-            locations = comment.data('locations'),
-            i, curLocaiton;
-        if(locations){
-          for(i = 0; i < locations.length; i++){
-            curLocation = locations[i];
-            if(locations[i].lid === locationLid){
-              locations.splice(i);
-              break;
-            }
-          }
-
-          // Determine if we need to decrement comments.
-          if(getCommentLocationCountInCurrentFile(locations, 
-              curLocation.file_id) === 0){
-            incrementBadgeCount('comment-count', -1, curLocation.file_id);
-          }
-
-        }
-
-        // Check if the comment needs to be removed because there are no more
-        // locations associated with it.
-        if(commentLidToSidMap[commentLid] !== undefined &&
-            locations && locations.length === 0){
-          deleteComment(commentLid);
-          comment.remove();
-
-        // Check if the comment needs to be removed from the list of file
-        // comments because there are no more locations in this file associated
-        // with it.
-        } else if(commentLidToSidMap[commentLid] !== undefined &&
-            locations && locations.length > 0 && 
-            getCommentLocationCountInCurrentFile(locations) === 0){
-          comment.remove();
-          delete commentLidToSidMap[commentLid];
-        }
+        removeCommentLocationFromUI(commentLid, locationLid, removeComment);
 
       },
       error: function(xhr, status, error){
@@ -237,6 +184,79 @@ var OCA = function($){
   };
 
   /**
+   * Removes a comment location from the UI.
+   *
+   * @param {string} commentLid The local id of the comment.
+   * @param {string} locationLid The local id of the location to remove.
+   * @param {boolean} removeComment A flag indicating whether all locations for
+   *                  the given comment are to be removed (assists in some
+   *                  corner cases).
+   */
+  var removeCommentLocationFromUI = function(commentLid, locationLid, removeComment){
+    // Get rid of the 'remove' icon next to the comment location.
+    hideCommentLocationHighlights();
+    $('#remove-'+ locationLid).remove();
+
+    // Remove information about this comment location from each of the
+    // character elements in the location.
+    $('.comment_loc_'+ locationLid).each(function(){
+      var elm = $(this);
+      elm.removeClass('comment_loc_'+locationLid);
+
+      removeFromDataArray(elm, 'locationLids', locationLid);
+
+      if(removeComment || elm.data('locationLids').length === 0){
+        removeFromDataArray(elm, 'commentLids', commentLid);
+        elm.removeClass('comment_'+ commentLid);
+      }
+      if(elm.data('locationLids').length === 0){
+        elm.removeClass('selected');
+      }
+    });
+
+    // Remove the comment location from the comment itself.
+    var comment = $('#comment-'+ commentLid),
+        locations = comment.data('locations'),
+        i, curLocation;
+
+    if(locations){
+      for(i = 0; i < locations.length; i++){
+        curLocation = locations[i];
+        if(locations[i].lid === locationLid){
+          locations.splice(i,1);
+          break;
+        }
+      }
+
+      // Determine if we need to decrement comments.
+      if(getCommentLocationCountInFile(locations, curLocation.file_id) === 0){
+        incrementBadgeCount('comment-count', -1, curLocation.file_id);
+      }
+
+    }
+
+    // Check if the comment needs to be removed because there are no more
+    // locations associated with it.
+    if(commentLidToSidMap[commentLid] !== undefined &&
+        locations && locations.length === 0){
+
+      deleteComment(commentLid);
+      comment.remove();
+
+    // Check if the comment needs to be removed from the list of file
+    // comments because there are no more locations in this file associated
+    // with it. We only do this if we're not removing all comment locations.
+    } else if(!removeComment && commentLidToSidMap[commentLid] !== undefined &&
+        locations && locations.length > 0 && 
+        getCommentLocationCountInFile(locations) === 0){
+
+      comment.remove();
+      delete commentLidToSidMap[commentLid];
+    }
+  }
+
+
+  /**
    * Counts the number of locations for the given comment are associated with
    * the currently displayed file.
    *
@@ -245,7 +265,7 @@ var OCA = function($){
    *                     the current file id.
    * @return The number of comment locations in the given file.
    */
-  var getCommentLocationCountInCurrentFile = function(locations, fileId){
+  var getCommentLocationCountInFile = function(locations, fileId){
     // var locations = $('#comment-'+ commentLid).data('locations') || [];
     locations = locations || [];
     var i, locationsInCurrentFile = 0;
@@ -780,14 +800,24 @@ var OCA = function($){
    * @return {simple object} The line and column of the selection.
    */
   var getSelectionOffsets = function(node, offset){
-    // var parentJQ = $(node.parentNode);
-    // return {
-    //   line: parseInt(parentJQ.data('line')),
-    //   col:  parseInt(parentJQ.data('col'))
-    // };
+    var parentJQ = $(node.parentNode);
 
+    // Check if the node has already been highlighted (since that will give
+    // us an exact line/col). This returns immediately.
+    if(parentJQ.hasClass('highlightable')){
+
+      return {
+        line: parseInt(parentJQ.data('line')),
+        col:  parseInt(parentJQ.data('col'))
+      };
+    }
+
+    // Otherwise, we'll have to calculate the offset the hard way.
     var shElm = node.parentNode;
     var lineElm = $(shElm).parents('.line')[0];
+
+    if(!lineElm) return {line: -1, col: -1};
+
     var lineNumber = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
     var colNumber = 1;
     var children = lineElm.childNodes;
@@ -1487,7 +1517,7 @@ var OCA = function($){
     // Add to existing comment.
     } else if(e.target.id === 'add-to-comment'){
       location.lid = locationLidCounter++,
-      highlightSelection(location);
+      // highlightSelection(location);
       loadProjectComments($('#all-project-comments'))
       locationToAddToComment = location;
 
@@ -1505,7 +1535,6 @@ var OCA = function($){
     var comment = $(this).parents('.comment');
     hideCommentLocationHighlights();
     deleteComment(comment.data('lid'));
-    comment.remove();
     e.preventDefault();
   });
 
@@ -1584,6 +1613,8 @@ var OCA = function($){
         location = locationToAddToComment;
 
     if(!locationIsValid(location)){ return; }
+
+    highlightSelection(location);
 
     // Check if we're adding to a comment that already exists.
     for(tmpLid in commentLidToSidMap){
