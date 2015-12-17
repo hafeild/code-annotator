@@ -41,4 +41,24 @@ class FilesControllerTest < ActionController::TestCase
     end 
   end
 
+  test "should upload Windows zip files" do
+    log_in_as @user
+    project = projects(:p1)
+    assert_difference 'ProjectFile.count', 2, "Files not added." do 
+      post :create, project_id: project.id, project_file: {
+        files: [fixture_file_upload("files/windows.zip", "application/zip")]
+      }
+    end 
+  end
+
+  test "should upload OSX zip files" do
+    log_in_as @user
+    project = projects(:p1)
+    assert_difference 'ProjectFile.count', 2, "Files not added." do 
+      post :create, project_id: project.id, project_file: {
+        files: [fixture_file_upload("files/osx.zip", "application/zip")]
+      }
+    end 
+  end
+
 end

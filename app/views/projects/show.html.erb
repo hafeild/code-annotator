@@ -176,6 +176,7 @@
 
             <div id="add-files-container">
               <h4>Add files</h4>
+              <em>Note: binary files and subdirectories of <tt>__MACOSX</tt> will be ignored.</em>
               <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
                   <%= f.file_field :files, multiple: true, class: "form-control" %>
                   <input type="hidden" id="directory_id" 

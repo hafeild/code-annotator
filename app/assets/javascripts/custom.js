@@ -2032,6 +2032,10 @@ var OCA = function($){
     // loadProjectComments();
   }
 
+  if($('#project_file_files').val()){
+    $('#file-upload-submit').prop('disabled', false);
+  }
+
   // Make tables labeled as sortable, sortable.
   Sortable.init();
   SyntaxHighlighter.defaults['toolbar'] = false;

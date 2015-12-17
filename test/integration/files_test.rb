@@ -54,4 +54,16 @@ class FilesTest < ActionDispatch::IntegrationTest
     assert flash.empty?, "An error message was displayed: #{flash.to_json}"
   end
 
+
+  test "uploading zip with binary files triggers a warning message" do
+    log_in_as @user
+    project = projects(:p1)
+    
+    post "/projects/#{@project.id}/files", project_file: {
+      files: [fixture_file_upload("files/osx.zip", "application/zip")]
+    }
+
+    assert flash[:warning] == "FYI, one or more non-text files were ignored."
+  end
+
 end
