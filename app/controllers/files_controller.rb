@@ -57,13 +57,13 @@ class FilesController < ApplicationController
         end        
       end
 
-
+      ## Let the user know if any files were ignored.
       if files_ignored
         flash[:warning] = "FYI, one or more non-text files were ignored."
       end
 
-
-      if last_file.nil?
+      ## Display the last loaded file.
+      if last_file.nil? or last_file.id.nil?
         redirect_url = "/projects/#{project.id}"
       else
         redirect_url = "/projects/#{project.id}##{last_file.id}"
