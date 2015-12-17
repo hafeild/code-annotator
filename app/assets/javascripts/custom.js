@@ -1514,7 +1514,7 @@ var OCA = function($){
     // Add to existing comment.
     } else if(e.target.id === 'add-to-comment'){
       location.lid = locationLidCounter++,
-      highlightSelection(location);
+      // highlightSelection(location);
       loadProjectComments($('#all-project-comments'))
       locationToAddToComment = location;
 
@@ -1610,6 +1610,8 @@ var OCA = function($){
         location = locationToAddToComment;
 
     if(!locationIsValid(location)){ return; }
+
+    highlightSelection(location);
 
     // Check if we're adding to a comment that already exists.
     for(tmpLid in commentLidToSidMap){
