@@ -680,18 +680,28 @@ input {
     line-height: .9em !important;
   }
 
-  .altcode-content {
-    background-color: #dbe9f5 !important;
+  .altcode-content, .altcode-gutter {
+    background-color: #eaffea !important;
   }
 
   .altcode-strikeout {
     text-decoration: line-through;
+    background-color: #ffecec;
   }
 
   .altcode-selected {
-    background-color: #9fc5e5 !important;
     font-weight: bold;
   }
+
+  .altcode-selected.altcode-content, .altcode-selected.altcode-gutter {
+      background-color: #a6f3a6 !important;
+  }
+  
+  .altcode-selected.altcode-strikeout {
+      background-color: #f8cbcb !important;
+  }
+
+
 
   .altcode-removal-button:hover {
     color: red;
