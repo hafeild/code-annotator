@@ -101,7 +101,6 @@ var OCA = function($){
         _method: 'delete'
       },
       success: function(data){
-        console.log('Heard back from the server: ', data);
         if(data.error){
           displayError('There was an error removing this project: '+data.error);
           return;
@@ -142,13 +141,10 @@ var OCA = function($){
       success: function(data){
         if(data.error){
           displayError('There was an error deleting the comment: '+ data.error);
-          console.log('Response for deleting comment '+ 
-            commentId +':', data);
         }
       },
       error: function(xhr, status, error){
         displayError('There was an error deleting the comment. '+ error);
-        console.log('ERROR:', error);
       }
     });
   };
@@ -163,8 +159,6 @@ var OCA = function($){
    *                  corner cases).
    */
   var deleteCommentLocation = function(commentLid, locationLid, removeComment){
-    console.log('locationLid:', locationLid, 
-      'locationId:', commentLocLidToSidMap[locationLid]);
     $.ajax('/api/comment_locations/'+ commentLocLidToSidMap[locationLid], {
       method: 'POST',
       data: {
@@ -217,15 +211,10 @@ var OCA = function($){
 
         }
 
-        console.log('Locations', locations);
-        console.log('locations in current file: ',
-          getCommentLocationCountInCurrentFile(locations));
-
         // Check if the comment needs to be removed because there are no more
         // locations associated with it.
         if(commentLidToSidMap[commentLid] !== undefined &&
             locations && locations.length === 0){
-          console.log('Deleting comment');
           deleteComment(commentLid);
           comment.remove();
 
@@ -341,7 +330,6 @@ var OCA = function($){
           data('lid', locations[i].lid);
         $('#'+ locations[i].start_line +'_'+ locations[i].start_column).
           append(closeElm);
-        console.log(locations[i]);
 
         highlightSelection(locations[i], 'comment_loc_'+ locations[i].lid +
           ' comment_'+ commentLid, true);
@@ -376,10 +364,6 @@ var OCA = function($){
     // Save the comment changes.
     target.data('timeout', setTimeout(function(){
 
-      console.log('Sending to: /api/comments/'+ 
-        commentLidToSidMap[commentElm.data('lid')]);
-      console.log('Sending: '+ newContent);
-
       $.ajax('/api/comments/'+ commentLidToSidMap[commentElm.data('lid')], {
         method: 'POST',
         data: {
@@ -389,12 +373,9 @@ var OCA = function($){
           }
         },
         success: function(data){
-          console.log('Sent content: '+ newContent);
-          console.log('Heard back from updating comment:', data);
           if(data.error){
             displayError('There was an error updating your comment: '+ 
               data.error);
-            console.log('Error updating comment:', data);
             return;
           }
           target.removeClass('comment-in-edit');
@@ -403,7 +384,6 @@ var OCA = function($){
         },
         error: function(xhr, status, error){
           displayError('There was an error updating your comment. '+ error);
-          console.log('ERROR:', error);
         }
       })
     }, 2000));
@@ -615,7 +595,6 @@ var OCA = function($){
    *                                            for this comment.
    */
   var saveComment = function(commentLid, content, locations){
-    console.log('URL: '+ COMMENT_API);
     $.ajax(COMMENT_API, {
       method: 'POST',
       data: {
@@ -624,10 +603,8 @@ var OCA = function($){
         }
       },
       success: function(data){
-        console.log('Heard back about new comment: ', data);
         if(data.error){
           displayError('There was an error saving your comment: '+ data.error);
-          console.log('ERROR saving comment:', data);
           return;
         }
 
@@ -638,7 +615,6 @@ var OCA = function($){
       },
       error: function(xhr, status, error){
         displayError('There was an error saving your comment. '+ error);
-        console.log('ERROR:', error);
       }
     });
   }
@@ -659,11 +635,9 @@ var OCA = function($){
           comment_location: locations[i]
         },
         success: (function(index){ return function(data){
-          console.log('Heard back:', data);
           if(data.error){
             displayError('There was an error saving the location of your '+
               'comment: '+ data.error);
-            console.log('ERROR saving comment location:', data);
             return;
           }
           commentLocLidToSidMap[locations[index].lid] = data.id;
@@ -671,7 +645,6 @@ var OCA = function($){
         error: function(xhr, status, error){
           displayError('There was an error saving the location of your '+
             'comment. '+ error);
-          console.log('ERROR:', error);
         }
       });
     }
@@ -729,6 +702,15 @@ var OCA = function($){
     cssClass = cssClass || 'selected';
     add = add === undefined ? true : add;
 
+    // Add column ids to the characters in each line in this location if
+    // they haven't already been added.
+    var lines = [], i;
+    for(i = loc.start_line; i <= loc.end_line; i++){
+      var lineElm = $('#file-display .code .line.number'+i)[0];
+      if(lineElm) lines.push(lineElm);
+    }
+    addColumnsToHighlightedCode(lines);
+
     applyToCodeRange(loc, function(charElm){
       if(add){
         charElm.addClass(cssClass);
@@ -741,12 +723,18 @@ var OCA = function($){
   /**
    * Modifies the displayed file content to make highlighting easier.
    *
-   * @param {DOM Elmement} contentElm The element containing the file content.
-   *                                  This should already be processed by 
-   *                                  SyntaxHighlighter.
+   * @param {Array of DOM Elmements} lines The SyntaxHighlighter code lines
+   *                                       to mark up. Only adds columns if
+   *                                       the 'processed' data field isn't set.
    */
-  var addColumnsToHighlightedCode = function(contentElm){
-    $(contentElm).find('.line').each(function(i,lineElm){
+  var addColumnsToHighlightedCode = function(lines){
+    // $(contentElm).find('.line').each(function(i,lineElm){
+    $.each(lines, function(i, lineElm){
+
+      var lineElmJQ = $(lineElm);
+      if(lineElmJQ.data('processed')) return;
+      lineElmJQ.data('processed', true);
+
       var children = lineElm.childNodes;
       var i, colNo = 1;
       var lineNo = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
@@ -792,11 +780,30 @@ var OCA = function($){
    * @return {simple object} The line and column of the selection.
    */
   var getSelectionOffsets = function(node, offset){
-    var parentJQ = $(node.parentNode);
-    return {
-      line: parseInt(parentJQ.data('line')),
-      col:  parseInt(parentJQ.data('col'))
-    };
+    // var parentJQ = $(node.parentNode);
+    // return {
+    //   line: parseInt(parentJQ.data('line')),
+    //   col:  parseInt(parentJQ.data('col'))
+    // };
+
+    var shElm = node.parentNode;
+    var lineElm = $(shElm).parents('.line')[0];
+    var lineNumber = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
+    var colNumber = 1;
+    var children = lineElm.childNodes;
+    var i;
+
+    // Calculate the column.
+    for(i = 0; i < children.length && children[i] != shElm; i++){
+      if(children[i].nodeType == 3){
+        colNumber += children[i].nodeValue.length;
+      } else {
+        colNumber += children[i].innerText.length;
+      }
+    }
+    colNumber += offset;
+
+    return {line: lineNumber, col: colNumber};
   };
 
   /**
@@ -806,8 +813,6 @@ var OCA = function($){
    */
   var getSelectionLocation = function(){
     var selection = window.getSelection();
-
-    console.log(selection);
 
     if(!selection || selection.isCollapsed){
       return false;
@@ -923,7 +928,7 @@ var OCA = function($){
           );
           SyntaxHighlighter.highlight();
           // setTimeout(10, SyntaxHighlighter.highlight);
-          addColumnsToHighlightedCode($('#file-display .code')[0])
+          // addColumnsToHighlightedCode($('#file-display .code')[0])
 
           loadFileComments(data.file.comments);
           loadFileAltcode(data.file.altcode);
@@ -931,9 +936,6 @@ var OCA = function($){
       },
       error: function(req, status, error){
         displayError('There was an error retrieving this file. '+ error);
-        console.log(req, status, error);
-        // $('.page-header').html('ERROR');
-        // $('#file-display').html(error);
       }
     });
   };
@@ -950,7 +952,7 @@ var OCA = function($){
    * Loads project comments from the server and includes them in the given
    * element.
    *
-   * @param {jQuery element} elm The element to add the projects to.
+   * @param {jQuery element} elm The element to add the comments to.
    */
   var loadProjectComments = function(elm){
     elm.html('');
@@ -992,7 +994,6 @@ var OCA = function($){
    * @param {array of simple objects} comments The comments to add.
    */
   var loadFileComments = function(comments){
-    console.log(comments)
     var i, j;
     commentLocLidToCommentLidMap = {};
     commentLidToSidMap = {};
@@ -1015,8 +1016,6 @@ var OCA = function($){
       }
       var commentElm = createComment(
         comments[i].locations, comments[i].content, false, comments[i]);
-      console.log('Comment lid: '+ commentElm.data('lid') +'; real id: '+
-        commentLidToSidMap[commentElm.data('lid')]);
       commentElm.find('.comment-body').blur();
     }
   };
@@ -1254,7 +1253,6 @@ var OCA = function($){
               _method: 'delete'
             },
             success: function(data){
-              console.log('Heard back about removing altcode:', data);
               if(data.error){
                 displayError('There was an error removing the altcode. '+ 
                   data.error);
@@ -1450,15 +1448,9 @@ var OCA = function($){
   // $(document).on('mouseup', '.code .container', function(){
   $(document).on('mouseup', '#file-display', function(){
     var location = getSelectionLocation();
-    console.log(location);
     if(locationIsValid(location)){
-      console.log('Removing disabled...');
       $('#selection-menu .btn').removeClass('disabled');
-      //hideHighlights();
-      //highlightSelection(location);
     } else if(!$(this).hasClass('comment-location-highlight')) {
-      // hideHighlights();
-      console.log('Adding disabled...');
       hideCommentLocationHighlights();
       $('#selection-menu .btn').addClass('disabled');
       hideRemoveLocationButtons();
@@ -1525,10 +1517,7 @@ var OCA = function($){
   $(document).on('mouseover', '.comment', function(){
     if($(this).parents('.disabled').length > 0){ return; }
 
-    console.log('Hiding all highlights');
     hideCommentLocationHighlights();
-    console.log('Highlighting only comment locations for comment '+
-      $(this).data('lid') );
     highlightCommentLocations($(this).data('lid'));
   });
 
@@ -1547,13 +1536,7 @@ var OCA = function($){
         i = (locationIndexLastSelected + 1) % locationLids.length;
       }
 
-      console.log(commentLocationElm.hasClass('comment-location-highlight'), 
-        i, locationIndexLastSelected, locationLidLastSelected, locationLids);
-
       commentLid = commentLocLidToCommentLidMap[locationLids[i]];
-      console.log('Comment lid: ', commentLid);
-      console.log('locationLids', locationLids);
-      console.log('commentLocLidToCommentLidMap', commentLocLidToCommentLidMap);
       highlightCommentLocations(commentLid);
       var comment = $('#comment-'+ commentLid);
       $('#comments').scrollTop(comment[0].offsetTop);
@@ -1564,10 +1547,6 @@ var OCA = function($){
 
       locationIndexLastSelected = i;
       locationLidLastSelected = locationLids[i];
-
-      console.log(commentLocationElm.hasClass('comment-location-highlight'),
-        i, locationIndexLastSelected, locationLidLastSelected, locationLids);
-
     }
   });
 
@@ -1603,8 +1582,6 @@ var OCA = function($){
         lid, tmpLid,
         location = locationToAddToComment;
 
-    console.log('locationToAddToComment', locationToAddToComment);
-
     if(!locationIsValid(location)){ return; }
 
     // Check if we're adding to a comment that already exists.
@@ -1634,9 +1611,6 @@ var OCA = function($){
   });
 
   $(document).on('change', '#project_file_files', function(){
-    console.log('Changed!');
-    console.log(this.files);
-    
     var uploadSize = getFileSizes(this.files);
     if(this.files.length > 0 && uploadSize <= MAX_PROJECT_SIZE_BYTES){
       $('#file-upload-submit').attr('disabled', false);
@@ -1675,7 +1649,6 @@ var OCA = function($){
         project: {name: projectName}
       },
       success: function(data){
-        console.log('Heard back: ', data);
         if(data.error){
           displayError('There was an error creating the new project: '+ 
             data.error);
@@ -1691,7 +1664,6 @@ var OCA = function($){
         newEntry.find('.date').html(data.created_on);
         newEntry.find('.email').html(data.creator_email);
 
-        console.log("inserting", newEntry, "after", elm.parents('tr'));
         newEntry.insertAfter(elm.parents('tr'));
       },
       error: function(xhr, status, error){
@@ -1713,8 +1685,6 @@ var OCA = function($){
   $(document).on('click', '.project-trash', function(e){
     var entryElm = $(this).parents('.project');
     var projectId = entryElm.attr('id');
-
-    console.log('Trash can for project '+projectId+' clicked; now removing...');
 
     // Remove the project.
     deleteProject(projectId, function(data){
@@ -1741,8 +1711,6 @@ var OCA = function($){
         }
       },
       success: function(data){
-        console.log(data);
-
         if(data.error){
           displayError('There was an error adding permissions for '+ email +
             ': '+ data.error);
@@ -1851,7 +1819,6 @@ var OCA = function($){
       }
     }
 
-    console.log(lidClass);
     // Add new highlights.
     if(lidClass){
       $('.'+ lidClass).addClass('altcode-selected');
@@ -1890,8 +1857,6 @@ var OCA = function($){
 
       altcodeInfo.content = altcodeElm.find('.altcode-editor').val();
 
-      console.log(altcodeInfo);
-
       // Check if there is a lid; if not, assign one.
       if(altcodeInfo.lid === undefined){
         altcodeInfo.lid = altcodeLidCounter++;
@@ -1916,8 +1881,6 @@ var OCA = function($){
   $(document).on('click', '.remove-file', function(){
     var entryElm = $(this).closest('.entry');
     var fileId = entryElm.data('file-id');
-
-    console.log('Attempting to remove '+ fileId);
 
     $.ajax('/api/files/'+ fileId, {
       method: 'POST',
@@ -1996,7 +1959,6 @@ var OCA = function($){
 
   // One settings page, listen for edits.
   $(document).on('click', '.settings .edit', function(e){
-    console.log('In click listener');
     var infoBlockElm = $(this).parents('.info-block');
     infoBlockElm.find('.current-info').hide();
     infoBlockElm.find('form').show();

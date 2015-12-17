@@ -124,10 +124,10 @@ projectCount.times do
     AlternativeCode.create!(
       content: "def div(a, b):\n\ta.to_f / b",
       project_file_id: projectFile.id,
-      start_line: 0,
-      start_column: 0,
+      start_line: 1,
+      start_column: 1,
       end_line: 2,
-      end_column: 0,
+      end_column: 1,
       created_by: users.shuffle.first.id
     )
 
