@@ -815,6 +815,9 @@ var OCA = function($){
     // Otherwise, we'll have to calculate the offset the hard way.
     var shElm = node.parentNode;
     var lineElm = $(shElm).parents('.line')[0];
+
+    if(!lineElm) return {line: -1, col: -1};
+
     var lineNumber = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
     var colNumber = 1;
     var children = lineElm.childNodes;
