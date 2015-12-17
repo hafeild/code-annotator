@@ -171,10 +171,12 @@ var OCA = function($){
           return;
         }
 
+        // Get rid of the 'remove' icon next to the comment location.
         hideCommentLocationHighlights();
         $('#remove-'+ locationLid).remove();
 
-        // hideHighlights();
+        // Remove information about this comment location from each of the
+        // character elements in the location.
         $('.comment_loc_'+ locationLid).each(function(){
           var elm = $(this);
           elm.removeClass('comment_loc_'+locationLid);
@@ -780,12 +782,19 @@ var OCA = function($){
    * @return {simple object} The line and column of the selection.
    */
   var getSelectionOffsets = function(node, offset){
-    // var parentJQ = $(node.parentNode);
-    // return {
-    //   line: parseInt(parentJQ.data('line')),
-    //   col:  parseInt(parentJQ.data('col'))
-    // };
+    var parentJQ = $(node.parentNode);
 
+    // Check if the node has already been highlighted (since that will give
+    // us an exact line/col). This returns immediately.
+    if(parentJQ.hasClass('highlightable')){
+
+      return {
+        line: parseInt(parentJQ.data('line')),
+        col:  parseInt(parentJQ.data('col'))
+      };
+    }
+
+    // Otherwise, we'll have to calculate the offset the hard way.
     var shElm = node.parentNode;
     var lineElm = $(shElm).parents('.line')[0];
     var lineNumber = parseInt(lineElm.className.split(/\s+/)[1].substr(6));
