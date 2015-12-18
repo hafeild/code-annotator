@@ -11,18 +11,38 @@ class Api::ProjectsController < ApplicationController
   end
 
   def create
+    files = nil
+    batch = false
+    update = false
+
     begin
-      p = params.require(:project).permit(:name)
+      p = params.require(:project).permit(:name, :files, :batch, :update)
+      name = p[:name]
     rescue
       render_error "Missing parameters. Must include a project name."
       return
     end
 
-    project = create_new_project p[:name]
-    if project
-      render json: project, serializer: SessionCreationSuccessSerializer
+    files = p.key?(files)   ? p[:files]  : nil
+    batch = p.key?(batch)   ? p[:batch]  : false
+    update = p.key?(update) ? p[:update] : false
+
+    if batch
+      projects = create_batch_projects name, files, update      
+
+      if projects
+        ## TODO
+      else
+        render_error "There was a problem creating the projects."
+      end
     else
-      render_error "There was a problem creating the project."
+      project = create_new_project name, files
+
+      if project
+        render json: project, serializer: SessionCreationSuccessSerializer
+      else
+        render_error "There was a problem creating the project."
+      end
     end
   end
 
@@ -66,7 +86,7 @@ class Api::ProjectsController < ApplicationController
         ProjectFile.create!(name: "", is_directory: true, size: 0, 
           directory_id: nil, project_id: project.id, content: "", 
           added_by: current_user.id)
-        
+
         return project
       end
       return nil
