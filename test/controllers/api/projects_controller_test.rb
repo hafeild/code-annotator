@@ -13,15 +13,15 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     assert_difference 'Project.count', 1, "Project not added." do 
       assert_difference 'ProjectPermission.count', 1,"Permissions not added." do
         response = post :create, project: {name: "my project"}
-        json_reponse = JSON.parse(response.body)
-        assert json_reponse['success'], 'Response unsuccessful.'
-        assert json_reponse['id'] == Project.last.id, 
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], "Response unsuccessful: #{response.body}"
+        assert json_response['id'] == Project.last.id, 
           "Project id doesn't match."
-        assert json_reponse['name'] == Project.last.name, 
+        assert json_response['name'] == Project.last.name, 
           "Project name doesn't match."
-        assert json_reponse['creator_email'] == Project.last.creator.email, 
+        assert json_response['creator_email'] == Project.last.creator.email, 
           "Project email doesn't match."
-        assert json_reponse['created_on'] == 
+        assert json_response['created_on'] == 
           Project.last.created_at.strftime("%d-%b-%Y"), 
           "Project name doesn't match."
         permission = ProjectPermission.find_by(project_id: Project.last.id)
@@ -37,14 +37,81 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     end
   end
 
+  test "should return success message on project create with zip file" do
+    log_in_as @user
+    assert_difference 'Project.count', 1, "Project not added." do 
+      assert_difference 'ProjectFile.count', 3, "Files not added." do 
+        response = post :create, project: {
+          name: "my project",
+          files: [fixture_file_upload("files/windows.zip", "application/zip")]
+        }
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], "Response unsuccessful. #{response.body}"
+        assert json_response['id'] == Project.last.id, 
+          "Project id doesn't match."
+        assert json_response['name'] == Project.last.name, 
+          "Project name doesn't match."
+        assert json_response['creator_email'] == Project.last.creator.email, 
+          "Project email doesn't match."
+        assert json_response['created_on'] == 
+          Project.last.created_at.strftime("%d-%b-%Y"), 
+          "Project name doesn't match."
+        permission = ProjectPermission.find_by(project_id: Project.last.id)
+        assert_not permission.nil?
+        assert permission.user_id == @user.id, "User ids don't match."
+        assert permission.can_view, "User cannot view."
+        assert permission.can_author, "User cannot author."
+        assert permission.can_annotate, "User cannot annotate."
+        assert_not ProjectFile.find_by(project_id: Project.last.id, 
+          directory_id: nil).nil?
+      end
+    end
+  end
+
+
+  test "should return success message on project create with multiple zip/plain text files" do
+    log_in_as @user
+    assert_difference 'Project.count', 1, "Project not added." do 
+      assert_difference 'ProjectFile.count', 4, "Files not added." do 
+        response = post :create, project: {
+          name: "my project",
+          files: [
+            fixture_file_upload("files/windows.zip", "application/zip"),
+            fixture_file_upload("files/data-ascii.dat", "text/plain"),
+          ]
+        }
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], "Response unsuccessful. #{response.body}"
+        assert json_response['id'] == Project.last.id, 
+          "Project id doesn't match."
+        assert json_response['name'] == Project.last.name, 
+          "Project name doesn't match."
+        assert json_response['creator_email'] == Project.last.creator.email, 
+          "Project email doesn't match."
+        assert json_response['created_on'] == 
+          Project.last.created_at.strftime("%d-%b-%Y"), 
+          "Project name doesn't match."
+        permission = ProjectPermission.find_by(project_id: Project.last.id)
+        assert_not permission.nil?
+        assert permission.user_id == @user.id, "User ids don't match."
+        assert permission.can_view, "User cannot view."
+        assert permission.can_author, "User cannot author."
+        assert permission.can_annotate, "User cannot annotate."
+        assert_not ProjectFile.find_by(project_id: Project.last.id, 
+          directory_id: nil).nil?
+      end
+    end
+  end
+
+
   test "should return error message on create with no name" do
     log_in_as @user
 
     assert_no_difference 'Project.count', "Project added." do 
       assert_no_difference 'ProjectPermission.count',"Permissions added." do
         response = post :create, project: {}
-        json_reponse = JSON.parse(response.body)
-        assert json_reponse['error'], 'Response successful.'
+        json_response = JSON.parse(response.body)
+        assert json_response['error'], 'Response successful.'
       end
     end
   end

@@ -58,7 +58,7 @@ module FileCreationHelper
 
       ## Let the user know if any files were ignored.
       if files_ignored
-        flash[:warning] = "FYI, one or more non-text files were ignored."
+        flash.now[:warning] = "FYI, one or more non-text files were ignored."
       end
 
       last_file

@@ -4,8 +4,9 @@ class FilesController < ApplicationController
 
   def create
     project_id = params[:project_id]
-    parent_directory_id = params[:project_file].key?(:directory_id) ? \
-          params[:project_file][:directory_id] : nil
+    parent_directory_id = params[:project_file].fetch(:directory_id, nil);
+    # parent_directory_id = params[:project_file].key?(:directory_id) ? \
+          # params[:project_file][:directory_id] : nil
 
     last_file = add_files_to_project(params[:project_file][:files],
         project_id, parent_directory_id)
