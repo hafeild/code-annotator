@@ -13,30 +13,35 @@ class Api::ProjectsController < ApplicationController
 
 
   def create
-    files = nil
-    batch = false
-    update = false
 
     ## Extract parameters.
-    begin
-      name   = params[:project][:name]
-      files  = params[:project][:files]
-      batch  = params[:project].fetch(:batch, false)
-      update = params[:project].fetch(:update, false)
-    rescue
-      render_error "Missing parameters. Must include a project name."
+    name   = params[:project].fetch(:name, nil)
+    files  = params[:project].fetch(:files, nil)
+    batch  = params[:project].fetch(:batch, false)
+    update = params[:project].fetch(:update, false)
+
+    if (name.nil? and not batch) or (files.nil? and batch)
+      render_error "Missing parameters. Must include a project name or files "+
+        "in batch mode."
       return
     end
-
-    
 
     begin
       ## Check if this is a batch project creation or not.
       if batch
-        projects = create_batch_projects name, files, update      
+
+        ## There should be one and only one zip file.
+        if files.size != 1 or files.first.original_filename !~ /\.zip$/
+          render_error "Must provides exactly one zip file for batch mode."
+          return
+        end
+
+        projects = create_batch_projects name, files.first, update      
 
         if projects
           ## TODO
+          render json: {projects: projects}, 
+            serializer: ProjectCreationSuccessSerializer
         else
           render_error "There was a problem creating the projects."
         end
@@ -45,7 +50,8 @@ class Api::ProjectsController < ApplicationController
         project = create_new_project name, files
 
         if project
-          render json: project, serializer: SessionCreationSuccessSerializer
+          render json: {projects: [project]}, 
+            serializer: ProjectCreationSuccessSerializer
         else
           render_error "There was a problem creating the project."
         end
@@ -112,6 +118,7 @@ class Api::ProjectsController < ApplicationController
     end
 
     def create_batch_projects(name, file, update_if_project_exists=false)
+      Project.all
     end
 
 

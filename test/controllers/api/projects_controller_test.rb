@@ -14,7 +14,8 @@ class Api::ProjectsControllerTest < ActionController::TestCase
       assert_difference 'ProjectPermission.count', 1,"Permissions not added." do
         response = post :create, project: {name: "my project"}
         json_response = JSON.parse(response.body)
-        assert json_response['success'], "Response unsuccessful: #{response.body}"
+        assert json_response['success'], 
+          "Response unsuccessful: #{response.body}"
         assert json_response['id'] == Project.last.id, 
           "Project id doesn't match."
         assert json_response['name'] == Project.last.name, 
@@ -46,7 +47,8 @@ class Api::ProjectsControllerTest < ActionController::TestCase
           files: [fixture_file_upload("files/windows.zip", "application/zip")]
         }
         json_response = JSON.parse(response.body)
-        assert json_response['success'], "Response unsuccessful. #{response.body}"
+        assert json_response['success'], 
+          "Response unsuccessful. #{response.body}"
         assert json_response['id'] == Project.last.id, 
           "Project id doesn't match."
         assert json_response['name'] == Project.last.name, 
@@ -69,7 +71,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
   end
 
 
-  test "should return success message on project create with multiple zip/plain text files" do
+  test "project create with multiple zip/plain text files should work" do
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added." do 
       assert_difference 'ProjectFile.count', 4, "Files not added." do 
@@ -81,7 +83,8 @@ class Api::ProjectsControllerTest < ActionController::TestCase
           ]
         }
         json_response = JSON.parse(response.body)
-        assert json_response['success'], "Response unsuccessful. #{response.body}"
+        assert json_response['success'], 
+          "Response unsuccessful. #{response.body}"
         assert json_response['id'] == Project.last.id, 
           "Project id doesn't match."
         assert json_response['name'] == Project.last.name, 
@@ -99,6 +102,38 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         assert permission.can_annotate, "User cannot annotate."
         assert_not ProjectFile.find_by(project_id: Project.last.id, 
           directory_id: nil).nil?
+      end
+    end
+  end
+
+
+  test "should be able to batch create projects with zip" do
+    log_in_as @user
+    assert_difference 'Project.count', 2, "Project not added." do 
+      assert_difference 'ProjectFile.count', 5, "Files not added." do 
+        response = post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true
+        }
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], 
+          "Response unsuccessful. #{response.body}"
+
+      end
+    end
+  end
+
+  test "should return error message on batch create with no files" do
+    log_in_as @user
+    assert_no_difference 'Project.count', "Project not added." do 
+      assert_no_difference 'ProjectFile.count', "Files not added." do 
+        response = post :create, project: {
+          batch: true
+        }
+        json_response = JSON.parse(response.body)
+        assert_not json_response['success'], 
+          "Response successful. #{response.body}"
+
       end
     end
   end
