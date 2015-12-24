@@ -16,13 +16,16 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
           "Response unsuccessful: #{response.body}"
-        assert json_response['id'] == Project.last.id, 
+
+        added_project = json_response['projects'][0]
+
+        assert added_project['id'] == Project.last.id, 
           "Project id doesn't match."
-        assert json_response['name'] == Project.last.name, 
+        assert added_project['name'] == Project.last.name, 
           "Project name doesn't match."
-        assert json_response['creator_email'] == Project.last.creator.email, 
+        assert added_project['creator_email'] == Project.last.creator.email, 
           "Project email doesn't match."
-        assert json_response['created_on'] == 
+        assert added_project['created_on'] == 
           Project.last.created_at.strftime("%d-%b-%Y"), 
           "Project name doesn't match."
         permission = ProjectPermission.find_by(project_id: Project.last.id)
@@ -49,13 +52,16 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
           "Response unsuccessful. #{response.body}"
-        assert json_response['id'] == Project.last.id, 
+
+        added_project = json_response['projects'][0]
+
+        assert added_project['id'] == Project.last.id, 
           "Project id doesn't match."
-        assert json_response['name'] == Project.last.name, 
+        assert added_project['name'] == Project.last.name, 
           "Project name doesn't match."
-        assert json_response['creator_email'] == Project.last.creator.email, 
+        assert added_project['creator_email'] == Project.last.creator.email, 
           "Project email doesn't match."
-        assert json_response['created_on'] == 
+        assert added_project['created_on'] == 
           Project.last.created_at.strftime("%d-%b-%Y"), 
           "Project name doesn't match."
         permission = ProjectPermission.find_by(project_id: Project.last.id)
@@ -85,13 +91,15 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
           "Response unsuccessful. #{response.body}"
-        assert json_response['id'] == Project.last.id, 
+          
+        added_project = json_response['projects'][0]
+        assert added_project['id'] == Project.last.id, 
           "Project id doesn't match."
-        assert json_response['name'] == Project.last.name, 
+        assert added_project['name'] == Project.last.name, 
           "Project name doesn't match."
-        assert json_response['creator_email'] == Project.last.creator.email, 
+        assert added_project['creator_email'] == Project.last.creator.email, 
           "Project email doesn't match."
-        assert json_response['created_on'] == 
+        assert added_project['created_on'] == 
           Project.last.created_at.strftime("%d-%b-%Y"), 
           "Project name doesn't match."
         permission = ProjectPermission.find_by(project_id: Project.last.id)

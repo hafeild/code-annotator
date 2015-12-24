@@ -1681,6 +1681,7 @@ var OCA = function($){
         project: {name: projectName}
       },
       success: function(data){
+
         if(data.error){
           displayError('There was an error creating the new project: '+ 
             data.error);
@@ -1688,15 +1689,19 @@ var OCA = function($){
         }
 
         // Add project to the list.
-        var newEntry = $('#entry-template').clone();
-        newEntry.attr('id', data.id);
-        newEntry.attr('data-href', 
-          window.location.origin +'/projects/'+ data.id);
-        newEntry.find('.name').html(projectName);
-        newEntry.find('.date').html(data.created_on);
-        newEntry.find('.email').html(data.creator_email);
+        var i, project;
+        for(i = 0; i < data.projects.length; i++){
+          project = data.projects[i];
+          var newEntry = $('#entry-template').clone();
+          newEntry.attr('id', project.id);
+          newEntry.attr('data-href', 
+            window.location.origin +'/projects/'+ project.id);
+          newEntry.find('.name').html(projectName);
+          newEntry.find('.date').html(project.created_on);
+          newEntry.find('.email').html(project.creator_email);
 
-        newEntry.insertAfter(elm.parents('tr'));
+          newEntry.insertAfter(elm.parents('tr'));
+        }
       },
       error: function(xhr, status, error){
         displayError('There was an error creating the new project. '+ error);
