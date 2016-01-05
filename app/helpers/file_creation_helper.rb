@@ -2,6 +2,53 @@ module FileCreationHelper
   MAX_PROJECT_SIZE_BYTES = 1024*1024 # 1MB
   MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024
 
+  ## A wrapper for ActionDispatch::Http::UploadedFile. Only allows some of
+  ## the UploadedFile actions.
+  class UploadedFileWrapper
+
+    def initialize(uploaded_file: nil, filename: nil, content: nil)
+      @uploaded_file = uploaded_file
+      @original_filename = filename
+      @content = content
+    end
+
+    def read
+      if @uploaded_file
+        @uploaded_file.read
+      else
+        @content
+      end
+    end
+
+    def original_filename
+      if @original_filename
+        @original_filename
+      elsif @uploaded_file
+        @uploaded_file.original_filename
+      else
+        nil
+      end
+    end
+
+    def size
+      if @uploaded_file
+        @uploaded_file.size
+      elsif @content
+        @content.size
+      else
+        0
+      end
+    end
+
+    def tempfile
+      if @uploaded_file
+        @uploaded_file.tempfile
+      else
+        nil
+      end
+    end
+  end
+
   ## Adds the given files to the project under parent_directory_id. This checks
   ## the size of the project along the way. If there are any issues, the DB
   ## is not updated.
@@ -67,6 +114,15 @@ module FileCreationHelper
     end
   end
 
+  ## Processes a file, either zip or regular, adding it to the given project
+  ## under the specified directory. __MACOSX files and folders are ignored.
+  ##
+  ## @param file_io The file's IO stream.
+  ## @param project_id The id of the project.
+  ## @param parent_directory_id The id of the folder to add the zip's files to.
+  ## return A simple hash with the fields: last_file (the ActiveRecord of the 
+  ##        last file added), size, and files_ignored (true if any of the files 
+  ##        were binary or otherwise ignored).
   def process_file(file_io, project_id, parent_directory_id)
     # original_filename
 
@@ -80,6 +136,15 @@ module FileCreationHelper
 
   end
 
+  ## Processes a zip file, adding all of the files within to the given project
+  ## under the specified directory. __MACOSX files and folders are ignored.
+  ##
+  ## @param file_io The zip file's IO stream.
+  ## @param project_id The id of the project.
+  ## @param parent_directory_id The id of the folder to add the zip's files to.
+  ## return A simple hash with the fields: last_file (the ActiveRecord of the 
+  ##        last file added), size, and files_ignored (true if any of the files 
+  ##        were binary or otherwise ignored).
   def process_zip_file(file_io, project_id, parent_directory_id)
     save_data = {last_file: nil, size: 0, files_ignored: false}
     
@@ -110,7 +175,18 @@ module FileCreationHelper
     save_data
   end
 
-  def create_file(content, name, project_id, parent_directory_id, ignore_binary=false)
+  ## Creates a file in the given project under the given directory.
+  ##
+  ## @param content The content of the file.
+  ## @param name The name of the file (not including path).
+  ## @param project_id The id of the project to add the file to.
+  ## @param parent_directory_id The id of the folder to add the file to.
+  ## @param ignore_binary Whether to skip binary files with errors (false) or
+  ##                      without (true). Default is false.
+  ## return A simple hash with the fields: last_file (the ActiveRecord of the 
+  ##        file added), size, and files_ignored (true if the file was binary).
+  def create_file(content, name, project_id, parent_directory_id, 
+                  ignore_binary=false)
     file_info = CharlockHolmes::EncodingDetector.detect content
     
 
@@ -126,6 +202,12 @@ module FileCreationHelper
     content = CharlockHolmes::Converter.convert content, 
       file_info[:encoding], 'UTF-8'
 
+    ## Create all the directories necessary for this file.
+    parent_directory_id = create_directories_in_path(
+      project_id, parent_directory_id, name)
+    name = name.split(/\//)[-1]
+
+    ## Create the file.
     file = ProjectFile.create!(project_id: project_id, content: content, 
       added_by: current_user.id, name: name,
       size: get_file_size(content), directory_id: parent_directory_id)
@@ -133,7 +215,18 @@ module FileCreationHelper
   end
 
 
-  def create_directories_in_path(project_id, parent, path, treat_last_as_file=true)
+  ## Create each directory in the given path, attached at the given parent
+  ## directory. Folders are assumed to be delimited by a single / character.
+  ##
+  ## @param project_id The id of the project.
+  ## @param parent The id of the parent folder.
+  ## @param path The path of directories to add.
+  ## @param treat_last_as_file A flag indicating whether the last portion of
+  ##                           the path should be treated as a folder (false) or
+  ##                           as a file (true).
+  ## @return The id of the last (deepest) directory in the path.
+  def create_directories_in_path(project_id, parent, path, 
+                                 treat_last_as_file=true)
     dirs = path.split(/\//)
 
     ## Remove the last file if necessary.
@@ -152,6 +245,10 @@ module FileCreationHelper
     parent
   end
 
+  ## Calculates a project's size.
+  ##
+  ## @param project The project (ActiveRecord).
+  ## @return The size of the project in bytes.
   def get_project_size(project)
     total_bytes = 0
     project.project_files.each do |file|
@@ -160,8 +257,14 @@ module FileCreationHelper
     total_bytes
   end
 
-  def get_file_size(io)
-    io.size * 8
+  ## Calculates a file's size.
+  ##
+  ## @param content The content of the file -- can be a string or any object
+  ##                with a size attribute/function that returns the number of
+  ##                characters in the file.
+  ## @return The size of the file in bytes.
+  def get_file_size(content)
+    content.size * 8
   end
 
 end

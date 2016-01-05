@@ -36,7 +36,7 @@ class Api::ProjectsController < ApplicationController
           return
         end
 
-        projects = create_batch_projects name, files.first, update      
+        projects = create_batch_projects files.first, update      
 
         if projects
           ## TODO
@@ -57,7 +57,8 @@ class Api::ProjectsController < ApplicationController
         end
       end
     rescue => e
-      render_error "There was a problem creating the project: #{e.to_s}"
+      render_error "There was a problem creating the project: #{e.to_s}"+
+        " #{e.backtrace.first(5).join("\n")}"
     end
   end
 
@@ -91,6 +92,7 @@ class Api::ProjectsController < ApplicationController
   private
 
     ## Creates a new project and adds any files -- files can be regular or zip.
+    ##
     ## @param name The name of the project.
     ## @param files A list of files to add to the project.
     ## @return The project file if successfully created; nil otherwise.
@@ -117,8 +119,87 @@ class Api::ProjectsController < ApplicationController
       return nil
     end
 
-    def create_batch_projects(name, file, update_if_project_exists=false)
-      Project.all
+    ## Opens a zip file and for every first-level directory: creates a project
+    ## with that folders name (unless update is true and a projects with that 
+    ## name already exists) and adds all of the files and directories under that
+    ## folder to the project. Skips __MACOSX directories and non-regular files.
+    ##
+    ## @param zip_file The file containing the projects information.
+    ## @param update (Default: false). If true, then projects that already exist
+    ##               with a first-level directory name will be updated, rather
+    ##               than a new project with the same name being created.
+    def create_batch_projects(zip_file, update=false)
+      projects = []
+      ## Holds all of the files associated with each project.
+      files_by_project = Hash.new{|h,k| h[k] = []} 
+      ## Holds all empty directories.
+      empty_directories_by_project = Hash.new{|h,k| h[k] = Set.new}
+
+      ## Unpack the files.
+      Zip::File.open(zip_file.tempfile) do |zf|
+        zf.each do |entry|
+          next if entry.name =~ /(^|[\/])__MACOSX(\/|$)/
+          path_parts = entry.name.split(/\//)
+          project_name = path_parts[0]
+          path = path_parts[1..-1].join('/')
+
+          next if path_parts.size <= 1
+
+          if entry.directory?
+            empty_directories_by_project[project_name] << path
+
+            ##create_directories_in_path(project_id, parent_directory_id, 
+            ##  entry.name, treat_last_as_file=false)
+          elsif entry.file?
+
+            filename = path_parts[-1]
+            dir_path = path_parts[1..-2].join('/')
+
+            ## We don't need to worry about creating this directory since it 
+            ## contains a file.
+            empty_directories_by_project[project_name].delete?(dir_path)
+
+            files_by_project[project_name] << UploadedFileWrapper.new(
+              filename: "#{path}", 
+              content: entry.get_input_stream.read
+            )
+
+          end
+        end
+      end
+
+      ## Process each of the projects.
+      files_by_project.each do |project_name, files|
+        project = nil
+
+        ## Check if any existing projects with this name are authorable by the
+        ## current user.
+        if update
+          existing_projects = Project.joins(:users).where(
+            projects: {name: project_name}, 
+            project_permissions: {can_author: true}, 
+            users: {id: current_user.id}
+          )
+        end
+
+        # Create projects (or retrieve the old ones) and add files.
+        if update and existing_projects.any?
+          project = existing_projects.first
+          add_files_to_project files, project.id, project.root.id
+        else
+          project = create_new_project project_name, files
+        end
+
+        ## Add any un-created directories.
+        root_id = project.root.id
+        empty_directories_by_project[project_name].each do |dir|
+          create_directories_in_path project.id, root_id, dir
+        end
+
+        projects << project
+      end
+
+      projects
     end
 
 

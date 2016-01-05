@@ -91,7 +91,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
           "Response unsuccessful. #{response.body}"
-          
+
         added_project = json_response['projects'][0]
         assert added_project['id'] == Project.last.id, 
           "Project id doesn't match."
@@ -117,8 +117,8 @@ class Api::ProjectsControllerTest < ActionController::TestCase
 
   test "should be able to batch create projects with zip" do
     log_in_as @user
-    assert_difference 'Project.count', 2, "Project not added." do 
-      assert_difference 'ProjectFile.count', 5, "Files not added." do 
+    assert_difference 'Project.count', 2, "Project not added" do 
+      assert_difference 'ProjectFile.count', 7, "Files not added" do
         response = post :create, project: {
           files: [fixture_file_upload("files/batch.zip", "application/zip")],
           batch: true
@@ -158,6 +158,63 @@ class Api::ProjectsControllerTest < ActionController::TestCase
       end
     end
   end
+
+
+  test "should be able to batch update projects with zip" do
+    log_in_as @user
+    assert_difference 'Project.count', 1, "Project not added" do 
+      assert_difference 'ProjectFile.count', 6, "Files not added" do
+        response = post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true,
+          update: true
+        }
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], 
+          "Response unsuccessful. #{response.body}"
+
+      end
+    end
+  end
+
+
+  test "should be able to batch update projects with zip when not owner" do
+    project = projects(:p1)
+    ProjectPermission.create(project: project, user: users(:bar), can_view: true, 
+      can_author: true, can_annotate: true)
+    log_in_as users(:bar)
+    assert_difference 'Project.count', 1, "Project not added" do 
+      assert_difference 'ProjectFile.count', 6, "Files not added" do
+        response = post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true,
+          update: true
+        }
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], 
+          "Response unsuccessful. #{response.body}"
+
+      end
+    end
+  end
+
+  test "should only batch update projects with zip when user can author" do
+    log_in_as users(:bar)
+    assert_difference 'Project.count', 2, "Project not added" do 
+      assert_difference 'ProjectFile.count', 7, "Files not added" do
+        response = post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true,
+          update: true
+        }
+        json_response = JSON.parse(response.body)
+        assert json_response['success'], 
+          "Response unsuccessful. #{response.body}"
+
+      end
+    end
+  end
+
 
 
   test "should return list of projects on index when logged in" do
