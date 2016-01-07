@@ -88,39 +88,5 @@ class Api::ProjectsController < ApplicationController
     end
     render_error "Resource not available."
   end
-
-  private
-
-    ## Creates a new project and adds any files -- files can be regular or zip.
-    ##
-    ## @param name The name of the project.
-    ## @param files A list of files to add to the project.
-    ## @return The project file if successfully created; nil otherwise.
-    def create_new_project(name, files=nil)
-      ActiveRecord::Base.transaction do
-        project = Project.create(name: name, created_by: current_user.id)
-        ## Create the permissions that go along with it.
-        ProjectPermission.create!(project_id: project.id,
-          user_id: current_user.id, can_author: true, can_view: true,
-          can_annotate: true)
-
-        ## Create a new root directory for the project.
-        ProjectFile.create!(name: "", is_directory: true, size: 0, 
-          directory_id: nil, project_id: project.id, content: "", 
-          added_by: current_user.id)
-
-        unless files.nil?
-          add_files_to_project files, project.id, project.root.id
-          # flash.now[:error] = "ACK"
-        end
-
-        return project
-      end
-      return nil
-    end
-
-
-
-
-
+  
 end

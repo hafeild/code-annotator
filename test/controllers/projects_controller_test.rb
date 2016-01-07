@@ -94,9 +94,7 @@ class ProjectsControllerTest < ActionController::TestCase
           name: "my project",
           files: [fixture_file_upload("files/windows.zip", "application/zip")]
         }
-        assert_response :success
         assert_redirected_to projects_url, "Not directed to projects listing"
-        
       end
     end
   end
@@ -113,6 +111,7 @@ class ProjectsControllerTest < ActionController::TestCase
             fixture_file_upload("files/data-ascii.dat", "text/plain"),
           ]
         }
+        assert_redirected_to projects_url, "Not directed to projects listing"
       end
     end
   end
@@ -126,7 +125,7 @@ class ProjectsControllerTest < ActionController::TestCase
           files: [fixture_file_upload("files/batch.zip", "application/zip")],
           batch: true
         }
-
+        assert_redirected_to projects_url, "Not directed to projects listing"
       end
     end
   end
@@ -138,6 +137,8 @@ class ProjectsControllerTest < ActionController::TestCase
         post :create, project: {
           batch: true
         }
+        assert_redirected_to projects_url, "Not directed to #{projects_url}"
+        assert_not flash[:error].empty?, "Error messages not present"
       end
     end
   end
@@ -152,6 +153,7 @@ class ProjectsControllerTest < ActionController::TestCase
           batch: true,
           update: true
         }
+        assert_redirected_to projects_url, "Not directed to projects listing"
       end
     end
   end
@@ -169,11 +171,12 @@ class ProjectsControllerTest < ActionController::TestCase
           batch: true,
           update: true
         }
+        assert_redirected_to projects_url, "Not directed to projects listing"
       end
     end
   end
 
-  test "should only batch update projects with zip when user can author" do
+  test "should only batch update projects with zip where user can author" do
     log_in_as users(:bar)
     assert_difference 'Project.count', 2, "Project not added" do 
       assert_difference 'ProjectFile.count', 7, "Files not added" do
@@ -182,6 +185,7 @@ class ProjectsControllerTest < ActionController::TestCase
           batch: true,
           update: true
         }
+        assert_redirected_to projects_url, "Not directed to projects listing"
       end
     end
   end
