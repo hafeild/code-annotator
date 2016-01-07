@@ -3,6 +3,7 @@ class ProjectsController < ApplicationController
   before_action :get_project, only: [:download]
   before_action :get_files, only: [:download]
   before_action :has_view_permissions, only: [:download]
+  include FileCreationHelper
   
   def index
     @user = current_user
@@ -65,6 +66,47 @@ class ProjectsController < ApplicationController
     else
       render_error "No files specified."
     end
+  end
+
+  def create
+    ## Extract parameters.
+    name   = params[:project].fetch(:name, nil)
+    files  = params[:project].fetch(:files, nil)
+    batch  = params[:project].fetch(:batch, false)
+    update = params[:project].fetch(:update, false)
+
+    if (name.nil? and not batch) or (files.nil? and batch)
+      flash[:error] = "Missing parameters. Must include a project name or "+
+        "files in batch mode."
+    else
+      begin
+        ## Check if this is a batch project creation or not.
+        if batch
+
+          ## There should be one and only one zip file.
+          if files.size != 1 or files.first.original_filename !~ /\.zip$/
+            flash[:error] = "Must provides exactly one zip file for batch mode."
+          else
+            projects = create_batch_projects files.first, update      
+
+            unless projects
+              flash[:error] = "There was a problem creating the projects."
+            end
+          end
+        ## It's just a one-off project creation.
+        else
+          project = create_new_project name, files
+
+          unless project
+            render_error "There was a problem creating the project."
+          end
+        end
+      rescue => e
+        flash[:error] = "There was a problem creating the project: #{e.to_s}"
+      end
+    end
+
+    redirect_to :projects
   end
 
   private

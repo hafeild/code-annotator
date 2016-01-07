@@ -83,4 +83,107 @@ class ProjectsControllerTest < ActionController::TestCase
     assert_redirected_to root_path
   end
 
+
+
+
+  test "should return success message on project create with zip file" do
+    log_in_as @user
+    assert_difference 'Project.count', 1, "Project not added" do 
+      assert_difference 'ProjectFile.count', 3, "Files not added" do 
+        post :create, project: {
+          name: "my project",
+          files: [fixture_file_upload("files/windows.zip", "application/zip")]
+        }
+        assert_response :success
+        assert_redirected_to projects_url, "Not directed to projects listing"
+        
+      end
+    end
+  end
+
+
+  test "project create with multiple zip/plain text files should work" do
+    log_in_as @user
+    assert_difference 'Project.count', 1, "Project not added" do 
+      assert_difference 'ProjectFile.count', 4, "Files not added" do 
+        post :create, project: {
+          name: "my project",
+          files: [
+            fixture_file_upload("files/windows.zip", "application/zip"),
+            fixture_file_upload("files/data-ascii.dat", "text/plain"),
+          ]
+        }
+      end
+    end
+  end
+
+
+  test "should be able to batch create projects with zip" do
+    log_in_as @user
+    assert_difference 'Project.count', 2, "Project not added" do 
+      assert_difference 'ProjectFile.count', 7, "Files not added" do
+        post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true
+        }
+
+      end
+    end
+  end
+
+  test "should return error message on batch create with no files" do
+    log_in_as @user
+    assert_no_difference 'Project.count', "Project not added." do 
+      assert_no_difference 'ProjectFile.count', "Files not added." do 
+        post :create, project: {
+          batch: true
+        }
+      end
+    end
+  end
+
+
+  test "should be able to batch update projects with zip" do
+    log_in_as @user
+    assert_difference 'Project.count', 1, "Project not added" do 
+      assert_difference 'ProjectFile.count', 6, "Files not added" do
+        post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true,
+          update: true
+        }
+      end
+    end
+  end
+
+
+  test "should be able to batch update projects with zip when not owner" do
+    project = projects(:p1)
+    ProjectPermission.create(project: project, user: users(:bar), can_view: true, 
+      can_author: true, can_annotate: true)
+    log_in_as users(:bar)
+    assert_difference 'Project.count', 1, "Project not added" do 
+      assert_difference 'ProjectFile.count', 6, "Files not added" do
+        post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true,
+          update: true
+        }
+      end
+    end
+  end
+
+  test "should only batch update projects with zip when user can author" do
+    log_in_as users(:bar)
+    assert_difference 'Project.count', 2, "Project not added" do 
+      assert_difference 'ProjectFile.count', 7, "Files not added" do
+        post :create, project: {
+          files: [fixture_file_upload("files/batch.zip", "application/zip")],
+          batch: true,
+          update: true
+        }
+      end
+    end
+  end
+
 end
