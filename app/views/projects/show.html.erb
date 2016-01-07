@@ -178,13 +178,17 @@
               <h4>Add files</h4>
               <em>Note: binary files and subdirectories of <tt>__MACOSX</tt> will be ignored.</em>
               <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
-                  <%= f.file_field :files, multiple: true, class: "form-control" %>
+                  <%= f.file_field :files, multiple: true, class: "form-control file-upload-selection" %>
+                  <!-- <input type="file" multiple="true" name="project_file[files][]" 
+                    class="file-upload-selection"> -->
                   <input type="hidden" id="directory_id" 
                   name="project_file[directory_id]" value=""/>
               <% end %>
+              <button type="button" 
+                class="btn btn-default file-upload-submit">Upload</button>
               
-              <button type="button" id="file-upload-submit" disabled=disabled
-                  class="btn btn-default" data-dismiss="modal">Upload</button>
+              
+              
             </div>
           </div>
           <div class="modal-footer">

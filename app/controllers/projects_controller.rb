@@ -75,6 +75,8 @@ class ProjectsController < ApplicationController
     batch  = params[:project].fetch(:batch, false)
     update = params[:project].fetch(:update, false)
 
+    Rails.logger.debug ">>>>> files: #{files}"
+
     if (name.nil? and not batch) or (files.nil? and batch)
       flash[:error] = "Missing parameters. Must include a project name or "+
         "files in batch mode."

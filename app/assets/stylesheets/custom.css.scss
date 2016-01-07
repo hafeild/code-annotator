@@ -44,6 +44,7 @@ $header-height: 51px;
 
 
 
+
 /* universal */
 
 body {
@@ -214,6 +215,10 @@ input {
   height: auto !important;
 }
 
+input[type="checkbox"] {
+  width: auto;
+}
+
 #error_explanation {
   color: red;
   ul {
@@ -322,6 +327,10 @@ input {
 
   .trash {
     text-align: center;
+  }
+
+  input[type="checkbox"] {
+    width: auto;
   }
 }
 

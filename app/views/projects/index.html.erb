@@ -74,38 +74,60 @@
     <div class="modal-content">
 
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button type="button" class="close" data-dismiss="modal" 
+          aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title" id="upload-files-title">Upload projects</h4>
       </div>
       <div class="modal-body">
-        <input style="width: auto" type="checkbox" id="batch"> Batch upload 
+        <input type="checkbox" id="batch-checkbox"> Batch upload 
         <span class="info">
         With batch upload, you can upload a zip file where every first level
         directory corresponds to a project you would like to create.
-        </span>
+        </span><br/>
 
-        <div class="batch-project-upload">
+        <div id="batch-project-upload" class="hidden">
           <!-- <h4>Batch upload</h4> -->
-          <form id="add-directory-form">
-            <%= form_for(:project, url: "/api/projects") do |f| %>
-              <%= f.file_field :files, multiple: true, class: "form-control" %>
+          <!-- <form id="add-directory-form"> -->
+            <%= form_for(:project, url: "/projects") do |f| %>
+              <input type="hidden" name="project[batch]" value="true">
+              <input type="checkbox" name="project[update]"> Update
+              <span class="info">
+              If update is checked, then for each first level directory in
+              the zip file whose name matches up with an existing authorable
+              project, the existing project will be updated. If multiple 
+              authorable projects with that name exists, only one will be
+              updated.
+              </span><br/>
+              Select one zip file to upload:
+              <%= f.file_field "files", multiple: true, class: "form-control file-upload-selection" %>
+
+         <!--      <input type="file" class="file-upload-selection"
+                  name="project[files][]"/> -->
+              <button type="button" 
+                class="btn btn-default project-upload-submit">Upload</button>
             <% end %>
-          </form>
+          <!-- </form> -->
         </div>
 
         <div id="single-project-upload">
-          <h4>Add files</h4>
-          <em>Note: binary files and subdirectories of <tt>__MACOSX</tt> will be ignored.</em>
-          <%= form_for(:project, url: "/api/projects") do |f| %>
-              <%= f.file_field :files, multiple: true, class: "form-control" %>
+          <!-- <h4>Add files</h4> -->
+          <%= form_for(:project, url: "/projects") do |f| %>
+              Project name: 
+              <input type="text" name="project[name]" class="form-control project-name-input"
+                placeholder="My project">
+              Select one or more files to upload:
+              <%= f.file_field "files", multiple: true, class: "form-control file-upload-selection" %>
+
+              <!-- <input type="file" multiple="true" 
+                  class="file-upload-selection" name="project[files][]"/> -->
+              <button type="button" 
+                class="btn btn-default project-upload-submit">Upload</button>
           <% end %>
-          
-          <button type="button" id="file-upload-submit" disabled=disabled
-              class="btn btn-default" data-dismiss="modal">Upload</button>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-default" 
+          data-dismiss="modal">Cancel</button>
       </div>
 
     </div>
