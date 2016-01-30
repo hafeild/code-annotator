@@ -3,10 +3,6 @@ class FilesController < ApplicationController
   include FileCreationHelper
 
   def create
-    Rails.logger.debug "@@@@@@@@ Files (fetch): #{params[:project_file].fetch(:files,nil)}"
-    Rails.logger.debug "@@@@@@@@ Files (non-fetch): #{params[:project_file][:files]}"
-
-
     project_id = params[:project_id]
     parent_directory_id = params[:project_file].fetch(:directory_id, nil);
     # parent_directory_id = params[:project_file].key?(:directory_id) ? \

@@ -78,7 +78,7 @@ class ProjectsController < ApplicationController
     Rails.logger.debug ">>>>> files: #{files}"
 
     if (name.nil? and not batch) or (files.nil? and batch)
-      flash[:error] = "Missing parameters. Must include a project name or "+
+      flash[:danger] = "Missing parameters. Must include a project name or "+
         "files in batch mode."
     else
       begin
@@ -87,12 +87,12 @@ class ProjectsController < ApplicationController
 
           ## There should be one and only one zip file.
           if files.size != 1 or files.first.original_filename !~ /\.zip$/
-            flash[:error] = "Must provides exactly one zip file for batch mode."
+            flash[:danger] = "Must provides exactly one zip file for batch mode."
           else
             projects = create_batch_projects files.first, update      
 
             unless projects
-              flash[:error] = "There was a problem creating the projects."
+              flash[:danger] = "There was a problem creating the projects."
             end
           end
         ## It's just a one-off project creation.
@@ -104,11 +104,11 @@ class ProjectsController < ApplicationController
           end
         end
       rescue => e
-        flash[:error] = "There was a problem creating the project: #{e.to_s}"
+        flash[:danger] = "There was a problem creating the project: #{e.to_s}"
       end
     end
 
-    redirect_to :projects
+    redirect_to :projects, flash: {danger: flash.now[:danger]}
   end
 
   private
