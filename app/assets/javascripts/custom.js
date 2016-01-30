@@ -1642,24 +1642,67 @@ var OCA = function($){
     locationToAddToComment = undefined;
   });
 
-  $(document).on('change', '#project_file_files', function(){
+  // Listen for project files to be selected.
+  $(document).on('change', '.file-upload-selection', function(){
     var uploadSize = getFileSizes(this.files);
     if(this.files.length > 0 && uploadSize <= MAX_PROJECT_SIZE_BYTES){
-      $('#file-upload-submit').attr('disabled', false);
+      // $('.file-upload-submit').attr('disabled', false);
     } else {
       if(uploadSize > MAX_PROJECT_SIZE_BYTES){
         alert('Upload file size too large! Uploads must be less than '+
           MAX_PROJECT_SIZE_MB +'MB and not exceed the project limit (also '+
           MAX_PROJECT_SIZE_MB + 'MB).');
       }
-      $('#file-upload-submit').attr('disabled', true);
+      // $('.file-upload-submit').attr('disabled', true);
     }
   });
 
   // Listen for files to be submitted.
-  $(document).on('click', '#file-upload-submit', function(){
-    $('#directory_id').val(selectedDirectory);
-    $('#upload-files form').submit();
+  $(document).on('click', '#add-files-container .file-upload-submit', function(e){
+    // Check that the user has entered at least one file.
+    if($('#add-files-container .file-upload-selection')[0].files.length === 0){
+      alert("Please select at least one file to upload.");
+      e.preventDefault();
+      return false;
+    } else {
+      $('#directory_id').val(selectedDirectory);
+      $('#add-files-container form').submit();
+    }
+  });
+
+  // Listen for batch project submission.
+  $(document).on('click', '#batch-project-upload .project-upload-submit', function(e){
+    var files = $('#batch-project-upload .file-upload-selection')[0].files;
+
+    // Make sure they've entered exactly one zip file.
+    if(files.length !== 1 || files[0].name.match(/\.zip$/) === null){
+      alert("Please select one zip file to upload.");
+      e.preventDefault();
+      return false;
+    }
+    $('#batch-project-upload form').submit();  
+  });
+
+  // Listen for single project submission.
+  $(document).on('click', '#single-project-upload .project-upload-submit', function(e){
+    var files = $('#single-project-upload .file-upload-selection')[0].files;
+
+    // Make sure they've entered exactly one or more files.
+    if(files.length === 0){
+      alert("Please select one or more files to upload.");
+
+    // Make sure they've entered a project name.
+    } else if($('#single-project-upload .project-name-input').val().length 
+        === 0) {
+      alert("Please enter a name for the project.");
+
+    // Otherwise, we're good to go.
+    } else {
+      $('#single-project-upload form').submit();
+    }
+
+    e.preventDefault();
+    return false;
   });
 
 
@@ -1681,6 +1724,7 @@ var OCA = function($){
         project: {name: projectName}
       },
       success: function(data){
+
         if(data.error){
           displayError('There was an error creating the new project: '+ 
             data.error);
@@ -1688,15 +1732,19 @@ var OCA = function($){
         }
 
         // Add project to the list.
-        var newEntry = $('#entry-template').clone();
-        newEntry.attr('id', data.id);
-        newEntry.attr('data-href', 
-          window.location.origin +'/projects/'+ data.id);
-        newEntry.find('.name').html(projectName);
-        newEntry.find('.date').html(data.created_on);
-        newEntry.find('.email').html(data.creator_email);
+        var i, project;
+        for(i = 0; i < data.projects.length; i++){
+          project = data.projects[i];
+          var newEntry = $('#entry-template').clone();
+          newEntry.attr('id', project.id);
+          newEntry.attr('data-href', 
+            window.location.origin +'/projects/'+ project.id);
+          newEntry.find('.name').html(projectName);
+          newEntry.find('.date').html(project.created_on);
+          newEntry.find('.email').html(project.creator_email);
 
-        newEntry.insertAfter(elm.parents('tr'));
+          newEntry.insertAfter(elm.parents('tr'));
+        }
       },
       error: function(xhr, status, error){
         displayError('There was an error creating the new project. '+ error);
@@ -2022,6 +2070,13 @@ var OCA = function($){
     // Submit the form.
     $('#file-download-form').submit();
   });
+
+  // Listen for batch uploading.
+  $(document).on('change', '#batch-checkbox', function(){
+    $("#batch-project-upload").toggle();
+    $("#single-project-upload").toggle();    
+  });
+
 
 
   // INITIALIZATIONS.

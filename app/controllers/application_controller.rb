@@ -155,4 +155,5 @@ class ApplicationController < ActionController::Base
     def get_with_default(hash, key, default)
       hash.key?(key) ? hash[key] : default
     end
+
 end

@@ -13,7 +13,7 @@ class ProjectFile < ActiveRecord::Base
     unless existing_files.empty? or (existing_files.size == 1 and 
         existing_files[0] == self)
       errors.add(:name, "must be unique within a folder; please "+
-        "change \"#{name}\" to something different")
+        "change #{project.name}:#{path} to something different.")
     end
   end
 

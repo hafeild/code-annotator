@@ -15,7 +15,7 @@ Rails.application.routes.draw do
   # get     'download' => 'projects#download'
 
   resources :users,         only: [:create,:update,:edit,:destroy]
-  resources :projects,      only: [:index,:show]
+  resources :projects,      only: [:index,:show,:create]
   resources :account_activations, only: [:edit]
   resources :email_verifications, only: [:edit]
   resources :password_resets,     only: [:new, :create, :edit, :update]
