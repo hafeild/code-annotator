@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: "noreply@annotate.feild.org"
+  default from: ENV['FROM_EMAIL']
   layout 'mailer'
 end

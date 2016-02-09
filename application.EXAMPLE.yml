@@ -1,0 +1,59 @@
+## Example Figaro environment variable configuration file. Copy this file as
+## follows:
+##
+##  cp application.EXAMPLE.yml config/application.yml
+##
+## Then fill the values in below. YOU SHOULD ONLY MAKE CHANGES TO THE COPIED 
+## FILE, NOT THIS ONE. Otherwise, you may end up with merge conflicts if this 
+## file if ever changed in the git repo.
+
+
+## Everything from here to 'production:' will be the default values for
+## every environment. To override a setting, or to set keys specific for
+## an environment, add it to the relevant section below.
+
+## Set this to a very long, random string, like the result of running:
+##  bundle exec rake secret
+SECRET_BASE_KEY: "a_long_secret_string"
+
+## Set this to the domain name.
+DOMAIN: "localhost:3000"
+
+## Set this to the from email address (e.g., noreply@mydomain.com).
+FROM_EMAIL: "noreply@localhost"
+
+
+## Production settings.
+production:
+  ## Set this to a very long, random string, like the result of running:
+  ## bundle exec rake secret
+  SECRET_BASE_KEY: "a_different_long_secret_string"
+
+  ## Set this to the domain name of your production site.
+  DOMAIN: "mysite.com"
+
+  ## Set this to the from email address (e.g., noreply@mydomain.com).
+  FROM_EMAIL: "noreply@mysite.com"
+
+  ## Use SSL -- default is true.
+  FORCE_SSL: "true"
+
+  ## DB adapter. Additional gems may need to be installed if not postgresql.
+  DB_ADAPTER: "postgresql"
+
+  ## Encoding.
+  DB_ENCODING: "unicode"
+
+  ## Database info.
+  DB_NAME: "a database name"
+  DB_HOST: "localhost"
+  DB_USERNAME: "a database user name"
+  DB_PASSWORD: "a secret password"
+
+## Development settings.
+development:
+  ## Add development-specific settings here.
+
+## Test settings.
+test:
+  ## Add test-specific settings here.
