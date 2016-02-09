@@ -21,3 +21,4 @@
 
 # Secrets.
 /secrets
+/config/application.yml

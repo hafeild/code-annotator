@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails',        '4.2.2'
+gem 'figaro',       '1.1.1'
 gem 'bcrypt',       '3.1.7'
 gem 'bootstrap-sass','3.3.5'
 gem 'sass-rails',   '5.0.2'
