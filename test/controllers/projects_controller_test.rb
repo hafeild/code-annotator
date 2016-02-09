@@ -138,7 +138,7 @@ class ProjectsControllerTest < ActionController::TestCase
           batch: true
         }
         assert_redirected_to projects_url, "Not directed to #{projects_url}"
-        assert_not flash[:error].empty?, "Error messages not present"
+        assert_not flash[:danger].empty?, "Error messages not present"
       end
     end
   end
