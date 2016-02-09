@@ -22,10 +22,10 @@ test:
   database: db/test.sqlite3
 
 production:
-  adapter: postgresql
-  encoding: unicode
-  database: osa
-  host: localhost
-  username: osa
-  password:  <%= begin IO.read("secrets/db-pass") rescue "" end %>
+  adapter: ENV['DB_ADAPTER']
+  encoding: ENV['DB_ENCODING']
+  database: ENV['DB_NAME']
+  host: ENV['DB_HOST']
+  username: ENV['DB_USER']
+  password: ENV['DB_PASSWORD']
 

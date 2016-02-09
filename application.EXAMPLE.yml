@@ -24,23 +24,35 @@ FROM_EMAIL: "noreply@localhost"
 
 ## Production settings.
 production:
-    ## Set this to a very long, random string, like the result of running:
-    ## bundle exec rake secret
-    SECRET_BASE_KEY: "a_different_long_secret_string"
+  ## Set this to a very long, random string, like the result of running:
+  ## bundle exec rake secret
+  SECRET_BASE_KEY: "a_different_long_secret_string"
 
-    ## Set this to the domain name of your production site.
-    DOMAIN: "mysite.com"
+  ## Set this to the domain name of your production site.
+  DOMAIN: "mysite.com"
 
-    ## Set this to the from email address (e.g., noreply@mydomain.com).
-    FROM_EMAIL: "noreply@mysite.com"
+  ## Set this to the from email address (e.g., noreply@mydomain.com).
+  FROM_EMAIL: "noreply@mysite.com"
 
-    ## Use SSL -- default is true.
-    FORCE_SSL: "true"
+  ## Use SSL -- default is true.
+  FORCE_SSL: "true"
+
+  ## DB adapter. Additional gems may need to be installed if not postgresql.
+  DB_ADAPTER: "postgresql"
+
+  ## Encoding.
+  DB_ENCODING: "unicode"
+
+  ## Database info.
+  DB_NAME: "osa"
+  DB_HOST: "localhost"
+  DB_USERNAME: "osa"
+  DB_PASSWORD: "a secret password"
 
 ## Development settings.
 development:
-    ## Add development-specific settings here.
+  ## Add development-specific settings here.
 
 ## Test settings.
 test:
-    ## Add test-specific settings here.
+  ## Add test-specific settings here.
