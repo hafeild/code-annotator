@@ -11,7 +11,7 @@ class ProjectFile < ActiveRecord::Base
     existing_files = ProjectFile.where(directory_id: directory_id, 
         project_id: project_id, name: name)
     unless existing_files.empty? or (existing_files.size == 1 and 
-        existing_files[0] == self)
+        existing_files.first == self)
       errors.add(:name, "must be unique within a folder; please "+
         "change #{project.name}:#{path} to something different.")
     end
