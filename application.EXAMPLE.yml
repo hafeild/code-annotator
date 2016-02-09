@@ -1,4 +1,5 @@
-## Example environment variable examples. Copy this file as follows:
+## Example Figaro environment variable configuration file. Copy this file as
+## follows:
 ##
 ##  cp application.EXAMPLE.yml config/application.yml
 ##
@@ -44,9 +45,9 @@ production:
   DB_ENCODING: "unicode"
 
   ## Database info.
-  DB_NAME: "osa"
+  DB_NAME: "a database name"
   DB_HOST: "localhost"
-  DB_USERNAME: "osa"
+  DB_USERNAME: "a database user name"
   DB_PASSWORD: "a secret password"
 
 ## Development settings.
