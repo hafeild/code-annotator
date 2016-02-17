@@ -1,4 +1,4 @@
-var OCA = function($){
+var CodeAnnotator = function($){
   // CONSTANTS / GLOBAL VARIABLES
   const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
   const FILES_API = '/api/files/';
@@ -2105,9 +2105,9 @@ var OCA = function($){
   return this;
 };
 
-var oca;
+var codeAnnotator;
 
 jQuery(document).ready(function($){
-  oca = OCA($);
+  codeAnnotator = CodeAnnotator($);
 })
 

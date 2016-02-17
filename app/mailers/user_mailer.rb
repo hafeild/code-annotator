@@ -7,16 +7,16 @@ class UserMailer < ApplicationMailer
   #
   def account_activation(user)
     @user = user
-    mail to: user.email, subject: "OCA account activation"
+    mail to: user.email, subject: "CodeAnnotator account activation"
   end
 
   def email_verification(user)
     @user = user
-    mail to: user.email, subject: "OCA email verification"
+    mail to: user.email, subject: "CodeAnnotator email verification"
   end
 
     def password_reset(user)
     @user = user
-    mail to: user.email, subject: "OCA password reset"
+    mail to: user.email, subject: "CodeAnnotator password reset"
   end
 end
