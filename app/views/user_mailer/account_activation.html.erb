@@ -1,9 +1,10 @@
-<h1>Online Source Code Annotator</h1>
+<h1>CodeAnnotator Account Activation</h1>
 
 <p>Hi <%= @user.name %>,</p>
 
 <p>
-Welcome to OCA! Click on the link below to activate your account:
+Welcome to CodeAnnotator! Please click on the link below to activate your 
+account:
 </p>
 
 <%= link_to "Activate", edit_account_activation_url(@user.activation_token,
@@ -12,5 +13,5 @@ Welcome to OCA! Click on the link below to activate your account:
 
 <p>
 Thanks,<br/>
-The OCA team
+The CodeAnnotator team
 </p>

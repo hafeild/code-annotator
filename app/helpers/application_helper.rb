@@ -1,6 +1,6 @@
 module ApplicationHelper
 
-  DEFAULT_TITLE = "Online Source Code Annotator"
+  DEFAULT_TITLE = "CodeAnnotator"
 
   # Returns the full title on a per-page basis.
   def full_title(page_title = '')
