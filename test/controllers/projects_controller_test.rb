@@ -77,6 +77,26 @@ class ProjectsControllerTest < ActionController::TestCase
     end
   end
 
+  test "should be able to download a directory as a zip with a public link" do
+    log_in_as users(:bar)
+    file1 = project_files(:file1)
+    files = [project_files(:file1Root)]
+    response = get :download_public, link_uuid: "alink", project_id: @project, 
+      files: {file_ids: files.map{|x| x.id}.join(",")}
+    assert_response :success, flash.to_json
+    assert response.header["Content-Disposition"] == 
+      "attachment; filename=\"project.zip\""
+
+    ## Check the attachment. Should contain the only  file in the project,
+    ## but in a sub folder.
+    Zip::InputStream.open(StringIO.new(response.body)) do |io|
+      entry = io.get_next_entry
+      assert entry.name == file1.path, "Unexpected file."
+      assert io.read == file1.content, "Unexpected contents."
+      assert io.eof, "EOF not where expected."
+    end
+  end
+
   test "shouldn't be able to download file without view access" do
     log_in_as users(:bar)
     files = [project_files(:file1)]
@@ -84,6 +104,15 @@ class ProjectsControllerTest < ActionController::TestCase
       files: {file_ids: files.map{|x| x.id}.join(",")}
     assert_response :redirect
     assert_redirected_to root_path
+  end
+
+  test "shouldn't be able to download file with an invalid public link" do
+    log_in_as users(:bar)
+    files = [project_files(:file1)]
+    response = get :download_public, link_uuid: "abadlink",project_id: @project, 
+      files: {file_ids: files.map{|x| x.id}.join(",")}
+    assert_response :redirect
+    assert_redirected_to home_url
   end
 
   test "shouldn't be able to download files that span projects" do
