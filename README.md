@@ -119,21 +119,23 @@ sudo -u postgres psql -c "create role DB_USERNAME with createdb login \
     password 'DB_PASSWORD';"
 ```
 
-Create a special user to run the app (we'll refer to this user as APP_USER).
-Run the commands below as this user:
+Create a special user to run the app (we'll use `codeannotator` in these 
+examples, but feel free to use something different...just be sure to update
+all the examples to use that username). Run the commands below as this user:
 
 ```bash
-sudo useradd APP_USER
-echo "a secret password" | sudo passwd APP_USER
+sudo useradd codeannotator
+sudo passwd codeannotator
 sudo mkdir /var/www/code-annotator
-sudo chown -R APP_USER /var/www/code-annotator
-sudo chmod -R go-rwx /var/www/code-annotator
+sudo chown codeannotator /var/www/code-annotator
+sudo chmod go-rwx /var/www/code-annotator
 ```
 
 Switch to that user:
 
 ```bash
-su APP_USER
+su codeannotator
+cd /var/www/code-annotator
 ```
 
 Download rbenv, etc.
@@ -147,7 +149,7 @@ git clone https://github.com/sstephenson/ruby-build.git \
 source ~/.bashrc
 ```
 
-Install and configure Ruby v2.2.3:
+Install and configure Ruby v2.2.3 (v2.2.0-dev is needed for the header files).
 
 ```bash
 rbenv install 2.2.3
@@ -159,10 +161,8 @@ Set up project repository. On AWS, an RSA key pair should already exist
 see: https://help.github.com/articles/generating-ssh-keys/
 
 ```bash
-git clone git@github.com:EndicottCollegeCSC/online-source-code-annotator.git
+git clone git@github.com:EndicottCollegeCSC/code-annotator.git
 ```
-
-### During first install or after an update:
 
 Install gems (including production):
 
@@ -170,6 +170,10 @@ Install gems (including production):
 gem install bundler
 gem install rails -v 4.2.2
 ```
+
+### During first install or after an update:
+
+
 
 Set up the rails project:
 
@@ -192,9 +196,30 @@ Run the server:
 unicorn_rails -p 5000 -E production
 ```
 
+### Make the server start at boot
+
+Copy the startup script in `init.d/code-annotator` and make it executable:
+
+```bash
+sudo cp init.d/code-annotator /etc/init.d/
+sudo chmod +x /etc/init.d
+```
+
+To start the service do:
+
+```bash
+sudo service code-annotator start
+```
+
+You can stop and restart, as well -- just replace `start` above with `stop`
+or `restart`.
+
+
 ### Truncating the database
 
+<span style="color: red">
 *WARNING:* this will delete everything from the database permanently.
+</span>
 
 ```bash
 bundle exec rake db:drop db:create db:schema:load RAILS_ENV=production
@@ -208,7 +233,52 @@ Add the [virtual host](#) section to /etc/httpd/conf/httpd.conf (see below).
 
 ### Without SSL
 
-...
+Open `/etc/httpd/conf/httpd.conf` for editing. Make sure the following lines
+are uncomment (the second is only necessary if you are hosting multiple web
+sites):
+
+```apache
+Listen 80
+NameVirtualHost *:80
+```
+
+Add a virtual host for CodeAnnotator as follows, making sure to replace 
+`YOUR_DOMAIN.com` with the url for your machine.
+
+```apache
+<VirtualHost *:80>
+  ServerName YOUR_DOMAIN.COM
+
+  DocumentRoot /var/www/code-annotator/public
+
+  RewriteEngine On
+
+  <Proxy balancer://unicornservers>
+    BalancerMember http://127.0.0.1:5000
+  </Proxy>
+
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+  RewriteRule ^/(.*)$ balancer://unicornservers%{REQUEST_URI} [P,QSA,L]
+
+  ProxyPass / balancer://unicornservers/
+  ProxyPassReverse / balancer://unicornservers/
+  ProxyPreserveHost on
+
+  <Proxy *>
+    Order deny,allow
+    Allow from all
+  </Proxy>
+
+  ErrorLog  /var/www/code-annotator/log/error.log
+  CustomLog /var/www/code-annotator/log/access.log combined
+</VirtualHost>
+```
+
+Restart Apache and you're good to go:
+
+```bash
+sudo service apache restart
+```
 
 ### With SSL
 
@@ -216,6 +286,52 @@ If you already have an SSL certificate, great! Otherwise, you can get a free
 one through the [Let's Encrypt](https://letsencrypt.org/) project. Follow
 the instructions [here](https://letsencrypt.org/howitworks/).
 
+Open `/etc/httpd/conf.d/ssl.conf` for editing. Make sure the following lines
+are uncommented (the latter if you are hosting more than one web site on
+the machine):
 
+```apache
+Listen 443
+NameVirtualHost *:443
+```
 
+Add the following virtual host to the bottom of the file. Replace the
+`YOUR_DOMAIN.COM`s with your domain. The SSL certs assume you've used Let's
+Encrypt with their default locations; the paths will need to be updated based
+on where you've put your certificates and what you've named them.
+
+```apache
+<VirtualHost *:443>
+  ServerName YOUR_DOMAIN.COM
+  SSLEngine on
+
+  DocumentRoot /var/www/code-annotator/public
+
+  RewriteEngine On
+
+  <Proxy balancer://unicornservers>
+    BalancerMember http://127.0.0.1:5000
+  </Proxy>
+
+  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+  RewriteRule ^/(.*)$ balancer://unicornservers%{REQUEST_URI} [P,QSA,L]
+  RequestHeader set X-Forwarded-Proto "https"
+
+  ProxyPass / balancer://unicornservers/
+  ProxyPassReverse / balancer://unicornservers/
+  ProxyPreserveHost on
+
+  <Proxy *>
+    Order deny,allow
+    Allow from all
+  </Proxy>
+
+  ErrorLog  /var/www/code-annotator/log/ssl-error.log
+  CustomLog /var/www/code-annotator/log/ssl-access.log combined
+
+  SSLCertificateFile "/etc/letsencrypt/live/YOUR_DOMAIN.COM/cert.pem"
+  SSLCertificateKeyFile "/etc/letsencrypt/live/YOUR_DOMAIN.COM/privkey.pem"
+  SSLCertificateChainFile "/etc/letsencrypt/live/YOUR_DOMAIN.COM/fullchain.pem"
+</VirtualHost>
+```
 
