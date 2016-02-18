@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# chkconfig: 345 98 20
+#
+# init.d script for running unicorn for CodeAnnotator.
+#
+# Modifed by hank@feild.org. Based on unicorn startup script:
+# https://gist.github.com/chsh/10739192, which was modified by
+# jay@gooby.org http://github.com/jaygooby, based on 
+# http://gist.github.com/308216 by http://github.com/mguterl
+#
+# Copy this file into /etc/init.d/code-annotator
+# Do:
+#
+#  sudo chmod +x /etc/init.d/code-annotator
+#
+# To run:
+#  sudo service start code-annotator 
+
+set -e
+
+# fixed env vars
+USER=codeannotator
+RBENV_HOME=/home/$USER/.rbenv
+DEPLOY_ROOT=/var/www/code-annotator
+
+
+# default env vars.
+RAILS_ENV=production
+PORT=5000
+
+sig () {
+  test -s "$PID" && kill -$1 `cat "$PID"`
+}
+
+oldsig () {
+  test -s "$OLD_PID" && kill -$1 `cat "$OLD_PID"`
+}
+
+cmd () {
+
+  case $1 in
+    start)
+      sig 0 && echo >&2 "Already running" && exit 0
+      echo "Starting"
+      su - $USER -c "$CMD"
+      ;;
+    stop)
+      sig QUIT && echo "Stopping" && exit 0
+      echo >&2 "Not running"
+      ;;
+    force-stop)
+      sig TERM && echo "Forcing a stop" && exit 0
+      echo >&2 "Not running"
+      ;;
+    restart|reload)
+      sig USR2 && sleep 5 && oldsig QUIT && echo "Killing old master" `cat $OLD_PID` && exit 0
+      echo >&2 "Couldn't reload, starting '$CMD' instead"
+      su - $USER -c "$CMD"
+      ;;
+    upgrade)
+      sig USR2 && echo Upgraded && exit 0
+      echo >&2 "Couldn't upgrade, starting '$CMD' instead"
+      su - $USER -c "$CMD"
+      ;;
+    rotate)
+            sig USR1 && echo rotated logs OK && exit 0
+            echo >&2 "Couldn't rotate logs" && exit 1
+            ;;
+    *)
+      echo >&2 "Usage: $0 <start|stop|restart|upgrade|rotate|force-stop>"
+      exit 1
+      ;;
+    esac
+}
+
+setup () {
+  export RAILS_ROOT=$DEPLOY_ROOT
+  echo -n "$RAILS_ROOT: "
+  cd $RAILS_ROOT || exit 1
+  export PID=$DEPLOY_ROOT/tmp/pids/unicorn.pid
+  export OLD_PID="$PID.oldbin"
+
+  CMD="PATH=$RBENV_HOME/bin:$RBENV_HOME/shims:$PATH; cd $RAILS_ROOT; bundle exec unicorn_rails -p $PORT -E $RAILS_ENV -D"
+}
+
+start_stop () {
+  setup
+  cmd $1
+}
+
+start_stop $1
