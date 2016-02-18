@@ -1,7 +1,7 @@
 var CodeAnnotator = function($){
   // CONSTANTS / GLOBAL VARIABLES
-  const PROJECT_ID = parseInt(window.location.pathname.split(/\//)[2]);
-  const FILES_API = '/api/files/';
+  const PROJECT_ID = $('#project-id').data('project-id');
+  const FILES_API = '/api/projects/'+ PROJECT_ID +'/files/'; //'/api/files/';
   const PROJECT_API = '/api/projects/'+ PROJECT_ID;
   const COMMENT_API = PROJECT_API +'/comments';
   const MAX_PROJECT_SIZE_BYTES = 1024*1024; // 1MB.

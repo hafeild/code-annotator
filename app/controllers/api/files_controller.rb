@@ -1,7 +1,7 @@
 class Api::FilesController < ApplicationController
-  before_action :logged_in_user_api
-  before_action :get_file, only: [:show, :destroy]
-  before_action :get_project
+  before_action :logged_in_user_api, except: [:show_public]
+  before_action :get_file, only: [:show, :show_public, :destroy]
+  before_action :get_project, except: [:show_public]
   before_action :has_author_permissions, only: [:create_directory, :destroy]
   before_action :has_view_permissions, only: [:show]
 
@@ -42,7 +42,25 @@ class Api::FilesController < ApplicationController
     render_error "Directory couldn't be created."
   end
 
-  ## Retrieves the file and accompaning information (comment locations and
+  ## Retrieves the file and accompanying information (comment locations and
+  ## altcode) for public links.
+  def show_public
+    success = false
+
+    if params.key?(:link_uuid)
+      public_link = PublicLink.find_by(link_uuid: params[:link_uuid])
+
+      success = public_link and @file.project_id == public_link.project_id
+    end
+
+    if success
+      render json: @file, serializer: FileSerializer, :root => "file"
+    else
+      render_error "Resource not found."
+    end
+  end
+
+  ## Retrieves the file and accompanying information (comment locations and
   ## altcode). This can be accessed by anyone with view permissions.
   def show
     render json: @file, serializer: FileSerializer, :root => "file"

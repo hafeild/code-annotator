@@ -41,7 +41,7 @@
               Download selected files
             </button>
 
-            <% if @projectPermission.can_author %>
+            <% if not @is_public and @project_permission.can_author %>
               <button
                 type="button" class="btn btn-default btn-xs toggle-file-removal
                   remove-file-indicator"><span 
@@ -65,7 +65,7 @@
               </button>
             <% end %>
           </div>
-          <% if @projectPermission.can_annotate %>
+          <% if not @is_public and @project_permission.can_annotate %>
           <div class="btn-group" id="selection-menu" role="group" 
                 aria-label="selections">
             <button id="add-comment" type="button" 
@@ -177,7 +177,7 @@
             <div id="add-files-container">
               <h4>Add files</h4>
               <em>Note: binary files and subdirectories of <tt>__MACOSX</tt> will be ignored.</em>
-              <%= form_for(:project_file, url: "/projects/#{@project.id}/files") do |f| %>
+              <%= form_for(:project_file, url: "/projects/#{@project_id}/files") do |f| %>
                   <%= f.file_field :files, multiple: true, class: "form-control file-upload-selection" %>
                   <!-- <input type="file" multiple="true" name="project_file[files][]" 
                     class="file-upload-selection"> -->
@@ -290,7 +290,7 @@
     <div class="panel-footer comment-footer">
       <span class="comment-owner"></span> 
 
-      <% if @projectPermission.can_annotate %>
+      <% if not @is_public and @project_permission.can_annotate %>
       <span class="comment-delete"><span class="glyphicon glyphicon-trash"></span></span> 
       <span class="comment-saved"><span class="glyphicon glyphicon-floppy-saved"></span></span>
       <% end %>
@@ -345,12 +345,16 @@
 
 <!-- Other hidden things. -->
 <div class="hidden">
+  <div id="project-id" data-project-id="<%= @project_id %>"></div>
 
   <!-- Not a template, but is hidden data for use in templates. -->
-  <div id="current-email"><%= current_user.email %></div>
+  <% unless @is_public %>
+    <div id="current-email"><%= current_user.email %></div>
+  <% end %>
 
-  <form id="file-download-form" method="get" action="/projects/<%= @project.id %>/download">
-    <input type="text" id="project_id" name="project_id" value="<%= @project.id %>"/>
+  <form id="file-download-form" method="get" action="/projects/<%= @project_id %>/download">
+    <input type="text" id="project_id" name="project_id" value="<%= @project_id %>"/>
     <input type="text" id="file_ids" name="files[file_ids]"/>
   </form>
+
 </div>

@@ -22,6 +22,9 @@ Rails.application.routes.draw do
   post 'projects/:project_id/files'    => 'files#create'
   get  'projects/:project_id/download' => 'projects#download'
 
+  ## For public link access.
+  get 'projects/public/:link_uuid' => 'projects#show_public'
+
   ## For the JSON api.
   namespace :api do
     ## Projects.
@@ -33,6 +36,10 @@ Rails.application.routes.draw do
     # get   'projects/:project_id/download' => 'files#download'
     get   'projects/:project_id/print'    => 'files#print'
     resources :files,       only: [:show,:update,:destroy]
+
+    ## For public link access.
+    get 'projects/public/:link_uuid/files/:id'=> 'files#show_public'
+
 
     ## Permissions (by project).
     get   'projects/:project_id/permissions' => 'permissions#index'
