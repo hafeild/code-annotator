@@ -18,6 +18,18 @@ class ProjectsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "should get show when accessing a public link" do
+    log_in_as(users(:bar))
+    get :show_public, link_uuid: "alink"
+    assert_response :success
+  end
+
+  test "should not get show when accessing an invalid public link" do
+    log_in_as(users(:bar))
+    get :show_public, link_uuid: "abadlink"
+    assert_redirected_to home_url
+  end
+
   test "should not be shown unauthorized projects" do
     log_in_as(@user)
     get :show, id: projects(:p2)

@@ -56,7 +56,7 @@ class Api::FilesController < ApplicationController
     if success
       render json: @file, serializer: FileSerializer, :root => "file"
     else
-      render_error "Resource not found."
+      render_error
     end
   end
 
