@@ -156,12 +156,10 @@ rbenv install 2.2.3
 rbenv global 2.2.3
 ```
 
-Set up project repository. On AWS, an RSA key pair should already exist 
-(see `ls ~/.ssh`). In that case, copy ~/.ssh/id_rsa.pub to GitHub. Otherwise, 
-see: https://help.github.com/articles/generating-ssh-keys/
+Download CodeAnnotator:
 
 ```bash
-git clone git@github.com:EndicottCollegeCSC/code-annotator.git
+git clone git@github.com:hafeild/code-annotator.git
 ```
 
 Install gems (including production):
