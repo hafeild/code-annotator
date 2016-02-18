@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160218174824) do
+ActiveRecord::Schema.define(version: 20160218213522) do
 
   create_table "alternative_codes", force: :cascade do |t|
     t.text     "content"
@@ -88,14 +88,8 @@ ActiveRecord::Schema.define(version: 20160218174824) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "public_links", force: :cascade do |t|
-    t.string  "link_uuid"
-    t.integer "project_id"
-    t.string  "name"
-  end
-
-  add_index "public_links", ["link_uuid"], name: "index_public_links_on_link_uuid"
-  add_index "public_links", ["project_id"], name: "index_public_links_on_project_id"
+# Could not dump table "public_links" because of following NoMethodError
+#   undefined method `[]' for nil:NilClass
 
   create_table "users", force: :cascade do |t|
     t.string   "name"

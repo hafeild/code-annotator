@@ -38,14 +38,18 @@ Rails.application.routes.draw do
     get   'projects/:project_id/print'    => 'files#print'
     resources :files,       only: [:show,:update,:destroy]
 
-    ## For public link access.
+    ## For public link access to files.
     get 'projects/public/:link_uuid/files/:id'=> 'files#show_public'
-
 
     ## Permissions (by project).
     get   'projects/:project_id/permissions' => 'permissions#index'
     post  'projects/:project_id/permissions' => 'permissions#create'
     resources :permissions, only: [:show,:update,:destroy]
+
+    ## Public link management (by project).
+    get 'projects/:project_id/public_links'  => 'public_links#index'
+    post 'projects/:project_id/public_links' => 'public_links#create'
+    resources :pbulic_links, only: [:show,:update,:destroy]
 
     ## Annotations (by project and files).
     ## Comments.
