@@ -23,7 +23,8 @@ Rails.application.routes.draw do
   get  'projects/:project_id/download' => 'projects#download'
 
   ## For public link access.
-  get 'projects/public/:link_uuid' => 'projects#show_public'
+  get 'projects/public/:link_uuid'          => 'projects#show_public'
+  get 'projects/public/:link_uuid/download' => 'projects#download_public'
 
   ## For the JSON api.
   namespace :api do
