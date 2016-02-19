@@ -86,7 +86,7 @@ class Api::PublicLinksController < ApplicationController
 
     def get_project
       if @public_link
-        @project = @file.project
+        @project = @public_link.project
       elsif params.key? :project_id
         @project = Project.find_by(id: params[:project_id])
       else

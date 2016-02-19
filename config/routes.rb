@@ -49,7 +49,7 @@ Rails.application.routes.draw do
     ## Public link management (by project).
     get 'projects/:project_id/public_links'  => 'public_links#index'
     post 'projects/:project_id/public_links' => 'public_links#create'
-    resources :pbulic_links, only: [:show,:update,:destroy]
+    resources :public_links, only: [:show,:update,:destroy]
 
     ## Annotations (by project and files).
     ## Comments.
