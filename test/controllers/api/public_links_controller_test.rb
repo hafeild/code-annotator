@@ -6,6 +6,7 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
     @user = users(:foo)
     @project = projects(:p1)
     @link1 = public_links(:pub_link1)
+    @link2 = public_links(:pub_link2)
   end
 
   ## Only logged in users with author permissions should be able to perform
@@ -107,9 +108,37 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
     end
   end
 
-
-
   ## Test index controller.
+  test "index should return a list of all public links for a project" do
+    log_in_as @user
+
+    response = get :index, project_id: @project.id
+    public_links = JSON.parse(response.body)['public_links']
+    assert_not public_links.nil?, "Bad response: #{response.body}"
+    assert public_links.size == 2, 
+      "Incorrect number of public links returned: #{response.body}"
+
+    if public_links[0]['id'] == @link1.id 
+      (link1, link2) = public_links
+    else
+      (link2, link1) = public_links
+    end
+
+    ## First link.
+    assert (
+      link1['id'] == @link1.id and 
+      link1['name'].nil? and 
+      link1['project_id'] == @project.id and
+      link1['link_uuid'] == @link1.link_uuid), 
+        "Values for entry one incorrect: #{response.body}"
+
+    assert (
+      link2['id'] == @link2.id and 
+      link2['name'].nil? and 
+      link2['project_id'] == @project.id and
+      link2['link_uuid'] == @link2.link_uuid), 
+        "Values for entry two incorrect: #{response.body}"
+  end
 
   ## Test show controller.
 
