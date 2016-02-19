@@ -162,7 +162,8 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
     log_in_as @user
 
     assert_difference 'PublicLink.count', 1, "Link not created" do
-      response = post :create, project_id: @project.id, name: "A name"
+      response = post :create, project_id: @project.id, 
+        public_link: {name: "A name"}
       link = JSON.parse(response.body)['public_link']
       assert_not link.nil?, "Bad response: #{response.body}"
 
@@ -190,6 +191,14 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
     end
   end
 
+
+  test "create must include a name parameter" do
+    assert_no_difference 'PublicLink.count', "Link created" do
+      response = get :create, project_id: @project.id, public_link: {}
+      assert JSON.parse(response.body)['error'], 
+        "Error message not returned: #{response.body}"
+    end
+  end
 
   ## Test update controller.
 

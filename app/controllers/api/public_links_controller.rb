@@ -105,10 +105,10 @@ class Api::PublicLinksController < ApplicationController
     end
 
     def get_name
-      p = params.require(:public_link).permit(:name).to_h
-      if p.key? 'name'
-        @name = p['name']
-      else
+      begin
+        p = params.require(:public_link).permit(:name)
+        @name = p[:name]
+      rescue
         render_error "A name must be provided."
       end
     end
