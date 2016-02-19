@@ -106,8 +106,8 @@ class Api::PublicLinksController < ApplicationController
 
     def get_name
       begin
-        p = params.require(:public_link).permit(:name)
-        @name = p[:name]
+        @name = params.require(:public_link).require(:name)
+        raise "To many parameters." if params[:public_link].size > 1
       rescue
         render_error "A name must be provided."
       end

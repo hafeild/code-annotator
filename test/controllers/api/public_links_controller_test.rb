@@ -24,19 +24,19 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
 
     ## Create:
     assert_no_difference 'PublicLink.count', "Link created" do
-      response = get :create, project_id: @project.id, public_link: {name: "hi"}
+      response = post :create, project_id: @project.id, public_link: {name: "hi"}
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
 
     ## Update:
-    response = get :update, id: @link1.id, public_link: {name: "hi"}
+    response = patch :update, id: @link1.id, public_link: {name: "hi"}
     assert JSON.parse(response.body)['error'], 
       "Error message not returned: #{response.body}"
 
     ## Destroy:
     assert_no_difference 'PublicLink.count', "Link destroyed" do
-      response = get :destroy, id: @link1.id
+      response = delete :destroy, id: @link1.id
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -183,6 +183,7 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
   end
 
   test "create should only accept a name parameter" do
+    log_in_as @user
     assert_no_difference 'PublicLink.count', "Link created" do
       response = get :create, project_id: @project.id, 
         public_link: {name: "hi", link_uuid: "hello"}
@@ -193,6 +194,7 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
 
 
   test "create must include a name parameter" do
+    log_in_as @user
     assert_no_difference 'PublicLink.count', "Link created" do
       response = get :create, project_id: @project.id, public_link: {}
       assert JSON.parse(response.body)['error'], 
@@ -201,7 +203,31 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
   end
 
   ## Test update controller.
+  test "update should modify the name of a link" do 
+    log_in_as @user
 
+    response = patch :update, id: @link1.id, public_link: {name: "A new name"}
+    link = JSON.parse(response.body)['public_link']
+    assert_not link.nil?, "Bad response: #{response.body}"
+
+    link = PublicLink.find_by({id: @link1.id})
+    assert link.name == "A new name", "Name not changed."
+  end
+
+  test "update should require exactly one param (name)" do 
+    log_in_as @user
+
+    response = patch :update, id: @link1.id, public_link: {}
+    assert JSON.parse(response.body)['error'], 
+      "Error not returned with no params: #{response.body}"
+
+    response = patch :update, id: @link1.id, 
+      public_link: {name: "hi", link_uuid: "hello"}
+    assert JSON.parse(response.body)['error'], 
+      "Error not returned with extra params: #{response.body}"
+  end
 
   ## Test destroy controller.
+
+
 end
