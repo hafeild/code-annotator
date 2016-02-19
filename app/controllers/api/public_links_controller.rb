@@ -9,15 +9,24 @@ class Api::PublicLinksController < ApplicationController
 
   ## Generates a new public link for the specified project.
   def create
-    successful = false
-
-    while not successful
+    ## Keep looping until we find an unused uuid.
+    while true
       uuid = SecureRandom.uuid
 
       ActiveRecord::Base.transaction do
         if PublicLink.find_by({link_uuid: uuid}).nil?
-          successful = true
-          public_link = PublicLink.create({project_id: @project.id, uui})
+          begin
+            public_link = PublicLink.create({
+              project_id: @project.id, link_uui: uuid, name: @name})
+            successful = true
+            render json: public_link, serializer: PublicLinkSerializer,
+              root: "public_link"
+            return
+          rescue
+            render_error "Error saving record."
+            return
+          end
+        end
       end
     end
   end
@@ -39,9 +48,13 @@ class Api::PublicLinksController < ApplicationController
   ## Updates a public link, namely it's name.
   def update
     unless @name.nil?
-      @project_link.update({name: @name})
-      render json: @public_link, serializer: PublicLinkSerializer,
-      root: "public_link"
+      begin
+        @project_link.update({name: @name})
+        render json: @public_link, serializer: PublicLinkSerializer,
+          root: "public_link"
+      rescue
+        render_error "There was a problem updating the public link."
+      end
     else
       render_error "Only the name of a public link can be updated."
     end
