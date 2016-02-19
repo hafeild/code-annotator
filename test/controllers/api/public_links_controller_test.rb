@@ -75,7 +75,36 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
   end
 
   test "a user with author permission can access all controllers" do
+    log_in_as @user
 
+    ## Index:
+    response = get :index, project_id: @project.id
+    assert_not JSON.parse(response.body)['error'], 
+      "Error message returned: #{response.body}"
+
+    ## Show:
+    response = get :show, id: @link1.id
+    assert_not JSON.parse(response.body)['error'], 
+      "Error message returned: #{response.body}"
+
+    ## Create:
+    assert_difference 'PublicLink.count', 1, "Link not created" do
+      response = get :create, project_id: @project.id, public_link: {name: "hi"}
+      assert_not JSON.parse(response.body)['error'], 
+        "Error message returned: #{response.body}"
+    end
+
+    ## Update:
+    response = get :update, id: @link1.id, public_link: {name: "hi"}
+    assert_not JSON.parse(response.body)['error'], 
+      "Error message returned: #{response.body}"
+
+    ## Destroy:
+    assert_difference 'PublicLink.count', -1, "Link not destroyed" do
+      response = get :destroy, id: @link1.id
+      assert_not JSON.parse(response.body)['error'], 
+        "Error message returned: #{response.body}"
+    end
   end
 
 

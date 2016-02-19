@@ -16,9 +16,8 @@ class Api::PublicLinksController < ApplicationController
       ActiveRecord::Base.transaction do
         if PublicLink.find_by({link_uuid: uuid}).nil?
           begin
-            public_link = PublicLink.create({
-              project_id: @project.id, link_uui: uuid, name: @name})
-            successful = true
+            public_link = PublicLink.create!({
+              project_id: @project.id, link_uuid: uuid, name: @name})
             render json: public_link, serializer: PublicLinkSerializer,
               root: "public_link"
             return
@@ -49,7 +48,7 @@ class Api::PublicLinksController < ApplicationController
   def update
     unless @name.nil?
       begin
-        @project_link.update({name: @name})
+        @public_link.update!({name: @name})
         render json: @public_link, serializer: PublicLinkSerializer,
           root: "public_link"
       rescue
@@ -63,10 +62,10 @@ class Api::PublicLinksController < ApplicationController
 
   ## Revokes the given public link.
   def destroy
-    @public_link.destroy
-    if permissions.destroyed?
+    begin
+      @public_link.destroy!
       render json: "", serializer: SuccessSerializer
-    else
+    rescue
       render_error "Error removing permissions."
     end
   end
