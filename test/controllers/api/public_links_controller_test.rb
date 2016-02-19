@@ -141,7 +141,21 @@ class Api::PublicLinksControllerTest < ActionController::TestCase
   end
 
   ## Test show controller.
+  test "show should return the information for the given public link" do
+    log_in_as @user
 
+    response = get :show, id: @link1.id
+    link1 = JSON.parse(response.body)['public_link']
+    assert_not link1.nil?, "Bad response: #{response.body}"
+
+    ## First link.
+    assert (
+      link1['id'] == @link1.id and 
+      link1['name'].nil? and 
+      link1['project_id'] == @project.id and
+      link1['link_uuid'] == @link1.link_uuid), 
+        "Returned values are incorrect: #{response.body}"
+  end
 
   ## Test create controller.
 
