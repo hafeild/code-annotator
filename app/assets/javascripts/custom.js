@@ -1804,7 +1804,7 @@ var CodeAnnotator = function($){
         newPermission.find('.permission-email').
           html(data.permissions.user_email);
         newPermission.find('.permission-options').val('view');
-        newPermission.insertAfter($('#add-permission-row'));
+        newPermission.prependTo($('#permissions-table'));
       },
       error: function(xhr, status, error){
         displayError('There was an error adding permissions for '+ email +'. '+
@@ -2037,6 +2037,12 @@ var CodeAnnotator = function($){
   });
 
 
+  // Listen for text boxes to be selected, then highlight all of the contained
+  // text.
+  $(document).on('focus', 'input', function(e){
+    this.select();
+  });
+
   // One settings page, listen for edits.
   $(document).on('click', '.settings .edit', function(e){
     var infoBlockElm = $(this).parents('.info-block');
@@ -2052,7 +2058,6 @@ var CodeAnnotator = function($){
     var targetElm = $(this);
     $('.file-select').toggle();
   });
-
 
   // Listen for the "Download files" button to be clicked.
   $(document).on('click', '.download-files', function(){

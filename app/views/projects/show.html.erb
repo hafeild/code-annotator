@@ -199,6 +199,7 @@
       </div>
     </div>
 
+    <% if not @is_public and @project_permission.can_annotate %>
 
     <div class="modal fade" id="project-sharing" tabindex="-1" 
         role="dialog" aria-labelledby="project-sharing-title">
@@ -207,27 +208,24 @@
 
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="project-sharing-title">Share project</h4>
+            <h2 class="modal-title" id="project-sharing-title">Share project</h2>
           </div>
           <div class="modal-body">
-            <table class="table table-hover">
-              <tr id="add-permission-row">
-                <td colspan="3">
-                  <form id="add-permission-form">
-                    <div class="input-group" style="width: 100%">
-                      <span class="input-group-btn">
-                        <button id="add-permission-btn" 
-                          class="btn btn-primary" type="submit"><span 
-                            class="glyphicon glyphicon-plus"></span
-                        ></button>
-                      </span>
-                      <input type="text" id="new-permission-email" 
-                        class="form-control" 
-                        placeholder="Enter user email...">
-                    </div>
-                  </form>
-                </td>
-              </tr>
+            <h3>Share with specific users</h3>
+            <form id="add-permission-form">
+              <div class="input-group" style="width: 100%">
+                <span class="input-group-btn">
+                  <button id="add-permission-btn" 
+                    class="btn btn-primary" type="submit"><span 
+                      class="glyphicon glyphicon-plus"></span
+                  ></button>
+                </span>
+                <input type="text" id="new-permission-email" 
+                  class="form-control" 
+                  placeholder="Enter user email...">
+              </div>
+            </form>
+            <table class="table table-hover" id="permissions-table">
             <% @project.project_permissions.each do |permission| %>
               <% 
                 next if permission.user and permission.user == current_user
@@ -255,10 +253,70 @@
               </tr>
             <% end %>
             </table>
+
+            <h3>Share with anyone with a link (including non-users)</h3>
+            <form id="add-public-link-form">
+              <div class="input-group" style="width: 100%">
+                <span class="input-group-btn">
+                  <button id="add-public-link-btn" 
+                    class="btn btn-primary" type="submit"><span 
+                      class="glyphicon glyphicon-plus"></span
+                  ></button>
+                </span>
+                <input type="text" id="new-public-link-name" 
+                  class="form-control" 
+                  placeholder="Enter a name for a new link...">
+              </div>
+            </form>
+
+            <table class="table table-hover <%= @project.public_links.size == 0 ? "hidden" : "" %>" 
+              id="public-links-table">
+              <tr>
+                <th>Link to project</th><th>Link to current file</th><th>Link name</th><th></th>
+              </tr>
+              <% @project.public_links.each do |public_link| %>
+              <tr data-public-link-id="<%= public_link.id %>">
+                <td class="public-link">
+                  <input type="text"
+                    class="form-control"
+                    readonly
+                    value=<%= "#{root_url}/projects/public/#{public_link.link_uuid}" %>>
+                </td>
+                <td class="public-link">
+                  <input type="text"
+                    class="form-control"
+                    data-project-link="<%= "#{root_url}/projects/public/#{public_link.link_uuid}" %>"
+                    readonly
+                    placeholder="No file selected"
+                    value="">
+                </td>
+                <td>
+<!--                   <div class="input-group" style="width: 100%">
+                      <span class="input-group-btn">
+                        <button id="update-public-link-btn" 
+                          class="btn btn-primary" type="submit"><span 
+                            class="glyphicon glyphicon-plus"></span
+                        ></button>
+                      </span> -->
+                      <input type="text"
+                        class="form-control public-link-name" 
+                        placeholder="Enter a name for your link..."
+                        value="<%= public_link.name.nil? ? "" : public_link.name %>"
+                        >
+                    <!-- </div> -->
+                </td>
+                <td class="permission-trash trash">
+                  <span class="glyphicon glyphicon-trash"></span>
+                </td>
+              </tr>
+              <% end %>
+            </table>
           </div>
         </div>
       </div>
     </div>
+
+    <% end %>
 
   </div>
 </div>
@@ -297,7 +355,6 @@
     </div>
   </div>
 
-
   <table>
     <!-- Permissions table row. -->
     <tr id="new-permission-template" data-permission-id="">
@@ -314,7 +371,6 @@
       </td>
     </tr>
   </table>
-
 
   <!-- Directory template. -->
   <div id="directory-template" class="entry directory-entry" data-file-id="" 
