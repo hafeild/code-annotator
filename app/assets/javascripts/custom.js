@@ -1898,6 +1898,143 @@ var CodeAnnotator = function($){
     });
   });
 
+
+
+  // Listen for new public links to be added.
+  $(document).on('submit', '#add-public-link-form', function(e){
+    var name = $('#new-public-link-name').val();
+
+    $.ajax('/api/projects/'+ PROJECT_ID +'/public_links', {
+      method: 'POST',
+      data: {
+        public_link: {
+          name: name,
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error adding public link: '+ data.error);
+          return;
+        }
+
+        var publicLinkURL = $('#public-link-url-root').data('url') + 
+          data.public_link.link_uuid;
+
+        $('#new-public-link-name').val('');
+
+        var newPublicLink = $('#new-public-link-template').clone().attr('id','');
+        newPublicLink.data('public-link-id', data.public_link.id);
+        newPublicLink.find('.public-link-name').val(data.public_link.name);
+        newPublicLink.find('.public-project-link').val(publicLinkURL);
+        newPublicLink.find('.public-file-link').data(
+          'public-project-link', publicLinkURL);
+
+        newPublicLink.insertAfter($('#public-links-table .header'));
+        $('#public-links-table').show();
+
+        if(curFileInfo && curFileInfo.id !== undefined){
+          updatePublicFileLinks(curFileInfo.id);
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error adding a public link. '+ error);
+      }
+    });
+
+    e.preventDefault();
+  });
+
+  // Listen for existing public links to be edited.
+  $(document).on('mouseup keyup', '.public-link-name', function(e){
+    var row = $(this).parents('tr'),
+        nameElm = row.find('.public-link-name'),
+        prevNameValue = nameElm.data('last-value'),
+        name = nameElm.val(),
+        saveButton = row.find('.save-public-link-btn'),
+        savedButton = row.find('.saved-public-link-btn');
+
+
+    if(name !== prevNameValue){
+      saveButton.show().insertBefore(savedButton);
+      savedButton.hide();
+    } else {
+      saveButton.hide().insertAfter(savedButton);
+      savedButton.show();
+    }
+  });
+
+  // Listen for existing public links to be renamed and saved.
+  $(document).on('click', '.save-public-link-btn', function(e){
+    var row = $(this).parents('tr'),
+        publicLinkId = row.data('public-link-id'),
+        nameElm = row.find('.public-link-name'),
+        prevNameValue = nameElm.data('last-value'),
+        name = nameElm.val(),
+        saveButton = row.find('.save-public-link-btn'),
+        savedButton = row.find('.saved-public-link-btn');
+
+    $.ajax('/api/public_links/'+ publicLinkId, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        public_link: {
+          name: name
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error updating the link name: '+ 
+            data.error);
+          return;
+        }
+        nameElm.data('last-value', name);
+        if(name == nameElm.val()){
+          saveButton.hide().insertAfter(savedButton);
+          savedButton.show();
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error updating the link name. '+ error);
+      }
+    });
+
+  });
+
+  // Listen for existing permissions to be deleted.
+  $(document).on('click', '.public-link-trash', function(e){
+    var row = $(this).parents('tr'),
+        publicLinkId = row.data('public-link-id');
+
+    $.ajax('/api/public_links/'+ publicLinkId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error removing the public link: ' +
+            data.error);
+          return;
+        }
+
+        // Remove row.
+        row.remove();
+
+        // Hide the table if this is the last public link.
+        if($('#public-links-table tr').size() === 1){
+          $('#public-links-table').hide();
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing the link.'+ error);
+      }
+    });
+  });
+
+
+
+
+
   // Listen for clicks on alt code.
   $(document).on('click', '.altcode-gutter,.altcode-content', function(){
     var elm = $(this), classes = this.classList, i, lidClass;

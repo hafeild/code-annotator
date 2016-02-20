@@ -271,7 +271,7 @@
 
             <table class="table table-hover <%= @project.public_links.size == 0 ? "hidden" : "" %>" 
               id="public-links-table">
-              <tr>
+              <tr class="header">
                 <th>Link to project</th><th>Link to current file</th><th>Link name</th><th></th>
               </tr>
               <% @project.public_links.each do |public_link| %>
@@ -280,7 +280,7 @@
                   <input type="text"
                     class="form-control"
                     readonly
-                    value=<%= "#{root_url}/projects/public/#{public_link.link_uuid}" %>>
+                    value="<%= "#{root_url}/projects/public/#{public_link.link_uuid}" %>">
                 </td>
                 <td class="public-link">
                   <input type="text"
@@ -291,13 +291,30 @@
                     value="">
                 </td>
                 <td>
-                  <input type="text"
-                    class="form-control public-link-name" 
-                    placeholder="Enter a name for your link..."
-                    value="<%= public_link.name.nil? ? "" : public_link.name %>"
-                    >
+                  <div style="display: table-cell">
+                    <div class="input-group">
+                      <span class="input-group-btn">
+                        <button  
+                          class="saved-public-link-btn btn btn-success" 
+                          disabled type="submit"><span 
+                            class="glyphicon glyphicon-floppy-saved"></span
+                        ></button>
+                        <button  
+                          class="save-public-link-btn btn btn-primary hidden" 
+                          type="submit"><span 
+                            class="glyphicon glyphicon-floppy-disk"></span
+                        ></button>
+                      </span>
+                      <input type="text"
+                        class="form-control public-link-name" 
+                        placeholder="Enter a name for your link..."
+                        data-last-value="<%= public_link.name.nil? ? "" : public_link.name %>"
+                        value="<%= public_link.name.nil? ? "" : public_link.name %>"
+                      >
+                    </div>
+                  </div>
                 </td>
-                <td class="permission-trash trash">
+                <td class="public-link-trash trash">
                   <span class="glyphicon glyphicon-trash"></span>
                 </td>
               </tr>
@@ -347,8 +364,8 @@
     </div>
   </div>
 
+  <!-- Permissions table row. -->
   <table>
-    <!-- Permissions table row. -->
     <tr id="new-permission-template" data-permission-id="">
       <td class="permission-email"></td>
       <td>
@@ -359,6 +376,53 @@
         </select>
       </td>
       <td class="permission-trash trash">
+        <span class="glyphicon glyphicon-trash"></span>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Public link table row. -->
+  <table>
+    <tr id="new-public-link-template" data-public-link-id="">
+      <td class="public-link">
+        <input type="text"
+          class="form-control public-project-link"
+          readonly
+          value="">
+      </td>
+      <td class="public-link">
+        <input type="text"
+          class="form-control public-file-link"
+          data-public-project-link=""
+          readonly
+          placeholder="No file selected"
+          value="">
+      </td>
+      <td>
+        <div style="display: table-cell">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button  
+                class="saved-public-link-btn btn btn-success" 
+                disabled type="submit"><span 
+                  class="glyphicon glyphicon-floppy-saved"></span
+              ></button>
+              <button  
+                class="save-public-link-btn btn btn-primary hidden" 
+                type="submit"><span 
+                  class="glyphicon glyphicon-floppy-disk"></span
+              ></button>
+            </span>
+            <input type="text"
+              class="form-control public-link-name" 
+              placeholder="Enter a name for your link..."
+              data-last-value=""
+              value=""
+            >
+          </div>
+        </div>
+      </td>
+      <td class="public-link-trash trash">
         <span class="glyphicon glyphicon-trash"></span>
       </td>
     </tr>
@@ -398,6 +462,7 @@
   <!-- Not a template, but is hidden data for use in templates. -->
   <% unless @is_public %>
     <div id="current-email"><%= current_user.email %></div>
+    <div id="public-link-url-root" data-url="<%= "#{root_url}/projects/public/" %>"></div>
   <% end %>
 
   <form id="file-download-form" method="get" action="/projects/<%= @project_id %>/download">
