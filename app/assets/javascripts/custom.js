@@ -1603,13 +1603,20 @@ var CodeAnnotator = function($){
         lid = commentElm.data('lid'),
         locLid = 0,
         // Sort the locations based on where they come in the file.
-        locations = commentElm.data('locations').sort(function(a,b){
+        allLocations = commentElm.data('locations').sort(function(a,b){
           if(a.start_line == b.start_line){
             return a.start_column - b.start_column;
           } else {
             return a.start_link - b.start_line;
           }
-        });
+        }),
+        fileLocations = [], i;
+
+    for(i = 0; i < allLocations.length; i++){
+      if(allLocations[i].file_id === curFileInfo.id){
+        fileLocations.push(allLocations[i]);
+      }
+    }
 
     if(lastCommentClicked !== lid){
       lastCommentClicked = lid;
@@ -1618,10 +1625,10 @@ var CodeAnnotator = function($){
 
     // Get the index of the next location, wrapping around the end.
     indexOfastCommentLocationScrolledTo = 
-      (indexOfastCommentLocationScrolledTo+1) % locations.length;
+      (indexOfastCommentLocationScrolledTo+1) % fileLocations.length;
 
     // Get the next location's id.
-    locLid = locations[indexOfastCommentLocationScrolledTo].lid;
+    locLid = fileLocations[indexOfastCommentLocationScrolledTo].lid;
 
     // Scroll to the location.
     $('#file-display').animate(
