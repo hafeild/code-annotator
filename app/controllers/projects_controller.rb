@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :logged_in_user
+  before_action :logged_in_user, except: [:show_public, :download_public]
   before_action :get_project, only: [:download]
   before_action :get_files, only: [:download]
   before_action :has_view_permissions, only: [:download]
@@ -19,17 +19,47 @@ class ProjectsController < ApplicationController
       can_annotate: true}).map{|pp| pp.project}.sort{|x,y| x.name <=> y.name}
   end
 
+  ## Shows the project specified by the given link uuid -- as long as a project
+  ## exists with the given uuid, it can be served. There are no permissions
+  ## that need to be checked and the requester does not need to be logged in.
+  def show_public
+    success = false
+
+    if params.key?(:link_uuid)
+      public_link = PublicLink.find_by(link_uuid: params[:link_uuid])
+
+      if(public_link)
+
+        @project = public_link.project
+        @project_permission = @project.project_permissions
+        @is_public = true
+        @project_id = "public/#{public_link.link_uuid}"
+        success = true
+      end
+    end
+
+    if success
+      render :show
+    else
+      flash[:warning] = "That link provided is invalid."
+      redirect_to :home
+    end
+  end
+
+  ## Renders the given project as long as the user is logged in and has
+  ## view permissions for the requested project.
   def show
     success = false
 
     if params.key?(:id)
-      @projectPermission = ProjectPermission.find_by(
+      @project_permission = ProjectPermission.find_by(
         project_id: params[:id],
         user_id: current_user.id
       )
       @project = Project.find_by(id: params[:id])
-
-      success =(@project and @projectPermission and @projectPermission.can_view)
+      @is_public = false
+      @project_id = @project.id
+      success =(@project and @project_permission and @project_permission.can_view)
     end
 
     if success
@@ -45,7 +75,31 @@ class ProjectsController < ApplicationController
     redirect_to :root
   end
 
-  # Downloads the specified files.
+  ## Downloads files accessible via a public link.
+  def download_public
+    success = false
+
+    if params.key?(:link_uuid)
+      public_link = PublicLink.find_by(link_uuid: params[:link_uuid])
+
+      if(public_link)
+
+        @project = public_link.project
+        get_files
+        success = true
+      end
+    end
+
+    if success
+      download
+    else
+      flash[:warning] = "That link provided is invalid."
+      redirect_to :home
+    end
+  end
+
+  ## Downloads the specified files. The user must be logged in and have view
+  ## permissions.
   def download
     if @files.size > 1 or (@files.size == 1 and @files.first.is_directory)
       files_by_name = get_files_by_name(@files).sort{|x,y| x <=> y}

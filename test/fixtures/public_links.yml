@@ -1,0 +1,12 @@
+
+pub_link1:
+  project: p1
+  link_uuid: alink
+
+pub_link2:
+  project: p1
+  link_uuid: anotherlink
+
+pub_link3:
+  project: p2
+  link_uuid: athirdlink
