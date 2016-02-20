@@ -169,10 +169,6 @@ gem install bundler
 gem install rails -v 4.2.2
 ```
 
-### During first install or after an update:
-
-
-
 Set up the rails project:
 
 ```bash
@@ -180,6 +176,8 @@ bundle install
 bundle exec rake db:setup RAILS_ENV=production
 bundle exec rake assets:compile RAILS_ENV=production
 ```
+
+### During first install or after an update:
 
 Run migrations:
 
