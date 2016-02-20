@@ -963,6 +963,8 @@ var CodeAnnotator = function($){
           loadFileComments(data.file.comments);
           loadFileAltcode(data.file.altcode);
         }
+
+        updatePublicFileLinks(fileId);
       },
       error: function(req, status, error){
         displayError('There was an error retrieving this file. '+ error);
@@ -1397,6 +1399,18 @@ var CodeAnnotator = function($){
     altcodeElm.find('.altcode-editor').focus().val(content);
     return altcodeElm;
   }
+
+  /**
+   * Updates the "public file links" to point to the current file.
+   *
+   * @param {string} fileId  The id of the file.
+   */
+  var updatePublicFileLinks = function(fileId){
+    $('.public-file-link').each(function(){
+      var elm = $(this);
+      elm.val(elm.data('public-project-link') +'#'+ fileId);
+    });
+  };
 
   // LISTENERS
 
@@ -2081,7 +2095,6 @@ var CodeAnnotator = function($){
     $("#batch-project-upload").toggle();
     $("#single-project-upload").toggle();    
   });
-
 
 
   // INITIALIZATIONS.
