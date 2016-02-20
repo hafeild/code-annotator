@@ -356,11 +356,13 @@
       placeholder="Enter your comment here..."></div>
     <div class="panel-footer comment-footer">
       <span class="comment-owner"></span> 
+      <span class="scroll-to-next-location in-file-only">| <a href="#">Scroll to next location</a> |</span>
 
       <% if not @is_public and @project_permission.can_annotate %>
-      <span class="comment-delete"><span class="glyphicon glyphicon-trash"></span></span> 
-      <span class="comment-saved"><span class="glyphicon glyphicon-floppy-saved"></span></span>
+      <span class="comment-delete in-file-only"><span class="glyphicon glyphicon-trash"></span></span> 
+      <span class="comment-saved in-file-only"><span class="glyphicon glyphicon-floppy-saved"></span></span>
       <% end %>
+
     </div>
   </div>
 

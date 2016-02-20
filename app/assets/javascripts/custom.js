@@ -73,6 +73,8 @@ var CodeAnnotator = function($){
   var altcodeLookup = {};
   var altcodeLidCounter = 0;
   var selectedDirectory;
+  var lastCommentClicked = '';
+  var indexOfastCommentLocationScrolledTo = -1;
 
   // FUNCTIONS
 
@@ -1004,7 +1006,9 @@ var CodeAnnotator = function($){
           comment.find('.comment-owner').html(data.comments[i].creator_email);
           comment.find('.comment-body').html(data.comments[i].content).
             attr('contenteditable', false);
-          comment.find('.comment-delete').remove();
+
+          comment.find('.in-file-only').remove();
+
           comment.data('server-comment', data.comments[i]);
           elm.append(comment);
         }
@@ -1553,9 +1557,7 @@ var CodeAnnotator = function($){
   });
 
   // Listens for changes to comment content.
-  $(document).on('change', '.comment-body', editComment);
-  $(document).on('keyup', '.comment-body', editComment);
-  $(document).on('mouseup', '.comment-body', editComment);
+  $(document).on('change keyup mouseup', '.comment-body', editComment);
 
   // Highlights comment locations when hovering over a comment.
   $(document).on('mouseover', '.comment', function(){
@@ -1592,6 +1594,41 @@ var CodeAnnotator = function($){
       locationIndexLastSelected = i;
       locationLidLastSelected = locationLids[i];
     }
+  });
+
+  // Scrolls to the next comment location when a comment is clicked.
+  $(document).on('click', '.scroll-to-next-location', function(e){
+    console.log('comment clicked');
+    var commentElm = $(this).parents('.comment'),
+        lid = commentElm.data('lid'),
+        locLid = 0,
+        // Sort the locations based on where they come in the file.
+        locations = commentElm.data('locations').sort(function(a,b){
+          if(a.start_line == b.start_line){
+            return a.start_column - b.start_column;
+          } else {
+            return a.start_link - b.start_line;
+          }
+        });
+
+    if(lastCommentClicked !== lid){
+      lastCommentClicked = lid;
+      indexOfastCommentLocationScrolledTo = -1;
+    }
+
+    // Get the index of the next location, wrapping around the end.
+    indexOfastCommentLocationScrolledTo = 
+      (indexOfastCommentLocationScrolledTo+1) % locations.length;
+
+    // Get the next location's id.
+    locLid = locations[indexOfastCommentLocationScrolledTo].lid;
+
+    // Scroll to the location.
+    $('#file-display').animate(
+      {scrollTop: $('#file-display .comment_loc_'+ locLid)[0].offsetTop}, 500);
+
+    e.preventDefault();
+    return false;
   });
 
   // Changes the style of comments when they have focus.
@@ -2000,7 +2037,7 @@ var CodeAnnotator = function($){
 
   });
 
-  // Listen for existing permissions to be deleted.
+  // Listen for public links to be revoked.
   $(document).on('click', '.public-link-trash', function(e){
     var row = $(this).parents('tr'),
         publicLinkId = row.data('public-link-id');
@@ -2030,9 +2067,6 @@ var CodeAnnotator = function($){
       }
     });
   });
-
-
-
 
 
   // Listen for clicks on alt code.
