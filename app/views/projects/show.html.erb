@@ -280,12 +280,12 @@
                   <input type="text"
                     class="form-control"
                     readonly
-                    value="<%= "#{root_url}/projects/public/#{public_link.link_uuid}" %>">
+                    value="<%= "#{root_url}projects/public/#{public_link.link_uuid}" %>">
                 </td>
                 <td class="public-link">
                   <input type="text"
                     class="form-control public-file-link"
-                    data-public-project-link="<%= "#{root_url}/projects/public/#{public_link.link_uuid}" %>"
+                    data-public-project-link="<%= "#{root_url}projects/public/#{public_link.link_uuid}" %>"
                     readonly
                     placeholder="No file selected"
                     value="">
@@ -464,7 +464,7 @@
   <!-- Not a template, but is hidden data for use in templates. -->
   <% unless @is_public %>
     <div id="current-email"><%= current_user.email %></div>
-    <div id="public-link-url-root" data-url="<%= "#{root_url}/projects/public/" %>"></div>
+    <div id="public-link-url-root" data-url="<%= "#{root_url}projects/public/" %>"></div>
   <% end %>
 
   <form id="file-download-form" method="get" action="/projects/<%= @project_id %>/download">
