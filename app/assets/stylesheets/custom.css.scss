@@ -111,6 +111,11 @@ p {
   letter-spacing: -1px;
   padding-top: 9px;
   font-weight: bold;
+
+  a, a:hover {
+    text-decoration: none;
+    color: #fff;
+  }
 }
 
 #logo:hover {
@@ -121,6 +126,19 @@ p {
 .header {
   padding-left: 10px;
   padding-right: 10px;
+}
+
+.version {
+  /*float: left;*/
+  /*margin-right: 10px;*/
+  font-size: .4em;
+  color: $gray-medium-light;
+  /*text-transform: uppercase;*/
+  letter-spacing: -1px;
+  padding-top: 9px;
+  font-weight: normal;
+  font-style: italic;
+  font-family: monospace;
 }
 
 /* footer */
@@ -892,9 +910,21 @@ td.trash:hover {
 }
 
 .information-page {
+  max-width: 800px;
   padding-left: 40px;
   padding-right: 40px;
-  h1 { text-align: left;}
+  font-family: Helvetica, sans-serif;
+  p {line-height: 1.2;}
+
+  h1, h2 { 
+    text-align: left;
+  }
+
+  h2 {
+    color: #524F4F;
+    font-size: 2.25em;
+    margin-bottom: 10px;
+  }
 }
 
 /* Alerts */
