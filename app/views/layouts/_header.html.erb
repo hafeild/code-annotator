@@ -21,6 +21,7 @@
             <%= link_to "Home", root_path %>
           <% end %>
         </li>
+        <li><%= link_to "About", "#{info_path}#about" %></li>
         <li><%= link_to "Help", "#{info_path}#help" %></li>
         <% if logged_in? %>
           <li class="dropdown">

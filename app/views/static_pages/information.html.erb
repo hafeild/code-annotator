@@ -1,20 +1,90 @@
 <% provide(:title, "Information") %>
 <div class="information-page">
-  <a name="About"></a>
-  <h1>About</h1>
+
+  <h1>Information about CodeAnnotator</h1>
+
+  <a name="about"></a>
+  <h2>About</h2>
   <p>
-    We help people annotate their code.
+  The goal of CodeAnnotator is to help people <em>communicate</em> about code. 
   </p>
+
+  <p>
+    The project was inspired not out of formal software engineering practices
+    like code reviews, but rather the need for instructors to provide effective
+    feedback to students about program submissions. Code review software is
+    overkill and not easily usable by students. Printing programs out and
+    commenting by hand is inconvenient and a waste of paper. Converting code to
+    PDFs and marking them up digitally is messy and raises issues about how best
+    to share the resulting files with students.
+  </p>
+
+
+  <a name="features"></a>
+  <h2>Features</h2>
+
+  <p>
+    CodeAnnotator has lots of features. For more information about features, 
+    check out <a href="https://github.com/hafeild/code-annotator/wiki/Features"
+    >CodeAnnotator's Features page</a> on GitHub.
+  </p>
+
+  <p>
+    Here's a short list of some of the major features:
+  </p>
+
+  <ul>
+
+    <li>Support for any text file</li>
+    <li>Syntax highlighting for many of the most common programming languages</li>
+    <li>Organize files by project, and by directories within projects</li>
+    <li>Attach comments to specific location in a file</li>
+    <li>Comments can be attached to multiple locations within and between files
+        in a project</li>
+    <li>Provide alternate code for a selection within a file</li>
+    <li>Uploading files
+      <ul>
+        <li>Multi-file and zip file uploading</li>
+        <li>Batch uploading with optional updating</li>
+      </ul>
+    </li>
+    <li>Sharing
+      <ul>
+        <li>Share a project so others can: view, annotate (add comments and 
+          alternate code), or author (add/remove files, delete the project)</li>
+        <li>Share with other CodeAnnotator users via their username (email)</li>
+        <li>Generate unlimited named public links. Anyone with a link can view
+            the project, and links can be revoked at anytime.</li>
+      </ul>
+    </li>
+
+  </ul>
+
+
 
   <a name="help"></a>
-  <h1>Help</h1>
+  <h2>Help</h2>
+
   <p>
-    Please report issues on our GitHub page.
+    If you are uncertain about how to do something you think you should be able
+    to do with CodeAnnotator, begin by familiarizing yourself with the features
+    (see above). Next, take a look at our 
+    <a href="https://github.com/hafeild/code-annotator/wiki/FAQs"
+    >Frequently Asked Questions page</a> on GitHub.
   </p>
 
-  <a name="contact"></a>
-  <h1>Contact</h1>
   <p>
-    For questions or concerns, please visit out GitHub page.
+    If you are experiencing problems with slowness, loss of data, account 
+    issues, etc., please contact the website maintainer here: 
+    <a href="mailto:<%= ENV["WEBSITE_CONTACT"] %>"
+      ><%= ENV["WEBSITE_CONTACT"] %></a>.
   </p>
+
+  <p>
+    For issues pertaining to the software itself, please submit an issue to the 
+    <a href="https://github.com/hafeild/code-annotator/issues">project's 
+    GitHub page</a>. We are also very happy to hear about any feature requests
+    you have&mdash;please submit them as issues, tagged with "feature request"!
+  </p>
+
 </div>
