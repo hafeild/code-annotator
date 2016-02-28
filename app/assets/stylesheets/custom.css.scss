@@ -111,6 +111,11 @@ p {
   letter-spacing: -1px;
   padding-top: 9px;
   font-weight: bold;
+
+  a, a:hover {
+    text-decoration: none;
+    color: #fff;
+  }
 }
 
 #logo:hover {
@@ -121,6 +126,19 @@ p {
 .header {
   padding-left: 10px;
   padding-right: 10px;
+}
+
+.version {
+  /*float: left;*/
+  /*margin-right: 10px;*/
+  font-size: .4em;
+  color: $gray-medium-light;
+  /*text-transform: uppercase;*/
+  letter-spacing: -1px;
+  padding-top: 9px;
+  font-weight: normal;
+  font-style: italic;
+  font-family: monospace;
 }
 
 /* footer */
