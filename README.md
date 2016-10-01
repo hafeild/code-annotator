@@ -76,13 +76,22 @@ Then to set up the database migrations, do:
 bundle exec rake db:migrate
 ```
 
+If desired, seed the databaes with some dummy users and projects (`example-x@mail.com` 
+for x 1--5, all with password `password`):
+
+```bash
+bundle exec rake db:seed
+```
+
 Start the development server up with:
 
 ```bash
 rails server
 ```
 
-Then point your browser to http://localhost:3000.
+Then point your browser to http://localhost:3000. Log in with one of the
+examples (e.g., `example-1@mail.com`, password `password`) and play
+around.
 
 ## Production installation
 
