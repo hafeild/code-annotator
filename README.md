@@ -76,6 +76,14 @@ Then to set up the database migrations, do:
 bundle exec rake db:migrate
 ```
 
+Start the development server up with:
+
+```bash
+rails server
+```
+
+Then point your browser to http://localhost:3000.
+
 ## Production installation
 
 This set up is for a AWS EC2 instance (running Amazon's RedHat).
