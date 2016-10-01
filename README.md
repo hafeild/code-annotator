@@ -6,6 +6,13 @@ alternate code. The initial base of CodeAnnotator was developed while following
 
 ## Development installation
 
+Start by cloning CodeAnnotator (this puts it in your current directory):
+
+```bash
+git clone https://github.com/hafeild/code-annotator.git
+cd code-annotator
+```
+
 Starting up a development environment is simple. We are currently using Ruby
 v2.2.3 and Rails v4.2.2, and [rbenv](https://github.com/sstephenson/rbenv) to
 manage Ruby versions. Follow the instructions there and download 
@@ -141,7 +148,7 @@ cd /var/www/code-annotator
 Download rbenv, etc.
 
 ```bash
-git clone https://github.com/sstephenson/rbenv.git ~/.rbenv
+git https://github.com/sstephenson/rbenv.git ~/.rbenv
 echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
 echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 git clone https://github.com/sstephenson/ruby-build.git \
