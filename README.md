@@ -6,6 +6,11 @@ alternate code. The initial base of CodeAnnotator was developed while following
 
 ## Development installation
 
+Pre-reqs: This works best in a Unix-like environtment (Linux, OSX, 
+WSL, etc.). Be sure to have sqlite installed (one of the gems
+uses it). Various other dependencies may be required for rbenv
+and Ruby. Install as necessary.
+
 Start by cloning CodeAnnotator (this puts it in your current directory):
 
 ```bash
@@ -35,7 +40,9 @@ gem install rails -v 4.2.2
 Install ICU v56, here: http://site.icu-project.org/download/56. Follow their
 instructions for installation. This will help with
 certain character encoding issues. Configure the charlock_holmes gem to look
-in `/user/local/include` for the necessary header files.
+in `/usr/local/include` for the necessary header files. (NOTE: this is the 
+default location if installing from source; package managers make place 
+the header files elsewhere.)
 
 ```
 bundle config build.charlock_holmes --with-icu-include=/usr/local/include
@@ -60,13 +67,13 @@ For development, you won't need all the dependencies production requires, so
 do:
 
 ```bash
-bundler install --without production
+bundle install --without production
 ```
 
 Then to set up the database migrations, do:
 
 ```bash
-bundler exec rake db:migrate
+bundle exec rake db:migrate
 ```
 
 ## Production installation
