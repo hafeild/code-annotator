@@ -816,7 +816,7 @@ var CodeAnnotator = function($){
 
     // Otherwise, we'll have to calculate the offset the hard way.
     var shElm = node.parentNode;
-    var lineElm = $(shElm).parents('.line')[0];
+    var lineElm = $(node).parents('.line')[0];
 
     if(!lineElm) return {line: -1, col: -1};
 
@@ -927,6 +927,20 @@ var CodeAnnotator = function($){
   };
 
   /**
+   * Adds a blank line to the beginning and end of the given string and
+   * a space at the end of every line. The purpose of this is to allow
+   * comments to be added at the top and bottom of the file, on blank lines,
+   * and at the end of lines.
+   *
+   * @param [string] text The text to add padding to.
+   * @return The text updated with padding.
+   */
+  var addPadding = function(text){
+    text = '\n'+ text;
+    return text.replace(/\n/g, ' \n');
+  };
+
+  /**
    * Fetch the content of the select file.
    *
    * @param [int] fileId The id of the file to load.
@@ -955,7 +969,7 @@ var CodeAnnotator = function($){
           $('#file-display');
           $('#file-display').html(
             '<pre class="'+ getHighlighterClass(data.file.name) +'">\n'+
-                escapeHtml(data.file.content) + 
+                escapeHtml(addPadding(data.file.content)) + 
             '\n</pre>'
           );
           SyntaxHighlighter.highlight();
@@ -1088,14 +1102,14 @@ var CodeAnnotator = function($){
 
   /**
    * Checks if the given location is valid, that is, the starting and ending
-   * points are numbers greater than 0.
+   * points are numbers greater than 0 (or -1 in the case of line numbers).
    *
    * @param {simple object} location The location to verify.
    * @return True if the location is valid, false otherwise.
    */
   var locationIsValid = function(location){
-    return location.start_line > 0 && location.start_column > 0 &&
-        location.end_line > 0 && location.end_column > 0;
+    return location.start_line >= 0 && location.start_column > 0 &&
+        location.end_line >= 0 && location.end_column > 0;
   };
 
   /**
@@ -1598,7 +1612,6 @@ var CodeAnnotator = function($){
 
   // Scrolls to the next comment location when a comment is clicked.
   $(document).on('click', '.scroll-to-next-location', function(e){
-    console.log('comment clicked');
     var commentElm = $(this).parents('.comment'),
         lid = commentElm.data('lid'),
         locLid = 0,
@@ -2291,6 +2304,7 @@ var CodeAnnotator = function($){
   Sortable.init();
   SyntaxHighlighter.defaults['toolbar'] = false;
   SyntaxHighlighter.defaults['quick-code'] = false;
+  SyntaxHighlighter.defaults['first-line'] = 0;
 
   this.getSelectionLocation = getSelectionLocation;
   this.highlightSelection = highlightSelection;

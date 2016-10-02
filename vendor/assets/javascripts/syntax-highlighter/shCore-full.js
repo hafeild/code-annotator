@@ -1346,7 +1346,9 @@ function eachLine(str, callback)
  */
 function trimFirstAndLastLines(str)
 {
-    return str.replace(/^[ ]*[\n]+|[\n]*[ ]*$/g, '');
+    // EDITED (hfeild): don't want these first/last lines or leading spaces.
+    return str;
+    //return str.replace(/^[ ]*[\n]+|[\n]*[ ]*$/g, '');
 };
 
 /**
@@ -1561,7 +1563,9 @@ function fixInputString(str)
  */
 function trim(str)
 {
-    return str.replace(/^\s+|\s+$/g, '');
+    // EDITED (hfeild): don't want to remove leading spaces.
+    return str;
+    //return str.replace(/^\s+|\s+$/g, '');
 };
 
 /**
