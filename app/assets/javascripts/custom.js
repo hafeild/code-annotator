@@ -1831,10 +1831,26 @@ var CodeAnnotator = function($){
     });
   }
 
-  // Listen for projects to be deleted.
+  // Listen for projects to be deleted and present the user with a confirmation
+  // modal.
   $(document).on('click', '.project-trash', function(e){
     var entryElm = $(this).parents('.project');
     var projectId = entryElm.attr('id');
+    var modalElm = $('#confirm-delete-project-modal');
+
+    modalElm.modal('show');
+    modalElm.find('.project-name').html(entryElm.find('.name').html());
+    modalElm.find('#trash-project').data('project-id', projectId);
+  });
+
+  // Listen for project deletion to be confirmed.
+  $(document).on('click', '#trash-project', function(e){ 
+    var modalElm = $(this).closest('.modal');
+    var projectId = $(this).data('project-id');
+    var entryElm = $('#'+ projectId);
+
+    // Close the modal.
+    modalElm.modal('hide');    
 
     // Remove the project.
     deleteProject(projectId, function(data){
