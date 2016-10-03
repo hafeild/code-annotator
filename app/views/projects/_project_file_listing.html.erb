@@ -4,8 +4,10 @@
         data-file-id="<%= file.id %>" data-expand-state="expanded">        
       <div class="directory-name">
         <% unless file.directory_id.nil? %>
-          <span class="remove-file-indicator remove-file hidden">
-            <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+          <span class="remove-file-indicator remove-file hidden"
+            data-toggle="modal" data-target="#confirm-remove-file-modal">
+            <span class="glyphicon glyphicon-remove-circle aria-hidden="true""
+            ></span>
           </span>
         <% end %>
 
@@ -13,16 +15,20 @@
         <input class="dir-select file-select hidden" type="checkbox">
 
         <span class="collapsed">
-          <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
+          <span class="glyphicon glyphicon-folder-close aria-hidden="true""
+          ></span>
         </span>
         <span class="expanded">
-          <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
+          <span class="glyphicon glyphicon-folder-open aria-hidden="true""
+          ></span>
         </span>
-        <% if file.directory_id.nil? %>
+        <span class="file-name"><%
+          if file.directory_id.nil? %>
           /
         <% else %>
           <%= file.name %>
-        <% end %>
+        <% end
+        %></span>
         <span class="add-file-or-directory" data-toggle="modal" 
             data-target="#upload-files">
           <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
@@ -37,12 +43,14 @@
   <% else %>
     <div class="entry file-entry" data-file-id="<%= file.id %>" 
         id="file-<%= file.id %>">
-      <span class="remove-file-indicator remove-file hidden">
-        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+      <span class="remove-file-indicator remove-file hidden"
+        data-toggle="modal" data-target="#confirm-remove-file-modal">
+        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""
+        ></span>
       </span>
       <input class="file-select hidden" type="checkbox">
       <a href="#<%= file.id %>"
-        data-file-id="<%= file.id %>"
+        data-file-id="<%= file.id %>" class="file-name"
         ><%= file.name %></a>
       <span class="count comment-count">
         <span class="glyphicon glyphicon-comment"></span>

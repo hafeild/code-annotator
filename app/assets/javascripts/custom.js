@@ -1448,6 +1448,8 @@ var CodeAnnotator = function($){
   $(document).on('click', '.directory-name', function(event){
     var elm = $(this), parent = elm.parent();
 
+    if($(event.target).parent().hasClass('remove-file')){ return };
+
     if(event.target.tagName === 'INPUT'){
       // Check all elements below.
       if(event.target.checked){
@@ -1521,16 +1523,13 @@ var CodeAnnotator = function($){
   });
 
   // Handles clicks on file operation buttons.
-  $(document).on('click', '#file-ops .btn', function(e){
-    if($(this).hasClass('disabled')){ return; }
-
+  $(document).on('click', '#confirm-delete-project-modal', function(e){
     if(e.target.id === 'delete-project'){
         // Remove the project.
         deleteProject(PROJECT_ID, function(data){
           window.document.location = '/projects';
         });
     }
-
   });
 
   // Handles clicks on comment editing buttons.
@@ -2162,10 +2161,26 @@ var CodeAnnotator = function($){
     $('.remove-file-indicator').toggle();
   });
 
-  // List for file removals.
-  $(document).on('click', '.remove-file', function(){
-    var entryElm = $(this).closest('.entry');
+  // Listen for file removals -- this populates the data-file-id attribute
+  // of the "Confirm" button that is displayed in the "Confirm deletion"
+  // modal.
+  $(document).on('show.bs.modal', '#confirm-remove-file-modal', function(event){
+    var entryElm = $(event.relatedTarget).closest('.entry');
+    var entryId = entryElm.attr('id');
+    var modal = $(this);
+    
+    modal.find('#remove-file-confirmed').data('entry-id', entryId);
+    modal.find('.file-name').html(entryElm.find('.file-name').html());
+  });
+
+  // Listen for file removal confirmation.
+  $(document).on('click', '#remove-file-confirmed', function(){
+    var modalElm = $(this).closest('.modal'); 
+    var entryElm = $('#'+ $(this).data('entry-id'));
     var fileId = entryElm.data('file-id');
+
+    // Remove the modal.
+    modalElm.modal('hide');
 
     $.ajax('/api/files/'+ fileId, {
       method: 'POST',
