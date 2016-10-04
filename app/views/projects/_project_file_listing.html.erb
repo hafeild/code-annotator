@@ -4,9 +4,17 @@
         data-file-id="<%= file.id %>" data-expand-state="expanded">        
       <div class="directory-name">
         <% unless file.directory_id.nil? %>
-          <span class="remove-file-indicator remove-file hidden"
-            data-toggle="modal" data-target="#confirm-remove-file-modal">
-            <span class="glyphicon glyphicon-remove-circle aria-hidden="true""
+          <span class="edit-file-indicator edit-filename hidden"
+            data-toggle="modal" data-target="#edit-filename-modal"
+            title="Edit directory name">
+            <span class="glyphicon glyphicon-edit" aria-hidden="true"
+            ></span>
+          </span>
+
+          <span class="edit-file-indicator remove-file hidden"
+            data-toggle="modal" data-target="#confirm-remove-file-modal"
+            title="Remove directory">
+            <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"
             ></span>
           </span>
         <% end %>
@@ -43,8 +51,15 @@
   <% else %>
     <div class="entry file-entry" data-file-id="<%= file.id %>" 
         id="file-<%= file.id %>">
-      <span class="remove-file-indicator remove-file hidden"
-        data-toggle="modal" data-target="#confirm-remove-file-modal">
+      <span class="edit-file-indicator edit-filename hidden"
+        data-toggle="modal" data-target="#edit-filename-modal"
+        title="Edit filename">
+        <span class="glyphicon glyphicon-edit" aria-hidden="true"
+        ></span>
+      </span>
+      <span class="edit-file-indicator remove-file hidden"
+        data-toggle="modal" data-target="#confirm-remove-file-modal"
+        title="Delete file">
         <span class="glyphicon glyphicon-remove-circle aria-hidden="true""
         ></span>
       </span>

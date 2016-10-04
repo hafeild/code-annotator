@@ -51,16 +51,16 @@
 
             <% if not @is_public and @project_permission.can_author %>
               <button
-                type="button" class="btn btn-default btn-xs toggle-file-removal
-                  remove-file-indicator"><span 
-                class="glyphicon glyphicon-remove-circle"></span> 
-                Remove files
+                type="button" class="btn btn-default btn-xs toggle-edit-file
+                  edit-file-indicator"><span 
+                class="glyphicon glyphicon-pencil"></span> 
+                Edit files
               </button>
               <button
-                type="button" class="btn btn-default btn-xs toggle-file-removal 
-                  remove-file-indicator hidden"><span 
-                class="glyphicon glyphicon-remove-circle"></span> 
-                Done removing files
+                type="button" class="btn btn-default btn-xs toggle-edit-file 
+                  edit-file-indicator hidden"><span 
+                class="glyphicon glyphicon-pencil"></span> 
+                Done editing files
               </button>
               <button type="button" id="share-project"
                 class="btn btn-default btn-xs"

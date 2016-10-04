@@ -394,14 +394,23 @@ input[type="checkbox"] {
     padding-right: 3px;
   }
 
-  .remove-file {
+  .remove-file, .edit-filename {
     display: inline-block;
     font-size: 90%;
+  }
+
+  .remove-file {
     color: darkred;    
     :hover {
       color: red;
     }
+  }
 
+  .edit-filename {
+    color: darkgreen;
+    :hover {
+      color: lightgreen;
+    }
   }
 
   .collapsed {

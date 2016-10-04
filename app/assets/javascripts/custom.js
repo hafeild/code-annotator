@@ -2173,8 +2173,8 @@ var CodeAnnotator = function($){
   });
 
   // Listen for the 'Remove files' button to be pressed.
-  $(document).on('click', '.toggle-file-removal', function(){
-    $('.remove-file-indicator').toggle();
+  $(document).on('click', '.toggle-edit-file', function(){
+    $('.edit-file-indicator').toggle();
   });
 
   // Listen for file removals -- this populates the data-file-id attribute
