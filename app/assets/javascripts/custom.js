@@ -2177,6 +2177,21 @@ var CodeAnnotator = function($){
     $('.edit-file-indicator').toggle();
   });
 
+  // Listen for filename edits -- this populates the file edit modal with
+  // information about the filename being edited. 
+  $(document).on('show.bs.modal', '#edit-filename-modal', function(event){
+    var entryElm = $(event.relatedTarget).closest('.entry');
+    var entryId = entryElm.attr('id');
+    var modal = $(this);
+    var filenameTextBox = modal.find('#filename-edit-box');  
+  
+    modal.find('#rename-file').data('entry-id', entryId);
+    filenameTextBox.val(entryElm.find('.file-name').first().text());
+    // NOTE: Having trouble getting focus on the text box. 
+    //filenameTextBox.focus();
+  });
+
+
   // Listen for file removals -- this populates the data-file-id attribute
   // of the "Confirm" button that is displayed in the "Confirm deletion"
   // modal.

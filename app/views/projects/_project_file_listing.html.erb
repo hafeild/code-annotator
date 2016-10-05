@@ -30,13 +30,8 @@
           <span class="glyphicon glyphicon-folder-open aria-hidden="true""
           ></span>
         </span>
-        <span class="file-name"><%
-          if file.directory_id.nil? %>
-          /
-        <% else %>
-          <%= file.name %>
-        <% end
-        %></span>
+        <span class="file-name"
+          ><%= file.directory_id.nil? ? "/" : file.name %></span>
         <span class="add-file-or-directory" data-toggle="modal" 
             data-target="#upload-files">
           <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
