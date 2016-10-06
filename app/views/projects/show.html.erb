@@ -69,7 +69,8 @@
               </button>              
               <button type="button" id="delete-project-pre-confirm"
                 class="btn btn-default btn-xs"
-                data-toggle="modal" data-target="#confirm-delete-project-modal"
+                data-toggle="modal" data-target="#confirm-delete-modal"
+                data-delete-type="confirm-delete-project"
                 ><span class="glyphicon glyphicon-trash"></span> Delete project
               </button>
             <% end %>
@@ -160,19 +161,39 @@
 
 
 
-    <div class="modal fade" id="confirm-delete-project-modal" tabindex="-1" 
-        role="dialog" aria-labelledby="confirm-delete-project">
+    <div class="modal fade" id="confirm-delete-modal" tabindex="-1" 
+        role="dialog" aria-labelledby="confirm-delete">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" 
                 aria-label="Close"><span aria-hidden="true">&times;</span
             ></button>
-            <h4 class="modal-title" id="project-comments">Are you sure you
-                want to permenantly delete this project?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-project"
+                >Are you sure you want to permenantly delete this project?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-comment"
+                >Are you sure you want to permenantly delete this comment?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-alt-code"
+                >Are you sure you want to permenantly delete this altnerate
+                 code?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-file"
+                >Are you sure you want to permenantly delete this file?</h4>
+          </div>
+          <div class='modal-body confirm-delete confirm-delete-file'>
+            File: <span class="file-name"></span>
           </div>
           <div class="modal-footer">
-            <button type="button" id="delete-project" class="btn btn-danger" 
+            <button type="button" id="delete-project"
+              class="btn btn-danger confirm-delete confirm-delete-project"
+              >Delete</button>
+            <button type="button" 
+              class="btn btn-danger confirm-delete confirm-delete-comment"
+              >Delete</button>
+            <button type="button" 
+              class="btn btn-danger confirm-delete confirm-delete-alt-code"
+              >Delete</button>
+            <button type="button" id="confirm-delete-file"
+              class="btn btn-danger confirm-delete confirm-delete-file"
               >Delete</button>
             <button type="button" class="btn btn-default" data-dismiss="modal"
                 >Cancel</button>
@@ -180,32 +201,6 @@
         </div>
       </div>
     </div>
-
-
-    <div class="modal fade" id="confirm-remove-file-modal" tabindex="-1" 
-        role="dialog" aria-labelledby="confirm-remove-file">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" 
-                aria-label="Close"><span aria-hidden="true">&times;</span
-            ></button>
-            <h4 class="modal-title" id="project-comments">Are you sure you
-                want to permenantly delete this file?</h4>
-          </div>
-          <div class='modal-body'>
-            File: <span class="file-name"></span>
-          </div>
-          <div class="modal-footer">
-            <button type="button" id="remove-file-confirmed" 
-              class="btn btn-danger">Delete</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal"
-                >Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
 
     <div class="modal fade" id="project-comments-modal" tabindex="-1" 
         role="dialog" aria-labelledby="project-comments">

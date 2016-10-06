@@ -1522,14 +1522,12 @@ var CodeAnnotator = function($){
     }
   });
 
-  // Handles clicks on file operation buttons.
-  $(document).on('click', '#confirm-delete-project-modal', function(e){
-    if(e.target.id === 'delete-project'){
-        // Remove the project.
-        deleteProject(PROJECT_ID, function(data){
-          window.document.location = '/projects';
-        });
-    }
+  // Handles clicks on the project deletion button.
+  $(document).on('click', '#delete-project', function(e){
+    // Remove the project.
+    deleteProject(PROJECT_ID, function(data){
+      window.document.location = '/projects';
+    });
   });
 
   // Handles clicks on comment editing buttons.
@@ -2238,20 +2236,37 @@ var CodeAnnotator = function($){
     });
   });
 
-  // Listen for file removals -- this populates the data-file-id attribute
-  // of the "Confirm" button that is displayed in the "Confirm deletion"
-  // modal.
-  $(document).on('show.bs.modal', '#confirm-remove-file-modal', function(event){
-    var entryElm = $(event.relatedTarget).closest('.entry');
-    var entryId = entryElm.attr('id');
+  // Listen for the confirm delete modal to appear and show the buttons and
+  // other information for the item begin deleted.
+  $(document).on('show.bs.modal', '#confirm-delete-modal', function(event){
     var modal = $(this);
-    
-    modal.find('#remove-file-confirmed').data('entry-id', entryId);
-    modal.find('.file-name').html(entryElm.find('.file-name').html());
+    var triggeringElm = $(event.relatedTarget);
+    var deleteType = triggeringElm.data('delete-type');
+
+    // Hide all dynamic elements in the modal, then reveal the ones for this
+    // delete type.
+    modal.find('.confirm-delete').hide();
+    modal.find('.'+ deleteType).show();
+
+    // Removing files.
+    if(deleteType === 'confirm-delete-file'){
+      var entryElm = triggeringElm.closest('.entry');
+      var entryId = entryElm.attr('id');
+  
+      modal.find('.btn.confirm-delete-file').data('entry-id', entryId);
+      modal.find('.file-name').html(entryElm.find('.file-name').html());
+
+    // Removing the project.
+    } else if(deleteType === 'confirm-delete-project') {
+      modal.find('.btn.confirm-delete-project').data('project-id', PROJECT_ID);
+    }
   });
 
+
+
+
   // Listen for file removal confirmation.
-  $(document).on('click', '#remove-file-confirmed', function(){
+  $(document).on('click', '#confirm-delete-file', function(){
     var modalElm = $(this).closest('.modal'); 
     var entryElm = $('#'+ $(this).data('entry-id'));
     var fileId = entryElm.data('file-id');
