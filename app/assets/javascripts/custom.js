@@ -1448,7 +1448,7 @@ var CodeAnnotator = function($){
   $(document).on('click', '.directory-name', function(event){
     var elm = $(this), parent = elm.parent();
 
-    if($(event.target).parent().hasClass('remove-file')){ return };
+    if($(event.target).parent().hasClass('edit-file-indicator')){ return };
 
     if(event.target.tagName === 'INPUT'){
       // Check all elements below.
@@ -2179,7 +2179,7 @@ var CodeAnnotator = function($){
 
   // Listen for filename edits -- this populates the file edit modal with
   // information about the filename being edited. 
-  $(document).on('show.bs.modal', '#edit-filename-modal', function(event){
+  $(document).on('shown.bs.modal', '#edit-filename-modal', function(event){
     var entryElm = $(event.relatedTarget).closest('.entry');
     var entryId = entryElm.attr('id');
     var modal = $(this);
@@ -2188,9 +2188,55 @@ var CodeAnnotator = function($){
     modal.find('#rename-file').data('entry-id', entryId);
     filenameTextBox.val(entryElm.find('.file-name').first().text());
     // NOTE: Having trouble getting focus on the text box. 
-    //filenameTextBox.focus();
+    filenameTextBox.focus();
   });
 
+  $('#rename-file-form').on('submit', function(){
+    $('#rename-file').click();
+    return false;
+  });
+
+  // Listen for the "Rename" file button to be pressed, shoot the new
+  // filename to the server, and update the UI.
+  $(document).on('click', '#rename-file', function(){
+    var modalElm = $(this).closest('.modal'); 
+    var entryElm = $('#'+ $(this).data('entry-id'));
+    var fileId = entryElm.data('file-id');
+    var newFilename = modalElm.find('#filename-edit-box').val();
+    var origFilename = entryElm.find('.file-name').html().trim();
+
+    // Remove the modal.
+    modalElm.modal('hide');
+
+    // Nothing to update if the filenames are the same.
+    if(origFilename === newFilename){ return; }
+
+    $.ajax('/api/files/'+ fileId, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        file: {
+            name: newFilename
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error renaming the file/directory.'+ 
+            data.error);
+          return;
+        }
+
+        entryElm.find('.file-name').first().html(newFilename);
+
+        if(curFileInfo && curFileInfo.id === fileId){
+          $('.page-header').html(newFilename);
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error renaming the file/directory. '+ error);
+      }
+    });
+  });
 
   // Listen for file removals -- this populates the data-file-id attribute
   // of the "Confirm" button that is displayed in the "Confirm deletion"
