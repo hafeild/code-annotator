@@ -1511,7 +1511,10 @@ var CodeAnnotator = function($){
 
   // Listens for file content to be selected and then highlights it.
   // $(document).on('mouseup', '.code .container', function(){
-  $(document).on('mouseup', '#file-display', function(){
+  $(document).on('mouseup', '#file-display', function(e){
+    // Ignore mouseups over the comment location removal buttons.
+    if($(e.target.parentElement).hasClass('location-removal-button')){ return; }
+
     var location = getSelectionLocation();
     if(locationIsValid(location)){
       $('#selection-menu .btn').removeClass('disabled');
