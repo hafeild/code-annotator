@@ -1215,7 +1215,10 @@ var CodeAnnotator = function($){
         var closeElm = $('<span>').attr('id', 'altcode-remove-'+ altcode.lid).
           addClass('altcode-removal-button').
           html('<span class="glyphicon glyphicon-remove-circle"></span>').
-          data('lid', altcode.lid);
+          attr('data-toggle', 'modal').
+          attr('data-target', '#confirm-delete-modal').
+          data('lid', altcode.lid).
+          data('delete-type', 'confirm-delete-altcode');
         var editElm = $('<span>').attr('id', 'altcode-edit-'+ altcode.lid).
           addClass('altcode-edit-button').
           html('<span class="glyphicon glyphicon-pencil"></span>').
@@ -2130,7 +2133,7 @@ var CodeAnnotator = function($){
 
   // Listen for the altcode removal button to be clicked and remove the
   // associated altcode.
-  $(document).on('click', '.altcode-removal-button', function(){
+  $(document).on('click', '.btn.confirm-delete-altcode', function(){
     var lid = $(this).data('lid');
     removeAltCode([lid], true);
   });
@@ -2263,10 +2266,10 @@ var CodeAnnotator = function($){
     // Removing the project.
     } else if(deleteType === 'confirm-delete-project') {
       modal.find('.btn.confirm-delete-project').data('project-id', PROJECT_ID);
-    }else if(deleteType === 'confirm-delete-comment-location') {
-      var confirmBtn = modal.find('.btn.confirm-delete-comment-location');
-      confirmBtn.data('lid', triggeringElm.data('lid'));
-    }else if(deleteType === 'confirm-delete-comment'){
+    } else if(deleteType === 'confirm-delete-comment-location' ||
+              deleteType === 'confirm-delete-altcode' ) {
+      modal.find('.btn.'+ deleteType).data('lid', triggeringElm.data('lid'));
+    } else if(deleteType === 'confirm-delete-comment'){
       modal.find('.btn.confirm-delete-comment').data('lid',
         triggeringElm.parents('.comment').data('lid'));
     }
