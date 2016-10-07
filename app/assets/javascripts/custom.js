@@ -1565,11 +1565,10 @@ var CodeAnnotator = function($){
   });
 
   // Handles comment deletions.
-  $(document).on('click', '.comment-delete', function(e){
-    var comment = $(this).parents('.comment');
+  $(document).on('click', '.btn.confirm-delete-comment', function(e){
     hideCommentLocationHighlights();
-    deleteComment(comment.data('lid'));
-    e.preventDefault();
+    deleteComment($(this).data('lid'));
+    //e.preventDefault();
   });
 
   // Listens for changes to comment content.
@@ -2241,8 +2240,8 @@ var CodeAnnotator = function($){
     });
   });
 
-  // Listen for the confirm delete modal to appear and show the buttons and
-  // other information for the item begin deleted.
+  // Listen for the confirm delete modal to be triggered and reveal the buttons
+  // and other information for the item begin deleted.
   $(document).on('show.bs.modal', '#confirm-delete-modal', function(event){
     var modal = $(this);
     var triggeringElm = $(event.relatedTarget);
@@ -2267,9 +2266,14 @@ var CodeAnnotator = function($){
     }else if(deleteType === 'confirm-delete-comment-location') {
       var confirmBtn = modal.find('.btn.confirm-delete-comment-location');
       confirmBtn.data('lid', triggeringElm.data('lid'));
+    }else if(deleteType === 'confirm-delete-comment'){
+      modal.find('.btn.confirm-delete-comment').data('lid',
+        triggeringElm.parents('.comment').data('lid'));
     }
   });
-
+    
+  // Listens for the confirm delete modal to be shown and then focuses the
+  // "Delete" button.
   $(document).on('shown.bs.modal', '#confirm-delete-modal', function(event){
     var deleteType = $(event.relatedTarget).data('delete-type');
     $(this).find('.btn.'+ deleteType).focus();

@@ -478,7 +478,9 @@
         <a href="#">Scroll to next location</a> |</span>
 
       <% if not @is_public and @project_permission.can_annotate %>
-      <span class="comment-delete in-file-only"><span 
+      <span class="comment-delete in-file-only"
+        data-toggle="modal" data-target="#confirm-delete-modal"
+        data-delete-type="confirm-delete-comment"><span 
         class="glyphicon glyphicon-trash"></span></span> 
       <span class="comment-saved in-file-only"><span 
         class="glyphicon glyphicon-floppy-saved"></span></span>
