@@ -798,6 +798,10 @@ input[type="checkbox"] {
     color: white;
   }
 
+  .syntaxhighlighter {
+    overflow: visible !important;
+  }
+
   .syntaxhighlighter .code {
     vertical-align: top !important;
   }
