@@ -971,7 +971,7 @@ var CodeAnnotator = function($){
           $('#file-display');
           $('#file-display').html(
             '<pre class="'+ getHighlighterClass(data.file.name) +'">\n'+
-                escapeHtml(addPadding(data.file.content)) + 
+              escapeHtml(addPadding(data.file.content.replace(/\r\n/g,'\n')))+ 
             '\n</pre>'
           );
           SyntaxHighlighter.highlight();
