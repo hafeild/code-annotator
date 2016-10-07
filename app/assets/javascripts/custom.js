@@ -349,7 +349,9 @@ var CodeAnnotator = function($){
         var closeElm = $('<span>').attr('id', 'remove-'+ locations[i].lid).
           addClass('location-removal-button').
           html('<span class="glyphicon glyphicon-remove-circle"></span>').
-          data('lid', locations[i].lid);
+          data('lid', locations[i].lid).attr('data-toggle', 'modal').
+            attr('data-target', '#confirm-delete-modal').data(
+            'delete-type', 'confirm-delete-comment-location');
         $('#'+ locations[i].start_line +'_'+ locations[i].start_column).
           append(closeElm);
 
@@ -1664,7 +1666,7 @@ var CodeAnnotator = function($){
   });
 
   // Listen for comment location removal buttons to be pressed.
-  $(document).on('click', '.location-removal-button', function(){
+  $(document).on('click', '.btn.confirm-delete-comment-location', function(){
     var lid = $(this).data('lid');
     deleteCommentLocation(commentLocLidToCommentLidMap[lid], lid, false);
   });
@@ -2262,20 +2264,21 @@ var CodeAnnotator = function($){
     // Removing the project.
     } else if(deleteType === 'confirm-delete-project') {
       modal.find('.btn.confirm-delete-project').data('project-id', PROJECT_ID);
+    }else if(deleteType === 'confirm-delete-comment-location') {
+      var confirmBtn = modal.find('.btn.confirm-delete-comment-location');
+      confirmBtn.data('lid', triggeringElm.data('lid'));
     }
   });
 
-
-
+  $(document).on('shown.bs.modal', '#confirm-delete-modal', function(event){
+    var deleteType = $(event.relatedTarget).data('delete-type');
+    $(this).find('.btn.'+ deleteType).focus();
+  });
 
   // Listen for file removal confirmation.
   $(document).on('click', '#confirm-delete-file', function(){
-    var modalElm = $(this).closest('.modal'); 
     var entryElm = $('#'+ $(this).data('entry-id'));
     var fileId = entryElm.data('file-id');
-
-    // Remove the modal.
-    modalElm.modal('hide');
 
     $.ajax('/api/files/'+ fileId, {
       method: 'POST',

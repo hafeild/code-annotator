@@ -173,6 +173,10 @@
                 >Are you sure you want to permenantly delete this project?</h4>
             <h4 class="modal-title confirm-delete confirm-delete-comment"
                 >Are you sure you want to permenantly delete this comment?</h4>
+            <h4 class="modal-title confirm-delete 
+                confirm-delete-comment-location"
+                >Are you sure you want to permenantly delete this comment
+                location?</h4>
             <h4 class="modal-title confirm-delete confirm-delete-alt-code"
                 >Are you sure you want to permenantly delete this altnerate
                  code?</h4>
@@ -183,17 +187,25 @@
             File: <span class="file-name"></span>
           </div>
           <div class="modal-footer">
-            <button type="button" id="delete-project"
+            <button type="button" id="delete-project" tabindex="1"
               class="btn btn-danger confirm-delete confirm-delete-project"
+              data-dismiss="modal"
               >Delete</button>
-            <button type="button" 
+            <button type="button" tabindex="1"
               class="btn btn-danger confirm-delete confirm-delete-comment"
+              data-dismiss="modal"
               >Delete</button>
-            <button type="button" 
+            <button type="button" class="btn btn-danger confirm-delete 
+              confirm-delete-comment-location" tabindex="1" 
+              data-dismiss="modal"
+              >Delete</button>
+            <button type="button" tabindex="1"
               class="btn btn-danger confirm-delete confirm-delete-alt-code"
+              data-dismiss="modal"
               >Delete</button>
-            <button type="button" id="confirm-delete-file"
+            <button type="button" id="confirm-delete-file" tabindex="1"
               class="btn btn-danger confirm-delete confirm-delete-file"
+              data-dismiss="modal"
               >Delete</button>
             <button type="button" class="btn btn-default" data-dismiss="modal"
                 >Cancel</button>
