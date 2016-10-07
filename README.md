@@ -362,3 +362,36 @@ on where you've put your certificates and what you've named them.
 </VirtualHost>
 ```
 
+## Testing
+
+To test the system, first set up the test environment (needs to be done before
+the first time tests are run and anytime a new migration is added):
+
+```bash
+bundle exec rake db:migrate RAILS_ENV=test
+```
+
+Run all tests by doing the following:
+
+```bash
+bundle exec rake test
+```
+
+## Branch control and versioning
+
+We are using a branch model based on the one described by Vincent Driessen
+(http://nvie.com/posts/a-successful-git-branching-model/).
+
+We use two main branches: `master` and `develop`. Feaures should be developed
+on their own seperate branch and then a pull request should be made to merge
+them back to develop when completed. When a release is ready to
+be tagged from `develop`, we first move it to its own release branch. That is
+where version changes happen and last minute testing. When ready, a pull
+request should be made to merge it with master and tagged with the version
+number, and master should be merged to develop to ensure everything is uptodate.
+
+Versioning is controlled in the file `config/initializers/version.rb`. All
+versions consist of the year (YY) and month (MM). Optionally, a hotfix
+number can be added to the end. When in development, the hotfix number is
+replaced with the build number (automatically handled in the script mentioned
+above).
