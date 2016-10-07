@@ -1,6 +1,15 @@
 # Changelog
 
+## Major changes in v16.10.0
+This version includes several updated features:
 
+  * All deletions (projects, files, comments, and altcode) now require 
+    confirmation. The confirmation dialog can be easily accepted by pressing
+    the Enter key or clicking the "Delete" app.
+  * Files can be renamed.
+  * Improved comment selection handling.
+  * Comments can be added to top or bottom of file and the end of any line.
+  * Cross browser support (Chrome, Firefox, and Edge tested).
 
 ## Major changes in v16.02.0
 This is the first official major version! At this point, most of the basic

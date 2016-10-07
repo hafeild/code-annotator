@@ -1,8 +1,8 @@
 class Api::FilesController < ApplicationController
   before_action :logged_in_user_api, except: [:show_public]
-  before_action :get_file, only: [:show, :show_public, :destroy]
+  before_action :get_file, only: [:update, :show, :show_public, :destroy]
   before_action :get_project, except: [:show_public]
-  before_action :has_author_permissions, only: [:create_directory, :destroy]
+  before_action :has_author_permissions, only: [:update, :create_directory, :destroy]
   before_action :has_view_permissions, only: [:show]
 
   def index
@@ -10,7 +10,17 @@ class Api::FilesController < ApplicationController
   end
 
   def update
-    render json: "", serializer: SuccessSerializer
+    file_params = params.require(:file).permit(:name)
+    if @file.name != file_params[:name]
+      @file.name = file_params[:name]
+      if @file.save
+        render json: @file.id, serializer: SuccessWithIdSerializer
+      else
+        render_error "Filename could not be updated."
+      end
+      return
+    end
+    render json: @file.id, serializer: SuccessWithIdSerializer
   end
 
   ## Creates a new directory. Can only be accessed by users with

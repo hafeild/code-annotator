@@ -349,7 +349,9 @@ var CodeAnnotator = function($){
         var closeElm = $('<span>').attr('id', 'remove-'+ locations[i].lid).
           addClass('location-removal-button').
           html('<span class="glyphicon glyphicon-remove-circle"></span>').
-          data('lid', locations[i].lid);
+          data('lid', locations[i].lid).attr('data-toggle', 'modal').
+            attr('data-target', '#confirm-delete-modal').data(
+            'delete-type', 'confirm-delete-comment-location');
         $('#'+ locations[i].start_line +'_'+ locations[i].start_column).
           append(closeElm);
 
@@ -816,7 +818,7 @@ var CodeAnnotator = function($){
 
     // Otherwise, we'll have to calculate the offset the hard way.
     var shElm = node.parentNode;
-    var lineElm = $(shElm).parents('.line')[0];
+    var lineElm = $(node).parents('.line')[0];
 
     if(!lineElm) return {line: -1, col: -1};
 
@@ -927,6 +929,20 @@ var CodeAnnotator = function($){
   };
 
   /**
+   * Adds a blank line to the beginning and end of the given string and
+   * a space at the end of every line. The purpose of this is to allow
+   * comments to be added at the top and bottom of the file, on blank lines,
+   * and at the end of lines.
+   *
+   * @param [string] text The text to add padding to.
+   * @return The text updated with padding.
+   */
+  var addPadding = function(text){
+    text = '\n'+ text;
+    return text.replace(/\n/g, ' \n');
+  };
+
+  /**
    * Fetch the content of the select file.
    *
    * @param [int] fileId The id of the file to load.
@@ -955,7 +971,7 @@ var CodeAnnotator = function($){
           $('#file-display');
           $('#file-display').html(
             '<pre class="'+ getHighlighterClass(data.file.name) +'">\n'+
-                escapeHtml(data.file.content) + 
+                escapeHtml(addPadding(data.file.content)) + 
             '\n</pre>'
           );
           SyntaxHighlighter.highlight();
@@ -1088,14 +1104,14 @@ var CodeAnnotator = function($){
 
   /**
    * Checks if the given location is valid, that is, the starting and ending
-   * points are numbers greater than 0.
+   * points are numbers greater than 0 (or -1 in the case of line numbers).
    *
    * @param {simple object} location The location to verify.
    * @return True if the location is valid, false otherwise.
    */
   var locationIsValid = function(location){
-    return location.start_line > 0 && location.start_column > 0 &&
-        location.end_line > 0 && location.end_column > 0;
+    return location.start_line >= 0 && location.start_column > 0 &&
+        location.end_line >= 0 && location.end_column > 0;
   };
 
   /**
@@ -1199,7 +1215,10 @@ var CodeAnnotator = function($){
         var closeElm = $('<span>').attr('id', 'altcode-remove-'+ altcode.lid).
           addClass('altcode-removal-button').
           html('<span class="glyphicon glyphicon-remove-circle"></span>').
-          data('lid', altcode.lid);
+          attr('data-toggle', 'modal').
+          attr('data-target', '#confirm-delete-modal').
+          data('lid', altcode.lid).
+          data('delete-type', 'confirm-delete-altcode');
         var editElm = $('<span>').attr('id', 'altcode-edit-'+ altcode.lid).
           addClass('altcode-edit-button').
           html('<span class="glyphicon glyphicon-pencil"></span>').
@@ -1434,6 +1453,8 @@ var CodeAnnotator = function($){
   $(document).on('click', '.directory-name', function(event){
     var elm = $(this), parent = elm.parent();
 
+    if($(event.target).parent().hasClass('edit-file-indicator')){ return };
+
     if(event.target.tagName === 'INPUT'){
       // Check all elements below.
       if(event.target.checked){
@@ -1495,7 +1516,10 @@ var CodeAnnotator = function($){
 
   // Listens for file content to be selected and then highlights it.
   // $(document).on('mouseup', '.code .container', function(){
-  $(document).on('mouseup', '#file-display', function(){
+  $(document).on('mouseup', '#file-display', function(e){
+    // Ignore mouseups over the comment location removal buttons.
+    if($(e.target.parentElement).hasClass('location-removal-button')){ return; }
+
     var location = getSelectionLocation();
     if(locationIsValid(location)){
       $('#selection-menu .btn').removeClass('disabled');
@@ -1506,17 +1530,12 @@ var CodeAnnotator = function($){
     }
   });
 
-  // Handles clicks on file operation buttons.
-  $(document).on('click', '#file-ops .btn', function(e){
-    if($(this).hasClass('disabled')){ return; }
-
-    if(e.target.id === 'delete-project'){
-        // Remove the project.
-        deleteProject(PROJECT_ID, function(data){
-          window.document.location = '/projects';
-        });
-    }
-
+  // Handles clicks on the project deletion button.
+  $(document).on('click', '#delete-project', function(e){
+    // Remove the project.
+    deleteProject(PROJECT_ID, function(data){
+      window.document.location = '/projects';
+    });
   });
 
   // Handles clicks on comment editing buttons.
@@ -1549,11 +1568,10 @@ var CodeAnnotator = function($){
   });
 
   // Handles comment deletions.
-  $(document).on('click', '.comment-delete', function(e){
-    var comment = $(this).parents('.comment');
+  $(document).on('click', '.btn.confirm-delete-comment', function(e){
     hideCommentLocationHighlights();
-    deleteComment(comment.data('lid'));
-    e.preventDefault();
+    deleteComment($(this).data('lid'));
+    //e.preventDefault();
   });
 
   // Listens for changes to comment content.
@@ -1598,7 +1616,6 @@ var CodeAnnotator = function($){
 
   // Scrolls to the next comment location when a comment is clicked.
   $(document).on('click', '.scroll-to-next-location', function(e){
-    console.log('comment clicked');
     var commentElm = $(this).parents('.comment'),
         lid = commentElm.data('lid'),
         locLid = 0,
@@ -1651,7 +1668,7 @@ var CodeAnnotator = function($){
   });
 
   // Listen for comment location removal buttons to be pressed.
-  $(document).on('click', '.location-removal-button', function(){
+  $(document).on('click', '.btn.confirm-delete-comment-location', function(){
     var lid = $(this).data('lid');
     deleteCommentLocation(commentLocLidToCommentLidMap[lid], lid, false);
   });
@@ -1819,10 +1836,26 @@ var CodeAnnotator = function($){
     });
   }
 
-  // Listen for projects to be deleted.
+  // Listen for projects to be deleted and present the user with a confirmation
+  // modal.
   $(document).on('click', '.project-trash', function(e){
     var entryElm = $(this).parents('.project');
     var projectId = entryElm.attr('id');
+    var modalElm = $('#confirm-delete-project-modal');
+
+    modalElm.modal('show');
+    modalElm.find('.project-name').html(entryElm.find('.name').html());
+    modalElm.find('#trash-project').data('project-id', projectId);
+  });
+
+  // Listen for project deletion to be confirmed.
+  $(document).on('click', '#trash-project', function(e){ 
+    var modalElm = $(this).closest('.modal');
+    var projectId = $(this).data('project-id');
+    var entryElm = $('#'+ projectId);
+
+    // Close the modal.
+    modalElm.modal('hide');    
 
     // Remove the project.
     deleteProject(projectId, function(data){
@@ -2100,7 +2133,7 @@ var CodeAnnotator = function($){
 
   // Listen for the altcode removal button to be clicked and remove the
   // associated altcode.
-  $(document).on('click', '.altcode-removal-button', function(){
+  $(document).on('click', '.btn.confirm-delete-altcode', function(){
     var lid = $(this).data('lid');
     removeAltCode([lid], true);
   });
@@ -2145,13 +2178,113 @@ var CodeAnnotator = function($){
   });
 
   // Listen for the 'Remove files' button to be pressed.
-  $(document).on('click', '.toggle-file-removal', function(){
-    $('.remove-file-indicator').toggle();
+  $(document).on('click', '.toggle-edit-file', function(){
+    $('.edit-file-indicator').toggle();
   });
 
-  // List for file removals.
-  $(document).on('click', '.remove-file', function(){
-    var entryElm = $(this).closest('.entry');
+  // Listen for filename edits -- this populates the file edit modal with
+  // information about the filename being edited. 
+  $(document).on('shown.bs.modal', '#edit-filename-modal', function(event){
+    var entryElm = $(event.relatedTarget).closest('.entry');
+    var entryId = entryElm.attr('id');
+    var modal = $(this);
+    var filenameTextBox = modal.find('#filename-edit-box');  
+  
+    modal.find('#rename-file').data('entry-id', entryId);
+    filenameTextBox.val(entryElm.find('.file-name').first().text());
+    // NOTE: Having trouble getting focus on the text box. 
+    filenameTextBox.focus();
+  });
+
+  $('#rename-file-form').on('submit', function(){
+    $('#rename-file').click();
+    return false;
+  });
+
+  // Listen for the "Rename" file button to be pressed, shoot the new
+  // filename to the server, and update the UI.
+  $(document).on('click', '#rename-file', function(){
+    var modalElm = $(this).closest('.modal'); 
+    var entryElm = $('#'+ $(this).data('entry-id'));
+    var fileId = entryElm.data('file-id');
+    var newFilename = modalElm.find('#filename-edit-box').val();
+    var origFilename = entryElm.find('.file-name').html().trim();
+
+    // Remove the modal.
+    modalElm.modal('hide');
+
+    // Nothing to update if the filenames are the same.
+    if(origFilename === newFilename){ return; }
+
+    $.ajax('/api/files/'+ fileId, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        file: {
+            name: newFilename
+        }
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error renaming the file/directory.'+ 
+            data.error);
+          return;
+        }
+
+        entryElm.find('.file-name').first().html(newFilename);
+
+        if(curFileInfo && curFileInfo.id === fileId){
+          $('.page-header').html(newFilename);
+        }
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error renaming the file/directory. '+ error);
+      }
+    });
+  });
+
+  // Listen for the confirm delete modal to be triggered and reveal the buttons
+  // and other information for the item begin deleted.
+  $(document).on('show.bs.modal', '#confirm-delete-modal', function(event){
+    var modal = $(this);
+    var triggeringElm = $(event.relatedTarget);
+    var deleteType = triggeringElm.data('delete-type');
+
+    // Hide all dynamic elements in the modal, then reveal the ones for this
+    // delete type.
+    modal.find('.confirm-delete').hide();
+    modal.find('.'+ deleteType).show();
+
+    // Removing files.
+    if(deleteType === 'confirm-delete-file'){
+      var entryElm = triggeringElm.closest('.entry');
+      var entryId = entryElm.attr('id');
+  
+      modal.find('.btn.confirm-delete-file').data('entry-id', entryId);
+      modal.find('.file-name').html(entryElm.find('.file-name').html());
+
+    // Removing the project.
+    } else if(deleteType === 'confirm-delete-project') {
+      modal.find('.btn.confirm-delete-project').data('project-id', PROJECT_ID);
+    } else if(deleteType === 'confirm-delete-comment-location' ||
+              deleteType === 'confirm-delete-altcode' ) {
+      modal.find('.btn.'+ deleteType).data('lid', triggeringElm.data('lid'));
+    } else if(deleteType === 'confirm-delete-comment'){
+      modal.find('.btn.confirm-delete-comment').data('lid',
+        triggeringElm.parents('.comment').data('lid'));
+    }
+  });
+    
+  // Listens for the confirm delete modal to be shown and then focuses the
+  // "Delete" button.
+  $(document).on('shown.bs.modal', '#confirm-delete-modal', function(event){
+    var deleteType = $(event.relatedTarget).data('delete-type');
+    $(this).find('.btn.'+ deleteType).focus();
+  });
+
+  // Listen for file removal confirmation.
+  $(document).on('click', '#confirm-delete-file', function(){
+    var entryElm = $('#'+ $(this).data('entry-id'));
     var fileId = entryElm.data('file-id');
 
     $.ajax('/api/files/'+ fileId, {
@@ -2291,6 +2424,7 @@ var CodeAnnotator = function($){
   Sortable.init();
   SyntaxHighlighter.defaults['toolbar'] = false;
   SyntaxHighlighter.defaults['quick-code'] = false;
+  SyntaxHighlighter.defaults['first-line'] = 0;
 
   this.getSelectionLocation = getSelectionLocation;
   this.highlightSelection = highlightSelection;

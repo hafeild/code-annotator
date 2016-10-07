@@ -194,10 +194,15 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   ## Update
 
-  test "should return success message on update" do
+  test "should return success message on updating filename" do
     log_in_as @user
-    response = patch :update, id: 1
-    assert JSON.parse(response.body)['success']
+    file = project_files(:file1)
+    response = patch :update, id: file.id, file: {name: "A new name"}
+    response_json = JSON.parse(response.body)
+    assert response_json['success'], "Update unsuccessful."
+    assert response_json['id'] == file.id, "Returned id doesn't match file id."
+    assert ProjectFile.find_by(id: file.id).name == "A new name",
+        "Filename not updated."
   end
 
 

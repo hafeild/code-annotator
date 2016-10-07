@@ -4,8 +4,19 @@
         data-file-id="<%= file.id %>" data-expand-state="expanded">        
       <div class="directory-name">
         <% unless file.directory_id.nil? %>
-          <span class="remove-file-indicator remove-file hidden">
-            <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+          <span class="edit-file-indicator edit-filename hidden"
+            data-toggle="modal" data-target="#edit-filename-modal"
+            title="Edit directory name">
+            <span class="glyphicon glyphicon-edit" aria-hidden="true"
+            ></span>
+          </span>
+
+          <span class="edit-file-indicator remove-file hidden"
+            data-toggle="modal" data-target="#confirm-delete-modal"
+            data-delete-type="confirm-delete-file"
+            title="Remove directory">
+            <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"
+            ></span>
           </span>
         <% end %>
 
@@ -13,19 +24,18 @@
         <input class="dir-select file-select hidden" type="checkbox">
 
         <span class="collapsed">
-          <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
+          <span class="glyphicon glyphicon-folder-close" aria-hidden="true"
+          ></span>
         </span>
         <span class="expanded">
-          <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
+          <span class="glyphicon glyphicon-folder-open" aria-hidden="true"
+          ></span>
         </span>
-        <% if file.directory_id.nil? %>
-          /
-        <% else %>
-          <%= file.name %>
-        <% end %>
+        <span class="file-name"
+          ><%= file.directory_id.nil? ? "/" : file.name %></span>
         <span class="add-file-or-directory" data-toggle="modal" 
             data-target="#upload-files">
-          <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
+          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
         </span>
 
       </div>
@@ -37,12 +47,22 @@
   <% else %>
     <div class="entry file-entry" data-file-id="<%= file.id %>" 
         id="file-<%= file.id %>">
-      <span class="remove-file-indicator remove-file hidden">
-        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+      <span class="edit-file-indicator edit-filename hidden"
+        data-toggle="modal" data-target="#edit-filename-modal"
+        title="Edit filename">
+        <span class="glyphicon glyphicon-edit" aria-hidden="true"
+        ></span>
+      </span>
+      <span class="edit-file-indicator remove-file hidden"
+        data-toggle="modal" data-target="#confirm-delete-modal"
+        data-delete-type="confirm-delete-file"
+        title="Delete file">
+        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"
+        ></span>
       </span>
       <input class="file-select hidden" type="checkbox">
       <a href="#<%= file.id %>"
-        data-file-id="<%= file.id %>"
+        data-file-id="<%= file.id %>" class="file-name"
         ><%= file.name %></a>
       <span class="count comment-count">
         <span class="glyphicon glyphicon-comment"></span>

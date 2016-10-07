@@ -3,7 +3,10 @@
 <div class="container-fluid project-view">
   <div class="row">
     <div class="col-sm-3 col-md-2 sidebar sidebar-collapse">
-      <span class="sidebar-toggle btn btn-default"><span class="glyphicon glyphicon-remove-circle"></span> Hide file list</span>
+      <span class="sidebar-toggle btn btn-default"
+        ><span class="glyphicon glyphicon-remove-circle"></span> 
+        Hide file list
+      </span>
       <span class="project-title"><%= @project.name %></span>
       <div class="root-directory directory">
         <%= render template: "projects/_project_file_listing", 
@@ -17,8 +20,12 @@
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
       <div id="project-view-header">
         <div class="button-bar">
-          <span class="sidebar-toggle btn btn-default btn-xs"><span class="glyphicon glyphicon-list-alt"></span> Show file list</span>
-          <div class="btn-group" id="file-ops" role="group" aria-label="file operations">
+          <span class="sidebar-toggle btn btn-default btn-xs"
+                ><span class="glyphicon glyphicon-list-alt"></span> 
+                Show file list
+          </span>
+          <div class="btn-group" id="file-ops" role="group" 
+            aria-label="file operations">
 <!--             <button type="button" class="btn btn-default btn-xs"><span 
               class="glyphicon glyphicon-print"></span> 
               Print files
@@ -26,12 +33,13 @@
 -->
 
             <button type="button" class="btn btn-default btn-xs 
-              file-select toggle-file-download show-file-download-selectors"><span 
-              class="glyphicon glyphicon-cloud-download"></span> 
+              file-select toggle-file-download show-file-download-selectors"
+                ><span class="glyphicon glyphicon-cloud-download"></span> 
               Select files to download
             </button> 
             <button type="button" class="btn btn-default btn-xs 
-              file-select toggle-file-download remove-file-download-selectors hidden"><span 
+              file-select toggle-file-download remove-file-download-selectors 
+              hidden"><span 
               class="glyphicon glyphicon-remove"></span> 
               Finish selecting files for download
             </button> 
@@ -43,25 +51,27 @@
 
             <% if not @is_public and @project_permission.can_author %>
               <button
-                type="button" class="btn btn-default btn-xs toggle-file-removal
-                  remove-file-indicator"><span 
-                class="glyphicon glyphicon-remove-circle"></span> 
-                Remove files
+                type="button" class="btn btn-default btn-xs toggle-edit-file
+                  edit-file-indicator"><span 
+                class="glyphicon glyphicon-pencil"></span> 
+                Edit files
               </button>
               <button
-                type="button" class="btn btn-default btn-xs toggle-file-removal 
-                  remove-file-indicator hidden"><span 
-                class="glyphicon glyphicon-remove-circle"></span> 
-                Done removing files
+                type="button" class="btn btn-default btn-xs toggle-edit-file 
+                  edit-file-indicator hidden"><span 
+                class="glyphicon glyphicon-pencil"></span> 
+                Done editing files
               </button>
               <button type="button" id="share-project"
                 class="btn btn-default btn-xs"
                 data-toggle="modal" data-target="#project-sharing"><span 
                 class="glyphicon glyphicon-transfer"></span> Share project
               </button>              
-              <button type="button" id="delete-project"
-                class="btn btn-default btn-xs"><span 
-                class="glyphicon glyphicon-trash"></span> Delete project
+              <button type="button" id="delete-project-pre-confirm"
+                class="btn btn-default btn-xs"
+                data-toggle="modal" data-target="#confirm-delete-modal"
+                data-delete-type="confirm-delete-project"
+                ><span class="glyphicon glyphicon-trash"></span> Delete project
               </button>
             <% end %>
           </div>
@@ -94,7 +104,8 @@
 
       <div id="file-and-annotations" class="row">
         <div id="file-display" class="col-sm-8 col-md-9"
-          placeholder="Select a file to the left to have it displayed here."></div>
+          placeholder="Select a file to the left to have it displayed here."
+        ></div>
 
         <div id="comments" placeholder="No comments yet." 
           class="col-sm-4 col-sm-offset-8 col-md-3 col-md-offset-9"></div>
@@ -122,12 +133,95 @@
       </div>
     </div> -->
 
+    <div class="modal fade" id="edit-filename-modal" tabindex="-1" 
+        role="dialog" aria-labelledby="edit-filename">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" 
+                aria-label="Close"><span aria-hidden="true">&times;</span
+            ></button>
+            <h4 class="modal-title" id="project-comments">Edit filename</h4>
+          </div>
+          <div class="modal-body">
+            <form id="rename-file-form">
+            <strong>Filename:</strong> 
+            <input type="text" id="filename-edit-box" class="form-control"/>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="rename-file" class="btn btn-danger" 
+              >Rename</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"
+                >Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="modal fade" id="confirm-delete-modal" tabindex="-1" 
+        role="dialog" aria-labelledby="confirm-delete">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" 
+                aria-label="Close"><span aria-hidden="true">&times;</span
+            ></button>
+            <h4 class="modal-title confirm-delete confirm-delete-project"
+                >Are you sure you want to permenantly delete this project?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-comment"
+                >Are you sure you want to permenantly delete this comment?</h4>
+            <h4 class="modal-title confirm-delete 
+                confirm-delete-comment-location"
+                >Are you sure you want to permenantly delete this comment
+                location?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-altcode"
+                >Are you sure you want to permenantly delete this altnerate
+                 code?</h4>
+            <h4 class="modal-title confirm-delete confirm-delete-file"
+                >Are you sure you want to permenantly delete this file?</h4>
+          </div>
+          <div class='modal-body confirm-delete confirm-delete-file'>
+            File: <span class="file-name"></span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="delete-project" tabindex="1"
+              class="btn btn-danger confirm-delete confirm-delete-project"
+              data-dismiss="modal"
+              >Delete</button>
+            <button type="button" tabindex="1"
+              class="btn btn-danger confirm-delete confirm-delete-comment"
+              data-dismiss="modal"
+              >Delete</button>
+            <button type="button" class="btn btn-danger confirm-delete 
+              confirm-delete-comment-location" tabindex="1" 
+              data-dismiss="modal"
+              >Delete</button>
+            <button type="button" tabindex="1"
+              class="btn btn-danger confirm-delete confirm-delete-altcode"
+              data-dismiss="modal"
+              >Delete</button>
+            <button type="button" id="confirm-delete-file" tabindex="1"
+              class="btn btn-danger confirm-delete confirm-delete-file"
+              data-dismiss="modal"
+              >Delete</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"
+                >Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="project-comments-modal" tabindex="-1" 
         role="dialog" aria-labelledby="project-comments">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <button type="button" class="close" data-dismiss="modal" 
+                aria-label="Close"><span aria-hidden="true">&times;</span
+            ></button>
             <h4 class="modal-title" id="project-comments">Project Comments</h4>
           </div>
           <div class="modal-body">
@@ -139,7 +233,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"
+                >Close</button>
           </div>
         </div>
       </div>
@@ -152,8 +247,11 @@
         <div class="modal-content">
 
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="upload-files-title">Add directory or files</h4>
+            <button type="button" class="close" data-dismiss="modal" 
+                aria-label="Close"><span aria-hidden="true">&times;</span
+            ></button>
+            <h4 class="modal-title" id="upload-files-title"
+                >Add directory or files</h4>
           </div>
           <div class="modal-body">
 
@@ -176,11 +274,12 @@
 
             <div id="add-files-container">
               <h4>Add files</h4>
-              <em>Note: binary files and subdirectories of <tt>__MACOSX</tt> will be ignored.</em>
-              <%= form_for(:project_file, url: "/projects/#{@project_id}/files") do |f| %>
-                  <%= f.file_field :files, multiple: true, class: "form-control file-upload-selection" %>
-                  <!-- <input type="file" multiple="true" name="project_file[files][]" 
-                    class="file-upload-selection"> -->
+              <em>Note: binary files and subdirectories of <tt>__MACOSX</tt> 
+                  will be ignored.</em>
+              <%= form_for(
+                :project_file, url: "/projects/#{@project_id}/files") do |f| %>
+                  <%= f.file_field :files, multiple: true, 
+                    class: "form-control file-upload-selection" %>
                   <input type="hidden" id="directory_id" 
                   name="project_file[directory_id]" value=""/>
               <% end %>
@@ -192,7 +291,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"
+                >Close</button>
           </div>
 
         </div>
@@ -207,8 +307,11 @@
         <div class="modal-content">
 
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h3 class="modal-title" id="project-sharing-title">Share project</h3>
+            <button type="button" class="close" data-dismiss="modal" 
+                aria-label="Close"><span aria-hidden="true">&times;</span
+            ></button>
+            <h3 class="modal-title" id="project-sharing-title"
+                >Share project</h3>
           </div>
           <div class="modal-body">
             <h3>Share with specific users</h3>
@@ -239,12 +342,18 @@
                 end
               %>
               <tr data-permission-id="<%= permission.id %>">
-                <td class="permission-email"><%= permission.user_email.nil? ? permission.user.email : permission.user_email %></td>
+                <td class="permission-email"><%= 
+                    permission.user_email.nil? ? permission.user.email : 
+                        permission.user_email %></td>
                 <td>
-                  <select name="access-level" class="form-control permission-options">
-                    <option value="author" <%= access == "author" ? "selected=selected" : "" %>>Can author</option>
-                    <option value="view" <%= access == "viewer" ? "selected=selected" : "" %>>Can view</option>  
-                    <option value="annotate" <%= access == "annotator" ? "selected=selected" : "" %>>Can annotate</option>
+                  <select name="access-level" 
+                        class="form-control permission-options">
+                    <option value="author" <%= access == "author" ? 
+                        "selected=selected" : "" %>>Can author</option>
+                    <option value="view" <%= access == "viewer" ? 
+                        "selected=selected" : "" %>>Can view</option>  
+                    <option value="annotate" <%= access == "annotator" ? 
+                        "selected=selected" : "" %>>Can annotate</option>
                   </select>
                 </td>
                 <td class="permission-trash trash">
@@ -269,10 +378,12 @@
               </div>
             </form>
 
-            <table class="table table-hover <%= @project.public_links.size == 0 ? "hidden" : "" %>" 
-              id="public-links-table">
+            <table class="table table-hover 
+                <%= @project.public_links.size == 0 ? "hidden" : "" %>" 
+                id="public-links-table">
               <tr class="header">
-                <th>Link to project</th><th>Link to current file</th><th>Link name</th><th></th>
+                <th>Link to project</th><th>Link to current file</th><th
+                    >Link name</th><th></th>
               </tr>
               <% @project.public_links.each do |public_link| %>
               <tr data-public-link-id="<%= public_link.id %>">
@@ -280,12 +391,14 @@
                   <input type="text"
                     class="form-control"
                     readonly
-                    value="<%= "#{root_url}projects/public/#{public_link.link_uuid}" %>">
+                    value="<%= 
+                    "#{root_url}projects/public/#{public_link.link_uuid}" %>">
                 </td>
                 <td class="public-link">
                   <input type="text"
                     class="form-control public-file-link"
-                    data-public-project-link="<%= "#{root_url}projects/public/#{public_link.link_uuid}" %>"
+                    data-public-project-link="<%= 
+                    "#{root_url}projects/public/#{public_link.link_uuid}" %>"
                     readonly
                     placeholder="No file selected"
                     value="">
@@ -308,8 +421,10 @@
                       <input type="text"
                         class="form-control public-link-name" 
                         placeholder="Enter a name for your link..."
-                        data-last-value="<%= public_link.name.nil? ? "" : public_link.name %>"
-                        value="<%= public_link.name.nil? ? "" : public_link.name %>"
+                        data-last-value="<%= 
+                            public_link.name.nil? ? "" : public_link.name %>"
+                        value="<%= 
+                            public_link.name.nil? ? "" : public_link.name %>"
                       >
                     </div>
                   </div>
@@ -328,10 +443,11 @@
     <% end %>
 
   </div>
-</div>
 
-<div id="code-to-highlight" class="hidden">
 </div>
+  <div id="code-to-highlight" class="hidden">
+  </div>
+
 
 <!-- Templates. -->
 <div id="templates" class="hidden">
@@ -343,8 +459,10 @@
       <textarea class="panel-body altcode-editor" contenteditable="true"
           placeholder="Enter your code here..."></textarea>
       <div class="panel-footer">
-        <button type="button" class="btn btn-default btn-md cancel">Cancel</button>
-        <button type="button" class="btn btn-default btn-md save">Save</button>
+        <button type="button" class="btn btn-default btn-md cancel"
+            >Cancel</button>
+        <button type="button" class="btn btn-default btn-md save"
+            >Save</button>
       </div>
     </div>
   </div>
@@ -356,11 +474,16 @@
       placeholder="Enter your comment here..."></div>
     <div class="panel-footer comment-footer">
       <span class="comment-owner"></span> 
-      <span class="scroll-to-next-location in-file-only">| <a href="#">Scroll to next location</a> |</span>
+      <span class="scroll-to-next-location in-file-only">| 
+        <a href="#">Scroll to next location</a> |</span>
 
       <% if not @is_public and @project_permission.can_annotate %>
-      <span class="comment-delete in-file-only"><span class="glyphicon glyphicon-trash"></span></span> 
-      <span class="comment-saved in-file-only"><span class="glyphicon glyphicon-floppy-saved"></span></span>
+      <span class="comment-delete in-file-only"
+        data-toggle="modal" data-target="#confirm-delete-modal"
+        data-delete-type="confirm-delete-comment"><span 
+        class="glyphicon glyphicon-trash"></span></span> 
+      <span class="comment-saved in-file-only"><span 
+        class="glyphicon glyphicon-floppy-saved"></span></span>
       <% end %>
 
     </div>
@@ -437,18 +560,20 @@
       <input class="dir-select file-select hidden" type="checkbox">
 
       <span class="remove-file-indicator remove-file hidden">
-        <span class="glyphicon glyphicon-remove-circle aria-hidden="true""></span>
+        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"
+            ></span>
       </span>
       <span class="collapsed">
-        <span class="glyphicon glyphicon-folder-close aria-hidden="true""></span>
+        <span class="glyphicon glyphicon-folder-close" aria-hidden="true"
+            ></span>
       </span>
       <span class="expanded">
-        <span class="glyphicon glyphicon-folder-open aria-hidden="true""></span>
+        <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
       </span>
       <span class="directory-name-placeholder"></span>
       <span class="add-file-or-directory" data-toggle="modal" 
           data-target="#upload-files">
-        <span class="glyphicon glyphicon-plus aria-hidden="true""></span>
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
       </span>
 
     </div>
@@ -464,10 +589,12 @@
   <!-- Not a template, but is hidden data for use in templates. -->
   <% unless @is_public %>
     <div id="current-email"><%= current_user.email %></div>
-    <div id="public-link-url-root" data-url="<%= "#{root_url}projects/public/" %>"></div>
+    <div id="public-link-url-root" data-url="<%= 
+      "#{root_url}projects/public/" %>"></div>
   <% end %>
 
-  <form id="file-download-form" method="get" action="/projects/<%= @project_id %>/download">
+  <form id="file-download-form" method="get" action="/projects/<%= 
+      @project_id %>/download">
     <input type="text" id="project_id" name="project_id" value="<%= @project_id %>"/>
     <input type="text" id="file_ids" name="files[file_ids]"/>
   </form>

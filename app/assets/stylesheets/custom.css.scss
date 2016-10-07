@@ -22,24 +22,28 @@ $header-height: 51px;
 }
 
 @mixin flex_box {
-  display: box;
   display: -webkit-box;
+  display: box;
+  display: flex;
 }
 
 @mixin box_orient_vertical {
   -webkit-box-orient: vertical;
   box-orient: vertical;
+  flex-direction: column;
 }
 
 @mixin box_orient_horizontal {
   -webkit-box-orient: horizontal;
   box-orient: horizontal;
+  flex-direction: row;
 }
 
 
 @mixin box_flex_1 {
   -webkit-box-flex: 1;
   box-flex: 1;
+  flex: 1;
 }
 
 
@@ -394,14 +398,23 @@ input[type="checkbox"] {
     padding-right: 3px;
   }
 
-  .remove-file {
+  .remove-file, .edit-filename {
     display: inline-block;
     font-size: 90%;
+  }
+
+  .remove-file {
     color: darkred;    
     :hover {
       color: red;
     }
+  }
 
+  .edit-filename {
+    color: darkgreen;
+    :hover {
+      color: lightgreen;
+    }
   }
 
   .collapsed {
@@ -567,6 +580,7 @@ input[type="checkbox"] {
     left: -10px;
     z-index: 100;
     display: none;
+    cursor: pointer;
   }
 
   .shown {
@@ -783,6 +797,11 @@ input[type="checkbox"] {
     background-color: $brand-primary;
     color: white;
   }
+
+  .syntaxhighlighter .code {
+    vertical-align: top !important;
+  }
+
 }
 
 .settings {

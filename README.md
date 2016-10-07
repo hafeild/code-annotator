@@ -6,6 +6,18 @@ alternate code. The initial base of CodeAnnotator was developed while following
 
 ## Development installation
 
+Pre-reqs: This works best in a Unix-like environtment (Linux, OSX, 
+WSL, etc.). Be sure to have sqlite installed (one of the gems
+uses it). Various other dependencies may be required for rbenv
+and Ruby. Install as necessary.
+
+Start by cloning CodeAnnotator (this puts it in your current directory):
+
+```bash
+git clone https://github.com/hafeild/code-annotator.git
+cd code-annotator
+```
+
 Starting up a development environment is simple. We are currently using Ruby
 v2.2.3 and Rails v4.2.2, and [rbenv](https://github.com/sstephenson/rbenv) to
 manage Ruby versions. Follow the instructions there and download 
@@ -28,7 +40,9 @@ gem install rails -v 4.2.2
 Install ICU v56, here: http://site.icu-project.org/download/56. Follow their
 instructions for installation. This will help with
 certain character encoding issues. Configure the charlock_holmes gem to look
-in `/user/local/include` for the necessary header files.
+in `/usr/local/include` for the necessary header files. (NOTE: this is the 
+default location if installing from source; package managers make place 
+the header files elsewhere.)
 
 ```
 bundle config build.charlock_holmes --with-icu-include=/usr/local/include
@@ -53,14 +67,31 @@ For development, you won't need all the dependencies production requires, so
 do:
 
 ```bash
-bundler install --without production
+bundle install --without production
 ```
 
 Then to set up the database migrations, do:
 
 ```bash
-bundler exec rake db:migrate
+bundle exec rake db:migrate
 ```
+
+If desired, seed the databaes with some dummy users and projects (`example-x@mail.com` 
+for x 1--5, all with password `password`):
+
+```bash
+bundle exec rake db:seed
+```
+
+Start the development server up with:
+
+```bash
+rails server
+```
+
+Then point your browser to http://localhost:3000. Log in with one of the
+examples (e.g., `example-1@mail.com`, password `password`) and play
+around.
 
 ## Production installation
 
@@ -141,7 +172,7 @@ cd /var/www/code-annotator
 Download rbenv, etc.
 
 ```bash
-git clone https://github.com/sstephenson/rbenv.git ~/.rbenv
+git https://github.com/sstephenson/rbenv.git ~/.rbenv
 echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
 echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 git clone https://github.com/sstephenson/ruby-build.git \
@@ -331,3 +362,36 @@ on where you've put your certificates and what you've named them.
 </VirtualHost>
 ```
 
+## Testing
+
+To test the system, first set up the test environment (needs to be done before
+the first time tests are run and anytime a new migration is added):
+
+```bash
+bundle exec rake db:migrate RAILS_ENV=test
+```
+
+Run all tests by doing the following:
+
+```bash
+bundle exec rake test
+```
+
+## Branch control and versioning
+
+We are using a branch model based on the one described by Vincent Driessen
+(http://nvie.com/posts/a-successful-git-branching-model/).
+
+We use two main branches: `master` and `develop`. Feaures should be developed
+on their own seperate branch and then a pull request should be made to merge
+them back to develop when completed. When a release is ready to
+be tagged from `develop`, we first move it to its own release branch. That is
+where version changes happen and last minute testing. When ready, a pull
+request should be made to merge it with master and tagged with the version
+number, and master should be merged to develop to ensure everything is uptodate.
+
+Versioning is controlled in the file `config/initializers/version.rb`. All
+versions consist of the year (YY) and month (MM). Optionally, a hotfix
+number can be added to the end. When in development, the hotfix number is
+replaced with the build number (automatically handled in the script mentioned
+above).
