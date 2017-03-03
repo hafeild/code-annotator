@@ -28,6 +28,16 @@ Rails.application.routes.draw do
     ## Projects.
     resources :projects 
 
+    ## Tags.
+    resources :tags, only: [:index,:create,:show,:update,:destroy]
+
+    ## Project tags.
+    get    'projects/:project_id/tags'          => 'tags#index'
+    post   'projects/:project_id/tags'          => 'tags#create'
+    get    'projects/:project_id/tags/:tag_id'  => 'tags#show'
+    delete 'projects/:project_id/tags/:tag_id'  => 'tags#delete'
+
+
     ## Files (by project).
     get   'projects/:project_id/files'    => 'files#index'
     get   'projects/:project_id/files/:id'    => 'files#show'
