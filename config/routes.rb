@@ -29,7 +29,7 @@ Rails.application.routes.draw do
     resources :projects 
 
     ## Tags.
-    resources :tags, only: [:index,:create,:show,:update,:destroy]
+    resources :tags
 
     ## Project tags.
     get    'projects/:project_id/tags'          => 'tags#index'

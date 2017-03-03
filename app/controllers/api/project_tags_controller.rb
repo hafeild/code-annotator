@@ -1,4 +1,4 @@
-class Api::TagssController < ApplicationController
+class Api::ProjectTagsController < ApplicationController
   before_action :logged_in_user_api
   before_action :get_project
   before_action :has_project_permissions

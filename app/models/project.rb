@@ -6,6 +6,7 @@ class Project < ActiveRecord::Base
   has_many :comments
   has_many :public_links
   has_many :tags, through: :project_tags
+  has_many :project_tags
 
   validates :created_by, presence: true
   validates :name, presence: true, length: {maximum: 255}

@@ -1,8 +1,8 @@
-class Api::TagssController < ApplicationController
+class Api::TagsController < ApplicationController
   before_action :logged_in_user_api
   before_action :get_tag, only: [:show, :destroy, :update]
   before_action :owns_tag, only: [:show, :destroy, :update]
-  before_action :get_text, only: [:create, :destroy, :update]
+  before_action :get_text, only: [:create, :update]
 
   ## Lists all tags for the logged in user.
   def index
@@ -15,8 +15,7 @@ class Api::TagssController < ApplicationController
     unless @text.nil?
       begin
         @tag.update!({text: @text})
-        render json: @tag, serializer: TagSerializer,
-          root: "tag"
+        render json: @tag, serializer: TagSerializer, root: "tag"
       rescue
         render_error "There was a problem updating the tag."
       end
@@ -29,11 +28,10 @@ class Api::TagssController < ApplicationController
   def create
     unless @text.nil?
       begin
-        tag = Tag.create!({text: @text user: @user})
-        render json: tag, serializer: TagSerializer,
-          root: "tag"
-      rescue
-        render_error "There was a problem creating the tag."
+        tag = Tag.create!({text: @text, user: current_user})
+        render json: tag, serializer: TagSerializer, root: "tag"
+      rescue Exception => e
+        render_error "There was a problem creating the tag. #{e}"
       end
     else
       render_error "The text for the tag must be provided."
@@ -57,7 +55,7 @@ class Api::TagssController < ApplicationController
 
 
 
-  private:
+  private
     def get_tag
         @tag = Tag.find_by(id: params[:id])
         if @tag.nil?

@@ -1,5 +1,6 @@
 class Tag < ActiveRecord::Base
     belongs_to :user
+    has_many :project_tags
     has_many :projects, through: :project_tags
 
     ## The tag text must exist and between 1 and 100 characters.
