@@ -3,7 +3,7 @@ class Api::ProjectsController < ApplicationController
   include FileCreationHelper
 
   def index
-    render json: current_user.project_permissions, 
+    render json: @current_user.project_permissions, 
       each_serializer: ProjectWithPermissionsSerializer, :root => "projects"
   end
 
