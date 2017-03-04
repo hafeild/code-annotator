@@ -6,7 +6,7 @@ class Api::TagsController < ApplicationController
 
   ## Lists all tags for the logged in user.
   def index
-    render json: current_user.tags, 
+    render json: @current_user.tags, 
       each_serializer: TagSerializer, :root => "tags"
   end
 
@@ -28,7 +28,7 @@ class Api::TagsController < ApplicationController
   def create
     unless @text.nil?
       begin
-        tag = Tag.create!({text: @text, user: current_user})
+        tag = Tag.create!({text: @text, user: @current_user})
         render json: tag, serializer: TagSerializer, root: "tag"
       rescue Exception => e
         render_error "There was a problem creating the tag. #{e}"
@@ -64,7 +64,7 @@ class Api::TagsController < ApplicationController
     end
 
     def owns_tag
-        if @tag.user != current_user
+        if @tag.user != @current_user
             render_error "Resource unavailable."
         end
     end 

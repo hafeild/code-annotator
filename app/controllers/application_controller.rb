@@ -67,7 +67,7 @@ class ApplicationController < ActionController::Base
       if mode == :all
         checked.size == permissions.size
       elsif mode == :any
-        checked.size == 1
+        checked.size >= 1
       else
         @error = "Invalid mode specified in call to "+
             "user_can_access_project: #{mode}."

@@ -2,10 +2,10 @@ class Api::ProjectTagsController < ApplicationController
   before_action :logged_in_user_api
   before_action :get_project
   before_action :has_project_permissions
-  before_action :get_tag, only: [:create, :show, :destroy]
-  before_action :get_project_tag, only: [:show, :destroy]
-  before_action :owns_tag, only: [:create :show, :destroy]
-  before_action :get_text, only: [:create, :show]
+  before_action :get_tag, only: [:create, :destroy]
+  before_action :get_project_tag, only: [:destroy]
+  before_action :owns_tag, only: [:create, :destroy]
+  before_action :get_text, only: [:create]
 
   ## Lists all tags for given project.
   def index
@@ -18,22 +18,18 @@ class Api::ProjectTagsController < ApplicationController
     ActiveRecord::Base.transaction do
       begin
         if @tag.nil?
-          @tag = Tag.create!({text: @text, user: @user})
+          @tag = Tag.create!({text: @text, user: @current_user})
         end
 
         project_tag = ProjectTag.create!({tag: @tag, project: @project})
         render json: @tag, serializer: TagSerializer,
           root: "tag"
-      rescue
-        render_error "There was a problem creating the tag."
+      rescue Exception => e
+        render_error "There was a problem creating the tag: #{e}."
       end
     end
   end
 
-  ## Retrieves information about just one tag.
-  def show
-    render json: @tag, serializer: TagSerializer, root: "tag"
-  end
 
   ## Removes the tag.
   def destroy
@@ -47,7 +43,7 @@ class Api::ProjectTagsController < ApplicationController
 
 
 
-  private:
+  private
     def get_project
       @project = Project.find_by(id: params[:project_id])
     end
@@ -56,14 +52,14 @@ class Api::ProjectTagsController < ApplicationController
     def has_project_permissions
       unless @project and user_can_access_project(@project.id, 
             [:can_view, :can_author, :can_annotate], :any)
-        render_error
+        render_error "Insufficient permissions for this project."
       end         
     end
 
     def get_tag
       @tag = nil
       if params.has_key? :tag_id
-        @tag = Tag.find_by(id: params[:id])
+        @tag = Tag.find_by(id: params[:tag_id])
         if @tag.nil?
           render_error "Tag does not exist."
         end
@@ -82,7 +78,7 @@ class Api::ProjectTagsController < ApplicationController
     end
 
     def owns_tag
-        if not @tag.nil? and @tag.user != current_user
+        if not @tag.nil? and @tag.user.id != @current_user.id
             render_error "Resource unavailable."
         end
     end 

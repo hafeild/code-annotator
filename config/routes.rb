@@ -32,11 +32,10 @@ Rails.application.routes.draw do
     resources :tags
 
     ## Project tags.
-    get    'projects/:project_id/tags'          => 'tags#index'
-    post   'projects/:project_id/tags'          => 'tags#create'
-    get    'projects/:project_id/tags/:tag_id'  => 'tags#show'
-    delete 'projects/:project_id/tags/:tag_id'  => 'tags#delete'
-
+    get    'projects/:project_id/tags'          => 'project_tags#index'
+    post   'projects/:project_id/tags'          => 'project_tags#create'
+    post   'projects/:project_id/tags/:tag_id'  => 'project_tags#create'
+    delete 'projects/:project_id/tags/:tag_id'  => 'project_tags#destroy'
 
     ## Files (by project).
     get   'projects/:project_id/files'    => 'files#index'
