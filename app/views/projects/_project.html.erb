@@ -12,11 +12,23 @@
 </div>
 <% end %>
 
-<tr class="clickable-row project" data-href="<%= project_url(project) %>" class="project-main" id="<%= project.id %>">
+<tr class="clickable-row project project-main" 
+    data-href="<%= project_url(project) %>" id="<%= project.id %>">
+  <td class="select-project"><span class="glyphicon glyphicon-unchecked"></span></td>
   <td class="name"><%= project.name %></td>
   <td class="email"><%= project.creator.email %></td> 
   <td class="date" data-value="<%= project.created_at %>"><%= project.created_at.strftime("%d-%b-%Y") %></td> 
-  <td class="project-trash trash">
-    <span class="glyphicon glyphicon-trash"></span>
+
+  <% # List the tags. %>
+  <td class="tags">
+    <% project.tags.each do |tag| %>
+        <span class="tag label label-primary"><%= tag.text %></span>
+    <% end %>
   </td>
+  
+<%
+#  <td class="project-trash trash">
+#    <span class="glyphicon glyphicon-trash"></span>
+#  </td>
+%>
 </tr>      

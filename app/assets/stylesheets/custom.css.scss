@@ -6,6 +6,7 @@
 
 $gray-medium-light: #eaeaea;
 $header-height: 51px;
+$checkboxs: #888;
 
 @mixin box_sizing {
   -moz-box-sizing:    border-box;
@@ -270,6 +271,20 @@ input[type="checkbox"] {
   margin-left: 0;
 }
 
+.tags-dropdown {
+  padding: 10px;
+  min-width: 300px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+.tags-dropdown {
+  .selected-toggle {
+    color: $checkboxs;
+    padding-right: 10px;
+  }
+}
+
 /* Projects */
 #projects-page {
   height: 100%;
@@ -284,10 +299,23 @@ input[type="checkbox"] {
   }
 
   .project-set {
-    .name {
-      width: 50%;
+    .select-project, .select-all-projects {
+        width: 3em;
+        padding-right: 0;
+        padding-left: 0;
+        color: $checkboxs;
     }
-
+    .email {
+    }
+    .name {
+      width: 35%;
+      padding-left: 0;
+    }
+    .date {
+    }
+    .tags {
+      width: 35%;
+    }
     tbody tr {
       cursor: pointer;
     }
@@ -312,7 +340,8 @@ input[type="checkbox"] {
     }
   }*/
 
-
+  .project-main .tags {
+  }
 
 /*  .project-set .project {
     .name { width: 70%; }

@@ -9,6 +9,7 @@
 userCount = 5
 projectCount = 50
 fileCount = 20
+tagCount = 10
 
 # users = (1..5).to_a
 # projects = (1..50).to_a
@@ -17,6 +18,7 @@ fileCount = 20
 users = []
 projects = []
 files = []
+tags = {}
 
 cur_file_id = 0
 cur_comment_id = 0
@@ -48,6 +50,13 @@ userCount.times do |uid|
                password:              password,
                password_confirmation: password,
                activated: true)
+
+  tags[users[-1].id] = []
+  tagCount.times do |i|
+    tag = Tag.create!(text: Faker::Lorem.words(num = 3, supplemental = false).join(" "),
+        user: users[-1])
+    tags[users[-1].id] << tag.id
+  end
 end
 
 ## Projects.
@@ -167,6 +176,9 @@ projectCount.times do
     if can_annotate or can_author or can_view
       ProjectPermission.create!(project_id: project.id, user_id: user.id,
         can_author: can_author, can_view: can_view, can_annotate: can_annotate )
+      tags[user.id].shuffle.take(2).each do |tagId|
+        ProjectTag.create!(project_id: project.id, tag_id: tagId)
+      end
     end
   end
 end

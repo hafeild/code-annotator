@@ -5,6 +5,51 @@
 
 
   <div class="row">
+    
+    <!-- Select all projects button. -->
+    <input type="checkbox" id="select-all"> Select all projects  
+
+    <!-- Delete selected projects. -->
+    <button id="trash" class="btn btn-danger"
+        ><span class="glyphicon glyphicon-trash"></span></button>
+
+    <!-- Dropdown for the labels. -->
+    <div class="btn-group">
+      <button class="btn btn-primary dropdown-toggle" 
+          type="button" id="modify-tags" data-toggle="dropdown" 
+          aria-haspopup="true" aria-expanded="false">
+        <span class="glyphicon glyphicon-tags"></span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu tags-dropdown list-group">
+        <li>
+          <form id="add-tag" >
+            <div class="input-group" style="width: 100%">
+              <span class="input-group-btn">
+                <button id="add-project-btn" 
+                  class="btn btn-primary" type="submit"><span 
+                    class="glyphicon glyphicon-plus"></span
+                ></button>
+              </span>
+              <input type="text" id="new-tag-text" 
+                class="form-control" 
+                placeholder="Enter a new tag...">
+            </div>
+          </form>
+        </li>
+        <li role="separator" class="divider"></li>
+        <% @current_user.tags.each do |tag| %>
+        <li class="list-group-item" data-tag-id="<%= tag.id %>">
+          <span class="selected-toggle"
+            ><span class="glyphicon glyphicon-checked hidden"></span>
+            <span class="glyphicon glyphicon-unchecked"></span></span>
+          <%= tag.text %></li>
+        <% end %>
+      </ul>
+    </div>
+    <button id="toggle-tags" class="btn btn-primary">Toggle tags</button>
+
+
 
     <% [[@authoredProjects, "My Projects", "authored-projects"], 
         [@viewableProjects, "Shared for viewing", "viewer-projects"],
@@ -16,19 +61,10 @@
         </div>
         <div class="panel-body">
           <div class="list-group">
-              <% if data[0].empty? and data[2] != "authored-projects" %>
-                <em>No projects.</em>
-              <% else %>
-                <table class="table table-hover sortable-theme-bootstrap 
-                    <%= data[2] %>" 
-                    data-sortable>
-                  <thead>
-                    <th>Name</th><th>Creator</th><th>Created on</th><th></th>
-                  </thead>
-                  <tbody>
-                    <% if data[2] == "authored-projects" %>
+              <% if data[2] == "authored-projects" %>
+                <table width="100%">
                     <tr id="add-project-row">
-                      <td colspan="3">
+                      <td>
                         <form id="add-project-form" >
                           <div class="input-group" style="width: 100%">
                             <span class="input-group-btn">
@@ -53,7 +89,23 @@
                         ></button>
                       </td>
                     </tr>
-                    <% end %>
+                  </table>
+              <% end %>
+              <% if data[0].empty? and data[2] != "authored-projects" %>
+                <em>No projects.</em>
+              <% else %>
+                <table class="table table-hover sortable-theme-bootstrap 
+                    <%= data[2] %>" 
+                    data-sortable>
+                  <thead>
+                    <th class="select-all-projects"
+                        ><span class="glyphicon glyphicon-unchecked"></span></th>
+                    <th class="name">Name</th>
+                    <th class="email">Creator</th>
+                    <th class="date">Created on</th>
+                    <th class="tags">Tags</th>
+                  </thead>
+                  <tbody>
                     <%= render data[0] %>
                   </tbody>
                 </table>
