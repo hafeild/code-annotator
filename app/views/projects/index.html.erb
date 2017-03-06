@@ -6,54 +6,55 @@
 
   <div class="row">
     
-    <!-- Delete selected projects. -->
-    <button id="trash" class="btn btn-danger"
-        ><span class="glyphicon glyphicon-trash"></span></button>
-
-    <!-- Dropdown for the labels. -->
-    <div class="btn-group">
-      <button class="btn btn-primary dropdown-toggle" 
-          type="button" id="modify-tags" data-toggle="dropdown" 
-          aria-haspopup="true" aria-expanded="false">
-        <span class="glyphicon glyphicon-tags"></span>
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu tags-dropdown list-group">
-        <li>
-          <form id="add-tag" >
-            <div class="input-group" style="width: 100%">
-              <span class="input-group-btn">
-                <button id="add-project-btn" 
-                  class="btn btn-primary" type="submit"><span 
-                    class="glyphicon glyphicon-plus"></span
-                ></button>
-              </span>
-              <input type="text" id="new-tag-text" 
-                class="form-control" 
-                placeholder="Enter a new tag...">
-            </div>
-          </form>
-        </li>
-        <li role="separator" class="divider"></li>
-        <% @current_user.tags.sort{|x,y| x.text <=> y.text}.each do |tag| %>
-        <li class="list-group-item tag" data-selected-project-count="0" 
-            data-tag-id="<%= tag.id %>">
-          <span class="selected-toggle"
-            ><span class="toggle selected hidden"
-                ><span class="glyphicon glyphicon-check"></span></span
-            ><span class="toggle deslected"
-                ><span class="glyphicon glyphicon-unchecked"></span></span
-          ></span>
-          <%= tag.text %> 
-          <span class="project-count-container"
-            >(<span class="project-count"
-                ><%= tag.projects.count %></span
-            >)</span></li>
-        <% end %>
-      </ul>
-    </div>
-    <button id="toggle-tags" class="btn btn-primary">Toggle tags</button>
-
+    <div id="project-modificatino-buttons" class="col-md-12">
+      <!-- Delete selected projects. -->
+      <button id="trash" class="btn btn-danger"
+          ><span class="glyphicon glyphicon-trash"></span></button>
+  
+      <!-- Dropdown for the labels. -->
+      <div class="btn-group">
+        <button class="btn btn-primary dropdown-toggle" 
+            type="button" id="modify-tags" data-toggle="dropdown" 
+            aria-haspopup="true" aria-expanded="false">
+          <span class="glyphicon glyphicon-tags"></span>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu tags-dropdown list-group">
+          <li>
+            <form id="add-tag" >
+              <div class="input-group" style="width: 100%">
+                <span class="input-group-btn">
+                  <button id="add-project-btn" 
+                    class="btn btn-primary" type="submit"><span 
+                      class="glyphicon glyphicon-plus"></span
+                  ></button>
+                </span>
+                <input type="text" id="new-tag-text" 
+                  class="form-control" 
+                  placeholder="Enter a new tag...">
+              </div>
+            </form>
+          </li>
+          <li role="separator" class="divider"></li>
+          <% @current_user.tags.sort{|x,y| x.text <=> y.text}.each do |tag| %>
+          <li class="list-group-item tag" data-selected-project-count="0" 
+              data-tag-id="<%= tag.id %>">
+            <span class="selected-toggle"
+              ><span class="toggle selected hidden"
+                  ><span class="glyphicon glyphicon-check"></span></span
+              ><span class="toggle deslected"
+                  ><span class="glyphicon glyphicon-unchecked"></span></span
+            ></span>
+            <%= tag.text %> 
+            <span class="project-count-container"
+              >(<span class="project-count"
+                  ><%= tag.projects.count %></span
+              >)</span></li>
+          <% end %>
+        </ul>
+      </div>
+      <button id="toggle-tags" class="btn btn-primary">Toggle tags</button>
+    </div> 
 
 
     <% [[@authoredProjects, "My Projects", "authored-projects"], 
@@ -138,13 +139,15 @@
             aria-label="Close"><span aria-hidden="true">&times;</span
         ></button>
         <h4 class="modal-title" id="project-comments">Are you sure you
-            want to permenantly delete this project?</h4>
+            want to permenantly delete these projects?</h4>
       </div>
       <div class="modal-body">
-        <strong>Project:</strong> <em><span class='project-name'></span></em>
+        <strong>Projects:</strong> 
+            <ul class='project-names'>
+            </ul>
       </div>
       <div class="modal-footer">
-        <button type="button" id="trash-project" class="btn btn-danger" 
+        <button type="button" id="trash-projects" class="btn btn-danger" 
           >Delete</button>
         <button type="button" class="btn btn-default" data-dismiss="modal"
             >Cancel</button>

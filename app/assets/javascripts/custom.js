@@ -1910,30 +1910,40 @@ var CodeAnnotator = function($){
 
   // Listen for projects to be deleted and present the user with a confirmation
   // modal.
-  $(document).on('click', '.project-trash', function(e){
-    var entryElm = $(this).parents('.project');
-    var projectId = entryElm.attr('id');
+  $(document).on('click', '#trash', function(e){
+    // Find all selected projects.
+    var projectIds = $('.project.selected').map(
+      function(i,p){return p.id;}).toArray();
     var modalElm = $('#confirm-delete-project-modal');
 
     modalElm.modal('show');
-    modalElm.find('.project-name').html(entryElm.find('.name').html());
-    modalElm.find('#trash-project').data('project-id', projectId);
+    modalElm.find('.project-names').html(
+      $('.project.selected .name').map(
+        function(i,p){return '<li>'+ p.innerHTML +'</li>';}
+      ).toArray().join(' ')
+   );
+    modalElm.find('#trash-projects').data('project-ids', projectIds);
   });
 
-  // Listen for project deletion to be confirmed.
-  $(document).on('click', '#trash-project', function(e){ 
+  // Listen for project deletions to be confirmed.
+  $(document).on('click', '#trash-projects', function(e){ 
     var modalElm = $(this).closest('.modal');
-    var projectId = $(this).data('project-id');
-    var entryElm = $('#'+ projectId);
+    var projectIds = $(this).data('project-ids');
 
     // Close the modal.
     modalElm.modal('hide');    
 
-    // Remove the project.
-    deleteProject(projectId, function(data){
-      // Remove the project from the list.
-      entryElm.remove();
-    });
+    // Remove each project.
+    for(var i = 0; i < projectIds.length; i++){
+      var projectId = projectIds[i];
+      var entryElm = $('#'+ projectId);
+
+      // Remove the project.
+      deleteProject(projectId, function(p){
+        // Remove the project from the list.
+        return function(data){ p.remove() };
+      }(entryElm));
+    }
 
     e.preventDefault();
   });
