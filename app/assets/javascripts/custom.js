@@ -4,6 +4,8 @@ var CodeAnnotator = function($){
   const FILES_API = '/api/projects/'+ PROJECT_ID +'/files/'; //'/api/files/';
   const PROJECT_API = '/api/projects/'+ PROJECT_ID;
   const COMMENT_API = PROJECT_API +'/comments';
+  const TAG_API = '/api/tags';
+  const PROJECT_TAG_API = PROJECT_API +'/tags';
   const MAX_PROJECT_SIZE_BYTES = 1024*1024; // 1MB.
   const MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024;
   const KNOWN_FILE_EXTENSIONS = {
@@ -1435,7 +1437,78 @@ var CodeAnnotator = function($){
     });
   };
 
+
+  var toggleProjectForModification = function(rowElm){
+    var tagsDropdownElm = $('.tags-dropdown');
+    rowElm.find('.selected-toggle .toggle').toggle();
+    rowElm.toggleClass('selected');
+
+
+    if(rowElm.hasClass('selected')){
+      // Select all of the corresponding tags in the tag dropdown.
+      rowElm.find('.tag').each(function(i,elm){
+          var tagInDropdownElm = tagsDropdownElm.find('.tag[data-tag-id='+
+              $(elm).data('tag-id')+']');
+          if(!tagInDropdownElm.hasClass('selected')){
+              tagInDropdownElm.toggleClass('selected');
+              tagInDropdownElm.find('.selected-toggle .toggle').toggle();
+          }
+          tagInDropdownElm.data('selected-project-count',
+               tagInDropdownElm.data('selected-project-count')+ 1);
+      });
+    } else {
+      // Clear 'select all' if currently clicked.
+      var selectAll = rowElm.closest('table').find('.select-all-projects');
+      if(selectAll.hasClass('selected')){
+        selectAll.toggleClass('selected');
+        selectAll.find('.selected-toggle .toggle').toggle();
+      }
+
+      // Remove corresponding tags in the tag dropdown unless they're being
+      // used by another selected project.
+      rowElm.find('.tag').each(function(i,elm){
+          var tagInDropdownElm = tagsDropdownElm.find('.tag[data-tag-id='+
+              $(elm).data('tag-id')+']');
+          tagInDropdownElm.data('selected-project-count',
+               tagInDropdownElm.data('selected-project-count') - 1);
+
+          if(tagInDropdownElm.hasClass('selected') && 
+               tagInDropdownElm.data('selected-project-count') <= 0){
+              tagInDropdownElm.toggleClass('selected');
+              tagInDropdownElm.find('.selected-toggle .toggle').toggle();
+          }
+      });
+    }
+
+  };
+
   // LISTENERS
+
+  $(document).on('click', 'th.select-all-projects', function(event) {
+    var selectAllElm = $(this);
+    var projectElms = selectAllElm.closest('table').find('tr.project');
+
+    // Deselect all seelcted projects.
+    if(selectAllElm.hasClass('selected')){
+      projectElms.each(function(i,elm){
+        elm = $(elm);
+        if(elm.hasClass('selected')){
+          toggleProjectForModification(elm);
+        }
+      });
+
+    // Select all deselected projects.
+    } else {
+      projectElms.each(function(i,elm){
+        elm = $(elm);
+        if(!elm.hasClass('selected')){
+          toggleProjectForModification(elm);
+        }
+      });
+      selectAllElm.toggleClass('selected');
+      selectAllElm.find('.selected-toggle .toggle').toggle();
+    }
+  });
 
   // For the "Projects listing" view.
   // Listen for a row to be clicked on. A td element must specifically be 
@@ -1443,10 +1516,16 @@ var CodeAnnotator = function($){
   // the project listing -- the td with the trash can does not cause the row's
   // href to be loaded.
   $(document).on('click', '.clickable-row', function(event) {
-    if(event.target.tagName === 'TD' && !$(event.target).hasClass('trash')){
+    if($(event.target).closest('td').hasClass('select-project')){
+      //selectProject();
+      var rowElm = $(event.target).closest('tr');
+      toggleProjectForModification(rowElm);
+ 
+    } if(event.target.tagName === 'TD'){
       window.document.location = $(this).data('href');
     }
   });
+
 
 
   // Collapses/expands directories in the file listings.
@@ -1828,13 +1907,6 @@ var CodeAnnotator = function($){
     
     e.preventDefault();
   });
-
-  // After sorting, be sure that the new project form row is at the top.
-  if($('.authored-projects').length > 0){
-    $('.authored-projects')[0].addEventListener('Sortable.sorted', function(){
-      $('#add-project-row').prependTo($(this).find('tbody'));
-    });
-  }
 
   // Listen for projects to be deleted and present the user with a confirmation
   // modal.

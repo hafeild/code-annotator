@@ -11,6 +11,15 @@ class Project < ActiveRecord::Base
   validates :created_by, presence: true
   validates :name, presence: true, length: {maximum: 255}
 
+  ## Returns only tags for the current user.
+  def tagsFor(user)
+    if user.nil?
+      []
+    else
+      tags.select{|x| x.user_id == user.id}
+    end
+  end
+
   ## Returns all of the altcode for this project.
   def altcode 
     all_altcode = []

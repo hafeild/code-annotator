@@ -283,6 +283,10 @@ input[type="checkbox"] {
     color: $checkboxs;
     padding-right: 10px;
   }
+
+  .project-count-container {
+    color: #aaa;
+  }
 }
 
 /* Projects */
@@ -316,7 +320,8 @@ input[type="checkbox"] {
     .tags {
       width: 35%;
     }
-    tbody tr {
+
+    tbody tr, th.select-all-projects {
       cursor: pointer;
     }
   }

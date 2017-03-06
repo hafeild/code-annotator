@@ -6,9 +6,6 @@
 
   <div class="row">
     
-    <!-- Select all projects button. -->
-    <input type="checkbox" id="select-all"> Select all projects  
-
     <!-- Delete selected projects. -->
     <button id="trash" class="btn btn-danger"
         ><span class="glyphicon glyphicon-trash"></span></button>
@@ -38,12 +35,20 @@
           </form>
         </li>
         <li role="separator" class="divider"></li>
-        <% @current_user.tags.each do |tag| %>
-        <li class="list-group-item" data-tag-id="<%= tag.id %>">
+        <% @current_user.tags.sort{|x,y| x.text <=> y.text}.each do |tag| %>
+        <li class="list-group-item tag" data-selected-project-count="0" 
+            data-tag-id="<%= tag.id %>">
           <span class="selected-toggle"
-            ><span class="glyphicon glyphicon-checked hidden"></span>
-            <span class="glyphicon glyphicon-unchecked"></span></span>
-          <%= tag.text %></li>
+            ><span class="toggle selected hidden"
+                ><span class="glyphicon glyphicon-check"></span></span
+            ><span class="toggle deslected"
+                ><span class="glyphicon glyphicon-unchecked"></span></span
+          ></span>
+          <%= tag.text %> 
+          <span class="project-count-container"
+            >(<span class="project-count"
+                ><%= tag.projects.count %></span
+            >)</span></li>
         <% end %>
       </ul>
     </div>
@@ -89,7 +94,7 @@
                         ></button>
                       </td>
                     </tr>
-                  </table>
+                </table>
               <% end %>
               <% if data[0].empty? and data[2] != "authored-projects" %>
                 <em>No projects.</em>
@@ -98,8 +103,13 @@
                     <%= data[2] %>" 
                     data-sortable>
                   <thead>
-                    <th class="select-all-projects"
-                        ><span class="glyphicon glyphicon-unchecked"></span></th>
+                    <th class="select-all-projects" data-sortable="false"
+                      ><span class="selected-toggle"
+                        ><span class="toggle selected hidden"
+                            ><span class="glyphicon glyphicon-check"></span></span
+                        ><span class="toggle deslected"
+                            ><span class="glyphicon glyphicon-unchecked"></span></span
+                        ></span></th>
                     <th class="name">Name</th>
                     <th class="email">Creator</th>
                     <th class="date">Created on</th>
