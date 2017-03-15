@@ -1579,7 +1579,11 @@ var CodeAnnotator = function($){
     for(var i = 0; i < projectRowElms.length; i++){
       var projectElm = $(projectRowElms[i]);
       var projectId = projectElm.attr('id');
-  
+
+      if(projectElm.find('.tag[data-tag-id='+ tagId +']').length === 0){
+        continue;
+      } 
+ 
       var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
       console.log('sending request to: '+ apiURL);
       // First, add the tag server side. Wait to hear back before updating the
