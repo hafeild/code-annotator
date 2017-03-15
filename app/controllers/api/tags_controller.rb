@@ -46,10 +46,13 @@ class Api::TagsController < ApplicationController
   ## Removes the tag.
   def destroy
     begin
+        @tag.project_tags.each do |project_tag|
+          project_tag.destroy!
+        end
         @tag.destroy!
         render json: "", serializer: SuccessSerializer
     rescue
-        render_error "There was an error removing the tag."
+        render_error "There was an error removing the tag!"
     end
   end
 

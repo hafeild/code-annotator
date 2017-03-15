@@ -220,7 +220,7 @@ class Api::TagsControllerTest < ActionController::TestCase
   end
 
   ## Test destroy controller.
-  test "destroy should remove the given tag from the database" do
+  test "destroy should remove the given tag and associated project tags from the database" do
     log_in_as @userFoo
 
     assert_difference 'Tag.count', -1, "Tag not destroyed" do
@@ -228,7 +228,10 @@ class Api::TagsControllerTest < ActionController::TestCase
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
 
-      assert Tag.find_by({id: @fooTag1.id}).nil?
+      assert Tag.find_by({id: @fooTag1.id}).nil?, "Tag not removed."
+
+      assert ProjectTag.where(tag_id: @fooTag1.id).size == 0, 
+        "Project tags not removed."
     end
   end
 
