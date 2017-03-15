@@ -6,17 +6,17 @@
 
   <div class="row">
     
-    <div id="project-modificatino-buttons" class="col-md-12">
+    <div id="project-modification-buttons" class="col-md-12">
       <!-- Delete selected projects. -->
       <button id="trash" class="btn btn-danger"
           ><span class="glyphicon glyphicon-trash"></span></button>
   
       <!-- Dropdown for the labels. -->
-      <div class="btn-group">
+      <div class="btn-group" id="modify-tags">
         <button class="btn btn-primary dropdown-toggle" 
-            type="button" id="modify-tags" data-toggle="dropdown" 
+            type="button" data-toggle="dropdown" 
             aria-haspopup="true" aria-expanded="false">
-          <span class="glyphicon glyphicon-tags"></span>
+          <span><span class="glyphicon glyphicon-tags"></span> </span> 
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu tags-dropdown list-group">
@@ -45,7 +45,7 @@
               ><span class="toggle deslected"
                   ><span class="glyphicon glyphicon-unchecked"></span></span
             ></span>
-            <%= tag.text %> 
+            <span class="tag-text"><%= tag.text %></span> 
             <span class="project-count-container"
               >(<span class="project-count"
                   ><%= tag.projects.count %></span
@@ -238,6 +238,11 @@
     </td>
   </tr>  
   </table>
+
+  <!-- Project tag template (in the project listing). Should have a data-tag-id
+    property added and the inner html should be the tag text. -->
+  <span id="project-tag-template" class="tag label label-primary"></span>
+
 </div>
 
 

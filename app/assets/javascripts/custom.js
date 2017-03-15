@@ -1439,6 +1439,32 @@ var CodeAnnotator = function($){
 
 
   /**
+   * Selects or deselects a tag in the modify tags dropdown.
+   *
+   * @param tagElmOrId The tag element to modify OR the id of the tag to modify.
+   * @param projectChangeCount A integer indicating how many projects to
+   *        change by; the sign will indicate whether to select or deselect,
+   *        while the magnitude determines how many projects to change the
+   *        the selected project count by.
+   */
+  var selectTagInDropdown = function(tagElmOrId, projectChangeCount){
+    var tagElm = tagElmOrId;
+    if(typeof tagElmOrId === 'number'){
+      tagElm = $('#modify-tags .tag[data-tag-id='+ tagElmOrId +']');
+    }
+
+    if( (projectChangeCount >= 0 && !tagElm.hasClass('selected')) ||
+        (projectChangeCount < 0  &&  tagElm.hasClass('selected') &&
+          tagElm.data('selected-project-count')+projectChangeCount <= 0) ){
+      tagElm.toggleClass('selected');
+      tagElm.find('.selected-toggle .toggle').toggle();
+    } 
+
+    tagElm.data('selected-project-count', Math.max(
+        tagElm.data('selected-project-count')+projectChangeCount, 0));
+  };
+
+  /**
    * Updates the tag dropdown with this project's tags (adds them if this
    * project is being selected or removes them if this project is being
    * deselected). Also marks the project as being selected/deselected.
@@ -1449,51 +1475,132 @@ var CodeAnnotator = function($){
     var tagsDropdownElm = $('.tags-dropdown');
     rowElm.find('.selected-toggle .toggle').toggle();
     rowElm.toggleClass('selected');
+    var count = rowElm.hasClass('selected') ? 1 : -1;
 
+    // [De]Select all of the corresponding tags in the tag dropdown.
+    rowElm.find('.tag').each(function(i,elm){
+      selectTagInDropdown($(elm).data('tag-id'), count);
+    });
 
-    if(rowElm.hasClass('selected')){
-      // Select all of the corresponding tags in the tag dropdown.
-      rowElm.find('.tag').each(function(i,elm){
-          var tagInDropdownElm = tagsDropdownElm.find('.tag[data-tag-id='+
-              $(elm).data('tag-id')+']');
-          if(!tagInDropdownElm.hasClass('selected')){
-              tagInDropdownElm.toggleClass('selected');
-              tagInDropdownElm.find('.selected-toggle .toggle').toggle();
-          }
-          tagInDropdownElm.data('selected-project-count',
-               tagInDropdownElm.data('selected-project-count')+ 1);
-      });
-    } else {
-      // Clear 'select all' if currently clicked.
+    // Clear 'select all' if currently clicked.
+    if(!rowElm.hasClass('selected')){
       var selectAll = rowElm.closest('table').find('.select-all-projects');
       if(selectAll.hasClass('selected')){
         selectAll.toggleClass('selected');
         selectAll.find('.selected-toggle .toggle').toggle();
       }
-
-      // Remove corresponding tags in the tag dropdown unless they're being
-      // used by another selected project.
-      rowElm.find('.tag').each(function(i,elm){
-          var tagInDropdownElm = tagsDropdownElm.find('.tag[data-tag-id='+
-              $(elm).data('tag-id')+']');
-          tagInDropdownElm.data('selected-project-count',
-               tagInDropdownElm.data('selected-project-count') - 1);
-
-          if(tagInDropdownElm.hasClass('selected') && 
-               tagInDropdownElm.data('selected-project-count') <= 0){
-              tagInDropdownElm.toggleClass('selected');
-              tagInDropdownElm.find('.selected-toggle .toggle').toggle();
-          }
-      });
     }
 
   };
 
+  /**
+   * Adds the given tag to a set of projects both in the UI and on the
+   * server.
+   *
+   * @param tagId The id of the tag to add.
+   * @param tagText The text of the tag to add.
+   * @param projectRowElms A list of jQuery project row elements.
+   */
+  var addExistingTagToProjects = function(tagId, tagText, projectRowElms) {
+    console.log('Adding tag '+ tagId +' ('+ tagText +') to:', projectRowElms);
+    var tagInDropdownElm = $('#modify-tags .tag[data-tag-id='+ tagId +']');
+    var projectCountElm = tagInDropdownElm.find('.project-count');
+
+    for(var i = 0; i < projectRowElms.length; i++){
+      var projectElm = $(projectRowElms[i]);
+      var projectId = projectElm.attr('id');
+  
+      var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
+      console.log('sending request to: '+ apiURL);
+      // First, add the tag server side. Wait to hear back before updating the
+      // UI. We should probably put up a 'waiting' graphic i case the server
+      // is slow to respond.
+      $.ajax(apiURL, {
+        method: 'POST',
+        data: {
+        },
+        success: (function(projectElm){ return function(data){
+
+          console.log('heard back from server:', data);
+          if(data.error){
+            displayError('There was an error adding the tag "'+ tagText +
+              '" to the project : '+ data.error);
+            return;
+          }
+
+          // Add the tag to the project's tag area.
+          var tagElm = $('#project-tag-template').clone().attr('id', '').
+                data('tag-id', tagId).html(tagText);
+ 
+          projectElm.find('.tags').append(tagElm);
+
+          // Update the total project count in the dropdown.
+          projectCountElm.html(parseInt(projectCountElm.html())+1);
+
+          // Select the tag in the modify tags dropdown and update selected
+          // project count.
+          selectTagInDropdown(tagInDropdownElm, 1);
+          
+        }; })(projectElm),
+        error: function(xhr, status, error){
+            displayError('There was an error reaching the server when '+
+              'adding the tag "'+ tagText +'" to the project : '+ error);
+        }
+      });
+
+      
+    } 
+  };
+
+  /**
+   * Creates a new tag with the given text, adds it to the modify tags dropdown,
+   * and adds it to the selected projects (both on the server an in the UI).
+   * 
+   * @param tagText The text of the tag.
+   * @param projectRowElms A list of jQuery project row elements.
+   */
+  var addNewTagToProjects = function(tagText, projectRowElms) {
+    console.log('Creating new tag '+ tagText);
+    addExistingTagToProjects('NEWTAG', tagText, projectRowElms);
+
+  };
+
+  /**
+   * Removes the given tag from selected projects. This removes the tag
+   * on the server and updates the UI.
+   *
+   * @param tagId The id of the tag to remove.
+   * @param projectRowElms A list of jQuery project row elements.
+   */
+  var removeTagFromProjects = function(tagId, projectRowElms) {
+    console.log('Removing tag '+ tagId +' from:', projectRowElms);
+  }
+
   // LISTENERS
 
   // Listens for a tag in the "modify tags" dropdown to be selected or
-  // deselected.
-//  $(document).on('click', '#modify-tags .tag'
+  // deselected. This causes the tag to be added or removed from selected
+  // projects.
+  $(document).on('click', '#modify-tags li.tag', function(event){
+    var tagElm = $(this);
+    var projectRowElms = $('tr.project.selected');
+    var tagId = tagElm.data('tag-id');
+
+    console.log('selected projects: ', projectRowElms);
+
+    // Is this tag being selected or deselected?
+    // Case 1: already selected, so it's being deselected.
+    if(tagElm.hasClass('selected')){
+      removeTagFromProjects(tagId, projectRowElms); 
+
+    // Case 2: currently deslected, so it's being selected.
+    } else {
+      var tagText = tagElm.find('.tag-text').text();
+      addExistingTagToProjects(tagId, tagText, projectRowElms);
+    }
+
+    event.stopPropagation();
+  });
 
   // Listens for the "Select all projects" checkbox to be clicked at the
   // top of a project grouping. This selects all projects in that group

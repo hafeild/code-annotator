@@ -302,6 +302,10 @@ input[type="checkbox"] {
     @include box_sizing;
   }
 
+  li.tag {
+    cursor: pointer;
+  }
+
   .project-set {
     .select-project, .select-all-projects {
         width: 3em;
