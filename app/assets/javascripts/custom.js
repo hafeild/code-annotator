@@ -1530,9 +1530,9 @@ var CodeAnnotator = function($){
 
           // Add the tag to the project's tag area.
           var tagElm = $('#project-tag-template').clone().attr('id', '').
-                data('tag-id', tagId).html(tagText);
+                attr('data-tag-id', tagId).html(tagText);
  
-          projectElm.find('.tags').append(tagElm);
+          projectElm.find('.tags').append(' ').append(tagElm);
 
           // Update the total project count in the dropdown.
           projectCountElm.html(parseInt(projectCountElm.html())+1);
@@ -1559,7 +1559,37 @@ var CodeAnnotator = function($){
    */
   var addNewTagToProjects = function(tagText, projectRowElms) {
     console.log('Creating new tag '+ tagText);
-    addExistingTagToProjects('NEWTAG', tagText, projectRowElms);
+    $.ajax('/api/tags', {
+      method: 'POST',
+      data: {
+        tag: {text: tagText}
+      },
+      success: function(data){
+
+        console.log('heard back from server:', data);
+        if(data.error || data.tag === undefined || data.tag.id === undefined){
+          displayError('There was an error creating the tag "'+ tagText +'": '+
+            data.error);
+          return;
+        }
+  
+        // Add the tag to the dropdown.
+        var tagElm = $('#dropdown-project-tag-template').clone().attr('id','').
+          attr('data-tag-id', data.tag.id);
+        tagElm.find('.tag-text').html(tagText);
+
+        $('#modify-tags li.divider').after(tagElm);        
+
+        // Add the tag to the selected projects.
+        addExistingTagToProjects(data.tag.id, tagText, projectRowElms);
+ 
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error creating the tag "'+ tagText +'": '+
+          error);
+      }
+    });   
+
 
   };
 
@@ -1649,6 +1679,27 @@ var CodeAnnotator = function($){
     event.stopPropagation();
   });
 
+  // Listens for the 'add tag' form submission in the modify tags dropdown.
+  // Creates the new tag and then adds it to each of the selected projects.
+  $(document).on('submit', '#add-tag', function(event){
+    console.log('New tag!');
+
+    // Grab tag text.
+    var tagTextElm = $(this).find('#new-tag-text');
+    var tagText = tagTextElm.val();
+
+    // Get the projects to add it to.
+    // Create it, etc.
+    addNewTagToProjects(tagText, $('tr.project.selected'));
+
+    // Clear the tag text.
+    tagTextElm.val('');
+
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+  });
+
   // Listens for the "Select all projects" checkbox to be clicked at the
   // top of a project grouping. This selects all projects in that group
   // (e.g., all projects under "My Projects").
@@ -1689,7 +1740,7 @@ var CodeAnnotator = function($){
       var rowElm = $(event.target).closest('tr');
       toggleProjectForModification(rowElm);
  
-    } if(event.target.tagName === 'TD'){
+    } if(event.target.tagName === 'TD' && $(event.target).hasClass('name')){
       if(event.ctrlKey || event.keyCode == 16) {
         window.open($(this).data('href'));
       } else {

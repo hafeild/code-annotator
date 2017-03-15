@@ -243,6 +243,25 @@
     property added and the inner html should be the tag text. -->
   <span id="project-tag-template" class="tag label label-primary"></span>
 
+
+  <!-- Project tag template (in the dropdown list). Should have a data-tag-id
+      property added. The inner html of the .tag-text and .project-count
+      spans needs to be added/updated. -->
+  <ul>
+    <li id="dropdown-project-tag-template" 
+      class="list-group-item tag" data-selected-project-count="0">
+      <span class="selected-toggle"
+        ><span class="toggle selected hidden"
+            ><span class="glyphicon glyphicon-check"></span></span
+        ><span class="toggle deslected"
+            ><span class="glyphicon glyphicon-unchecked"></span></span
+      ></span>
+      <span class="tag-text"></span> 
+      <span class="project-count-container"
+        >(<span class="project-count">0</span>)</span>
+    </li>
+  </ul>
+
 </div>
 
 
