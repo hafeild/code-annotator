@@ -1438,6 +1438,13 @@ var CodeAnnotator = function($){
   };
 
 
+  /**
+   * Updates the tag dropdown with this project's tags (adds them if this
+   * project is being selected or removes them if this project is being
+   * deselected). Also marks the project as being selected/deselected.
+   * 
+   * @param rowElm The jQuery wrapped row element for the project. 
+   */
   var toggleProjectForModification = function(rowElm){
     var tagsDropdownElm = $('.tags-dropdown');
     rowElm.find('.selected-toggle .toggle').toggle();
@@ -1484,6 +1491,13 @@ var CodeAnnotator = function($){
 
   // LISTENERS
 
+  // Listens for a tag in the "modify tags" dropdown to be selected or
+  // deselected.
+//  $(document).on('click', '#modify-tags .tag'
+
+  // Listens for the "Select all projects" checkbox to be clicked at the
+  // top of a project grouping. This selects all projects in that group
+  // (e.g., all projects under "My Projects").
   $(document).on('click', 'th.select-all-projects', function(event) {
     var selectAllElm = $(this);
     var projectElms = selectAllElm.closest('table').find('tr.project');
@@ -1522,7 +1536,11 @@ var CodeAnnotator = function($){
       toggleProjectForModification(rowElm);
  
     } if(event.target.tagName === 'TD'){
-      window.document.location = $(this).data('href');
+      if(event.ctrlKey || event.keyCode == 16) {
+        window.open($(this).data('href'));
+      } else {
+        window.document.location = $(this).data('href');
+      }
     }
   });
 
