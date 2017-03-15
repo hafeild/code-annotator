@@ -325,8 +325,13 @@ input[type="checkbox"] {
       width: 35%;
     }
 
-    tbody tr, th.select-all-projects {
+    tbody td.name, tbody td.select-project, th.select-all-projects {
       cursor: pointer;
+    }
+
+    td.name {
+      font-size: 105%;
+      color: #337AB7;
     }
   }
 
