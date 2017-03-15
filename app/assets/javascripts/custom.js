@@ -1547,8 +1547,6 @@ var CodeAnnotator = function($){
               'adding the tag "'+ tagText +'" to the project : '+ error);
         }
       });
-
-      
     } 
   };
 
@@ -1574,6 +1572,51 @@ var CodeAnnotator = function($){
    */
   var removeTagFromProjects = function(tagId, projectRowElms) {
     console.log('Removing tag '+ tagId +' from:', projectRowElms);
+
+    var tagInDropdownElm = $('#modify-tags .tag[data-tag-id='+ tagId +']');
+    var projectCountElm = tagInDropdownElm.find('.project-count');
+
+    for(var i = 0; i < projectRowElms.length; i++){
+      var projectElm = $(projectRowElms[i]);
+      var projectId = projectElm.attr('id');
+  
+      var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
+      console.log('sending request to: '+ apiURL);
+      // First, add the tag server side. Wait to hear back before updating the
+      // UI. We should probably put up a 'waiting' graphic i case the server
+      // is slow to respond.
+      $.ajax(apiURL, {
+        method: 'POST',
+        data: {
+          _method: 'delete'
+        },
+        success: (function(projectElm){ return function(data){
+
+          console.log('heard back from server:', data);
+          if(data.error){
+            displayError('There was an error removing the tag from the '+
+              'project : '+ data.error);
+            return;
+          }
+
+          // Remove the tag from the project's tag area.
+          projectElm.find('.tag[data-tag-id='+ tagId +']').remove();
+
+          // Update the total project count in the dropdown.
+          projectCountElm.html(parseInt(projectCountElm.html())-1);
+
+          // Select the tag in the modify tags dropdown and update selected
+          // project count.
+          selectTagInDropdown(tagInDropdownElm, -1);
+          
+        }; })(projectElm),
+        error: function(xhr, status, error){
+            displayError('There was an error removing the tag from the '+
+              'project : '+ error);
+        }
+      });
+    } 
+
   }
 
   // LISTENERS

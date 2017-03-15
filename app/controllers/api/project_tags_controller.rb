@@ -70,8 +70,9 @@ class Api::ProjectTagsController < ApplicationController
       if @tag.nil?
         render_error "Tag id must be specified."
       else
-        @project_tag = ProjectTag.find_by(tag_id: @tag.id)
-        if @project_tag.nil?
+        @project_tag = ProjectTag.find_by(
+          tag_id: @tag.id, project_id: @project.id)
+        if @project_tag.nil? 
           render_error "The given tag is not associated with this project."
         end
       end
