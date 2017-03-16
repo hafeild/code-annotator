@@ -270,25 +270,6 @@ input[type="checkbox"] {
   width: auto;
   margin-left: 0;
 }
-
-.tags-dropdown {
-  padding: 10px;
-  min-width: 300px;
-  max-height: 500px;
-  overflow: auto;
-}
-
-.tags-dropdown {
-  .selected-toggle {
-    color: $checkboxs;
-    padding-right: 10px;
-  }
-
-  .project-count-container {
-    color: #aaa;
-  }
-}
-
 /* Projects */
 #projects-page {
   height: 100%;
@@ -302,8 +283,56 @@ input[type="checkbox"] {
     @include box_sizing;
   }
 
-  li.tag {
-    cursor: pointer;
+  .tags-dropdown {
+    padding: 10px;
+    min-width: 300px;
+    max-height: 500px;
+    overflow: auto;
+
+    .selected-toggle {
+      color: $checkboxs;
+      padding-right: 10px;
+    }
+
+    .project-count-container {
+      color: #aaa;
+    }
+
+    .tag {
+      cursor: pointer;
+    }
+  
+    .delete-tag {
+      color: #ccc;
+      :hover {
+        color: red;
+      }
+    }
+  
+    .filter-tag {
+      color: $checkboxs;
+    } 
+
+    .filter-tag:hover {
+      color: $brand-primary;
+    }
+
+    .selected-toggle:hover {
+      color: $brand-primary;
+      .selected {
+        color: $brand-danger;
+      }
+    }
+  
+    .filtered.tag {
+      background-color: #b3d1ea;
+      .filter-tag {
+        color: $brand-danger;
+      }
+    }
+
+    
+  
   }
 
   .project-set {

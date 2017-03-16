@@ -1609,6 +1609,9 @@ var CodeAnnotator = function($){
     for(var i = 0; i < projectRowElms.length; i++){
       var projectElm = $(projectRowElms[i]);
       var projectId = projectElm.attr('id');
+      var filterToggle = $('#filter-switch');
+      var filteringOn = filterToggle.css('display') !== "none" && 
+        filterToggle.find('.turn-filtering-off').css('display') !== "none";
 
       if(projectElm.find('.tag[data-tag-id='+ tagId +']').length === 0){
         continue;
@@ -1642,7 +1645,19 @@ var CodeAnnotator = function($){
           // Select the tag in the modify tags dropdown and update selected
           // project count.
           selectTagInDropdown(tagInDropdownElm, -1);
-          
+
+          // If the tag is part of an active filter, update the filter count
+          // on the affected project.
+          if(tagInDropdownElm.hasClass('filtered')){
+            projectElm.attr('data-filter-count', 
+              parseInt(projectElm.attr('data-filter-count')) - 1);
+            if(filteringOn){
+              projectElm.hide();
+              toggleProjectForModification(projectElm);
+              projectElm.addClass('selected');
+            }
+          }
+
         }; })(projectElm),
         error: function(xhr, status, error){
             displayError('There was an error removing the tag from the '+
@@ -1654,26 +1669,98 @@ var CodeAnnotator = function($){
   }
 
   // LISTENERS
+  
+  // Listens for the turn-filtering-on/off buttons to be pressed.
+  $(document).on('click', '#filter-switch', function(event){
+    var filterToggle = $(this);
+    var target = $(event.target);
+    if(target.hasClass('turn-filtering-on')){
+      var tagsFiltered = $('#modify-tags .tag.filtered').length; 
+      $('tr.project[data-filter-count!='+ (tagsFiltered) +']').hide();
+    } else {
+      $('tr.project').show();
+    }
+
+    filterToggle.find('button').toggle();
+  });
+
 
   // Listens for a tag in the "modify tags" dropdown to be selected or
   // deselected. This causes the tag to be added or removed from selected
   // projects.
   $(document).on('click', '#modify-tags li.tag', function(event){
+    var target = $(event.target).closest('.action');
     var tagElm = $(this);
-    var projectRowElms = $('tr.project.selected');
     var tagId = tagElm.data('tag-id');
 
-    console.log('selected projects: ', projectRowElms);
+    // Add tags to/remove from projects.
+    if(target.hasClass('selected-toggle')){
+      var projectRowElms = $('tr.project.selected:visible');
+      // Is this tag being selected or deselected?
+      // Case 1: already selected, so it's being deselected.
+      if(tagElm.hasClass('selected')){
+        removeTagFromProjects(tagId, projectRowElms); 
+  
+      // Case 2: currently deslected, so it's being selected.
+      } else {
+        var tagText = tagElm.find('.tag-text').text();
+        addExistingTagToProjects(tagId, tagText, projectRowElms);
+      }
+    } else if(target.hasClass('filter-tag')){
+      var tagsFiltered = $('#modify-tags .tag.filtered').length; 
+      var filterToggle = $('#filter-switch');
+      var filteringOn = filterToggle.find('.turn-filtering-off')[0].
+        style.display !== "none";
 
-    // Is this tag being selected or deselected?
-    // Case 1: already selected, so it's being deselected.
-    if(tagElm.hasClass('selected')){
-      removeTagFromProjects(tagId, projectRowElms); 
+      // We're removing this tag from the filter.
+      if(tagElm.hasClass('filtered')){
+        // Decrement the filter count on all projects that have this tag.
+        $('tr.project .tag[data-tag-id='+ tagId +']').each(function(){ 
+          var projectRowElm = $(this).parents('tr.project'); 
+          projectRowElm.attr('data-filter-count', 
+            parseInt(projectRowElm.attr('data-filter-count'))-1);
+        });
 
-    // Case 2: currently deslected, so it's being selected.
-    } else {
-      var tagText = tagElm.find('.tag-text').text();
-      addExistingTagToProjects(tagId, tagText, projectRowElms);
+        // Any project that has the remaining filtered tags should be shown.
+        if(filteringOn){
+          var hiddenRowsToShow = $('tr.project[data-filter-count='+ 
+            (tagsFiltered-1) +']:hidden');
+          hiddenRowsToShow.show();
+          hiddenRowsToShow.filter('.selected').each(function(){
+            $(this).removeClass('selected');
+            toggleProjectForModification($(this));
+          });
+
+          if(tagsFiltered === 1){
+            filterToggle.hide();
+          }
+        }
+      } else {
+        // Any project that has this tag needs its filter count incremented.
+        $('tr.project .tag[data-tag-id='+ tagId +']').each(function(){ 
+          var projectRowElm = $(this).parents('tr.project'); 
+          projectRowElm.attr('data-filter-count', 
+            parseInt(projectRowElm.attr('data-filter-count'))+1);
+        });
+
+        // Any project that doesn't have a filter count that is the same as
+        // the number of tags being filtered shouldn't be shown.
+        if(filteringOn){
+          var visibleRowsToHide = $('tr.project[data-filter-count!='+ 
+            (tagsFiltered+1) +']:visible');
+          visibleRowsToHide.hide();
+          visibleRowsToHide.filter('.selected').each(function(){
+            toggleProjectForModification($(this));
+            $(this).addClass('selected');
+          });
+        }
+        filterToggle.show();
+      }
+
+      tagElm.toggleClass('filtered');
+
+    } else if(target.hasClass('delete-tag')){
+      console.log('removing tag.');
     }
 
     event.stopPropagation();
@@ -1690,7 +1777,7 @@ var CodeAnnotator = function($){
 
     // Get the projects to add it to.
     // Create it, etc.
-    addNewTagToProjects(tagText, $('tr.project.selected'));
+    addNewTagToProjects(tagText, $('tr.project.selected:visible'));
 
     // Clear the tag text.
     tagTextElm.val('');
@@ -1707,26 +1794,24 @@ var CodeAnnotator = function($){
     var selectAllElm = $(this);
     var projectElms = selectAllElm.closest('table').find('tr.project');
 
-    // Deselect all seelcted projects.
+    // Deselect all selected projects.
     if(selectAllElm.hasClass('selected')){
-      projectElms.each(function(i,elm){
-        elm = $(elm);
-        if(elm.hasClass('selected')){
-          toggleProjectForModification(elm);
-        }
+      projectElms.filter('.selected').each(function(){
+        toggleProjectForModification($(this));
       });
 
     // Select all deselected projects.
     } else {
-      projectElms.each(function(i,elm){
-        elm = $(elm);
-        if(!elm.hasClass('selected')){
-          toggleProjectForModification(elm);
-        }
+      projectElms.filter(':not(.selected)').each(function(){
+          toggleProjectForModification($(this));
       });
+
+      // This only needs to be here because toggleProjectForModification will
+      // take care of removing the 'selected' case for us.
       selectAllElm.toggleClass('selected');
       selectAllElm.find('.selected-toggle .toggle').toggle();
     }
+
   });
 
   // For the "Projects listing" view.

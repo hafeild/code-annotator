@@ -8,14 +8,16 @@
     
     <div id="project-modification-buttons" class="col-md-12">
       <!-- Delete selected projects. -->
-      <button id="trash" class="btn btn-danger"
-          ><span class="glyphicon glyphicon-trash"></span></button>
+      <button id="trash" class="btn btn-default"
+        title="Delete selected projects"
+        ><span class="glyphicon glyphicon-trash"></span></button>
   
       <!-- Dropdown for the labels. -->
       <div class="btn-group" id="modify-tags">
-        <button class="btn btn-primary dropdown-toggle" 
+        <button class="btn btn-default dropdown-toggle" 
             type="button" data-toggle="dropdown" 
             aria-haspopup="true" aria-expanded="false">
+          Modify/filter tags
           <span><span class="glyphicon glyphicon-tags"></span> </span> 
           <span class="caret"></span>
         </button>
@@ -39,21 +41,33 @@
           <% @current_user.tags.sort{|x,y| x.text <=> y.text}.each do |tag| %>
           <li class="list-group-item tag" data-selected-project-count="0" 
               data-tag-id="<%= tag.id %>">
-            <span class="selected-toggle"
+            <span class="selected-toggle action"
               ><span class="toggle selected hidden"
-                  ><span class="glyphicon glyphicon-check"></span></span
+                  ><span class="glyphicon glyphicon-minus"></span></span
               ><span class="toggle deslected"
-                  ><span class="glyphicon glyphicon-unchecked"></span></span
-            ></span>
+                  ><span class="glyphicon glyphicon-plus"></span></span
+            ></span
+            ><span class="filter-tag action"
+              ><span class="glyphicon glyphicon-filter"></span></span>
             <span class="tag-text"><%= tag.text %></span> 
             <span class="project-count-container"
               >(<span class="project-count"
                   ><%= tag.projects.count %></span
-              >)</span></li>
+              >)</span>
+            <span class="delete-tag action"
+              ><span class="glyphicon glyphicon-trash"></span></span>
+            
+
+          </li>
           <% end %>
         </ul>
       </div>
-      <button id="toggle-tags" class="btn btn-primary">Toggle tags</button>
+      <span id="filter-switch" class="hidden">
+        <button class="btn btn-default turn-filtering-on hidden"
+          >Filter selected tags</button>
+        <button class="btn btn-default turn-filtering-off"
+          >Turn off filter</button>
+      </span>
     </div> 
 
 
@@ -248,18 +262,23 @@
       property added. The inner html of the .tag-text and .project-count
       spans needs to be added/updated. -->
   <ul>
-    <li id="dropdown-project-tag-template" 
-      class="list-group-item tag" data-selected-project-count="0">
-      <span class="selected-toggle"
+    <li id="dropdown-project-tag-template"
+        class="list-group-item tag" data-selected-project-count="0"> 
+      <span class="selected-toggle action"
         ><span class="toggle selected hidden"
-            ><span class="glyphicon glyphicon-check"></span></span
+            ><span class="glyphicon glyphicon-minus"></span></span
         ><span class="toggle deslected"
-            ><span class="glyphicon glyphicon-unchecked"></span></span
-      ></span>
+            ><span class="glyphicon glyphicon-plus"></span></span
+      ></span
+      ><span class="filter-tag action"
+        ><span class="glyphicon glyphicon-filter"></span></span>
       <span class="tag-text"></span> 
       <span class="project-count-container"
         >(<span class="project-count">0</span>)</span>
+      <span class="delete-tag action"
+        ><span class="glyphicon glyphicon-trash"></span></span>
     </li>
+
   </ul>
 
 </div>
