@@ -1,0 +1,21 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+ptag1:
+  tag: tag1
+  project: p1 
+
+ptag2:
+  tag: tag2
+  project: p3
+
+ptag3:
+  tag: tag2
+  project: p1
+
+ptag4:
+  tag: tag3
+  project: p2
+
+ptag5:
+  tag: tag4
+  project: p2
