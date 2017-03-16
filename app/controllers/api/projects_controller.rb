@@ -122,8 +122,8 @@ class Api::ProjectsController < ApplicationController
       begin
         @new_name = params.require(:project).require(:name)
         raise "To many parameters." if params[:project].size > 1
-      rescue
-        render_error "A 'project/name' field must be provided."
+      rescue Exception => e
+        render_error "A 'project/name' field must be provided. #{e}"
       end
     end
 end

@@ -1491,6 +1491,10 @@ var CodeAnnotator = function($){
       }
     }
 
+    // If the number of selected projects is exactly 1, show the
+    // 'Rename' button.
+    $('#update-project-name').prop('disabled', 
+      $('tr.project.selected:visible').length !== 1);
   };
 
   /**
@@ -1653,11 +1657,72 @@ var CodeAnnotator = function($){
         }
       });
     } 
-
   }
 
+  /**
+   * Renames a project based on the information in the update project modal.
+   * This should only be called when the user has completed entering information
+   * in that modal.
+   */
+  var renameProject = function(){
+    var btn = $('#confirm-update-project-name');
+    var modal = btn.parents('.modal');
+    var projectId = btn.data('project-id');
+    var newName = $('#updated-project-name').val();
+    modal.modal('hide');
+
+    console.log('Seinding newname: ', newName);
+
+    $.ajax('/api/projects/'+ projectId, {
+      method: 'POST',
+      data: {
+        _method: 'patch',
+        project: {name: newName}
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error renaming the project. '+ data.error);
+          return;
+        }
+
+        // Update the project name in the UI.
+        $('#'+ projectId +' .name').html(newName);
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error renaming the project. '+ error);
+      }
+    });
+
+  };
+
+
   // LISTENERS
-  
+
+ 
+  // Listens for the "Rename" project button to be pressed.
+  $(document).on('click', '#update-project-name', function(event){
+    var selectedProject = $('tr.project.selected:visible');
+    var renameModal = $('#update-project-name-modal');
+    renameModal.modal('show');
+    renameModal.find('#current-project-name').html(
+      selectedProject.find('.name').html());
+    renameModal.find('#confirm-update-project-name').data('project-id',
+      selectedProject.attr('id'));
+    $('#new-project-name').val('');
+  });
+
+  // Listens for the "Rename" button in the renaming modal to be pressed.
+  // This causes the project's name to be changed on the server and updates
+  // the UI with the new name.
+  $(document).on('click', '#confirm-update-project-name', function(event){
+    renameProject();
+    event.preventDefault();
+  });
+  $(document).on('submit', '#update-project-name-form', function(event){
+    renameProject();
+    event.preventDefault();
+  });
+
   // Listens for the turn-filtering-on/off buttons to be pressed.
   $(document).on('click', '#filter-switch', function(event){
     var filterToggle = $(this);
@@ -1759,9 +1824,10 @@ var CodeAnnotator = function($){
     event.stopPropagation();
   });
 
-  // Gives focus to the trash-tag button when the model becomes visible.
-  $(document).on('shown.bs.modal', '#confirm-delete-tag-modal', function(){
-    $(this).find('#trash-tag').focus();
+  // Gives focus to the first element with a focus class in the modal that 
+  // triggered the event.
+  $(document).on('shown.bs.modal', '.modal', function(){
+    $(this).find('.focus').focus();
   });
 
   // Listens for the confirm tag deletion button to be pressed and removes
