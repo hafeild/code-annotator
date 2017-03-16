@@ -1792,7 +1792,7 @@ var CodeAnnotator = function($){
   // (e.g., all projects under "My Projects").
   $(document).on('click', 'th.select-all-projects', function(event) {
     var selectAllElm = $(this);
-    var projectElms = selectAllElm.closest('table').find('tr.project');
+    var projectElms = selectAllElm.closest('table').find('tr.project:visible');
 
     // Deselect all selected projects.
     if(selectAllElm.hasClass('selected')){
