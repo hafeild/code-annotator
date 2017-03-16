@@ -1502,7 +1502,6 @@ var CodeAnnotator = function($){
    * @param projectRowElms A list of jQuery project row elements.
    */
   var addExistingTagToProjects = function(tagId, tagText, projectRowElms) {
-    console.log('Adding tag '+ tagId +' ('+ tagText +') to:', projectRowElms);
     var tagInDropdownElm = $('#modify-tags .tag[data-tag-id='+ tagId +']');
     var projectCountElm = tagInDropdownElm.find('.project-count');
 
@@ -1511,7 +1510,6 @@ var CodeAnnotator = function($){
       var projectId = projectElm.attr('id');
   
       var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
-      console.log('sending request to: '+ apiURL);
       // First, add the tag server side. Wait to hear back before updating the
       // UI. We should probably put up a 'waiting' graphic i case the server
       // is slow to respond.
@@ -1520,8 +1518,6 @@ var CodeAnnotator = function($){
         data: {
         },
         success: (function(projectElm){ return function(data){
-
-          console.log('heard back from server:', data);
           if(data.error){
             displayError('There was an error adding the tag "'+ tagText +
               '" to the project : '+ data.error);
@@ -1558,15 +1554,12 @@ var CodeAnnotator = function($){
    * @param projectRowElms A list of jQuery project row elements.
    */
   var addNewTagToProjects = function(tagText, projectRowElms) {
-    console.log('Creating new tag '+ tagText);
     $.ajax('/api/tags', {
       method: 'POST',
       data: {
         tag: {text: tagText}
       },
       success: function(data){
-
-        console.log('heard back from server:', data);
         if(data.error || data.tag === undefined || data.tag.id === undefined){
           displayError('There was an error creating the tag "'+ tagText +'": '+
             data.error);
@@ -1601,8 +1594,6 @@ var CodeAnnotator = function($){
    * @param projectRowElms A list of jQuery project row elements.
    */
   var removeTagFromProjects = function(tagId, projectRowElms) {
-    console.log('Removing tag '+ tagId +' from:', projectRowElms);
-
     var tagInDropdownElm = $('#modify-tags .tag[data-tag-id='+ tagId +']');
     var projectCountElm = tagInDropdownElm.find('.project-count');
 
@@ -1618,7 +1609,6 @@ var CodeAnnotator = function($){
       } 
  
       var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
-      console.log('sending request to: '+ apiURL);
       // First, add the tag server side. Wait to hear back before updating the
       // UI. We should probably put up a 'waiting' graphic i case the server
       // is slow to respond.
@@ -1628,8 +1618,6 @@ var CodeAnnotator = function($){
           _method: 'delete'
         },
         success: (function(projectElm){ return function(data){
-
-          console.log('heard back from server:', data);
           if(data.error){
             displayError('There was an error removing the tag from the '+
               'project : '+ data.error);
@@ -1759,18 +1747,67 @@ var CodeAnnotator = function($){
 
       tagElm.toggleClass('filtered');
 
+    // Delete tag.
     } else if(target.hasClass('delete-tag')){
-      console.log('removing tag.');
+      var modalElm = $('#confirm-delete-tag-modal');
+
+      modalElm.modal('show');
+      modalElm.find('.tag-text').html(tagElm.find('.tag-text').html());
+      modalElm.find('#trash-tag').data('tag-id', tagId);
     }
 
     event.stopPropagation();
   });
 
+  // Gives focus to the trash-tag button when the model becomes visible.
+  $(document).on('shown.bs.modal', '#confirm-delete-tag-modal', function(){
+    $(this).find('#trash-tag').focus();
+  });
+
+  // Listens for the confirm tag deletion button to be pressed and removes
+  // the tag.
+  $(document).on('click', '#trash-tag', function(event){
+    var deleteButton = $(this);
+    var modalElm = deleteButton.parents('.modal');
+    var tagId = deleteButton.data('tag-id');
+    modalElm.modal('hide');
+    
+    $.ajax('/api/tags/'+ tagId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error removing the tag. '+ error);
+          return;
+        }
+
+        var tagInDropdownElm = $('#modify-tags li[data-tag-id='+ tagId +']');
+        var projectTags = $('tr.project .tag[data-tag-id='+ tagId +']');
+
+        // If the tag is part of an active filter, update the filter count
+        // on the effected project.
+        if(tagInDropdownElm.hasClass('filtered')){
+          tagInDropdownElm.find('.filter-tag').click();
+        }
+
+        // Remove the tag from every project.
+        projectTags.remove();
+
+        // Remove the tag from the dropdown list.
+        tagInDropdownElm.remove(); 
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing the tag. '+ error);
+      }
+    });
+
+  });
+
   // Listens for the 'add tag' form submission in the modify tags dropdown.
   // Creates the new tag and then adds it to each of the selected projects.
   $(document).on('submit', '#add-tag', function(event){
-    console.log('New tag!');
-
     // Grab tag text.
     var tagTextElm = $(this).find('#new-tag-text');
     var tagText = tagTextElm.val();
