@@ -115,7 +115,7 @@
                 <em>No projects.</em>
               <% else %>
                 <table class="table table-hover sortable-theme-bootstrap 
-                    <%= data[2] %>" 
+                    projects-table <%= data[2] %>" 
                     data-sortable>
                   <thead>
                     <th class="select-all-projects" data-sortable="false"
@@ -188,7 +188,7 @@
           >Delete</button>
         <button type="button" class="btn btn-default" data-dismiss="modal"
             >Cancel</button>
-      </div>
+      /div>
     </div>
   </div>
 </div>
@@ -262,15 +262,23 @@
 
 <div class="hidden">
   <table>
-  <tr id="entry-template" class="clickable-row project" data-href="" 
-      class="project-main">
+  <tr id="entry-template" class="clickable-row project project-main"
+      data-href="" id=""
+      data-filter-count="0">
+    <td class="select-project">
+      <span class="selected-toggle"
+        ><span class="toggle selected hidden"
+          ><span class="glyphicon glyphicon-check"></span></span
+        ><span class="toggle deslected"
+          ><span class="glyphicon glyphicon-unchecked"></span></span
+      ></span></td>
     <td class="name"></td>
-    <td class="email"></td> 
-    <td class="date"></td> 
-    <td class="project-trash trash">
-      <span class="glyphicon glyphicon-trash"></span>
-    </td>
-  </tr>  
+    <td class="email"></td>
+    <td class="date" data-value=""></td>
+    <td class="tags"></td>
+  </tr> 
+  
+
   </table>
 
   <!-- Project tag template (in the project listing). Should have a data-tag-id

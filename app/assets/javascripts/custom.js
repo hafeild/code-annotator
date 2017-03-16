@@ -2242,7 +2242,11 @@ var CodeAnnotator = function($){
           newEntry.find('.date').html(project.created_on);
           newEntry.find('.email').html(project.creator_email);
 
-          newEntry.insertAfter(elm.parents('tr'));
+          
+          elm.parents('.project-set').find('table.projects-table tbody').
+            prepend(newEntry);
+
+          newProjectInput.val('');
         }
       },
       error: function(xhr, status, error){
