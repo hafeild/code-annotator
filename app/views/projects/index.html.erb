@@ -5,6 +5,71 @@
 
 
   <div class="row">
+    
+    <div id="project-modification-buttons" class="col-md-12">
+      <!-- Delete selected projects. -->
+      <button id="trash" class="btn btn-default"
+        title="Delete selected projects"
+        ><span class="glyphicon glyphicon-trash"></span></button>
+  
+      <!-- Dropdown for the labels. -->
+      <div class="btn-group" id="modify-tags">
+        <button class="btn btn-default dropdown-toggle" 
+            type="button" data-toggle="dropdown" 
+            aria-haspopup="true" aria-expanded="false">
+          Modify/filter tags
+          <span><span class="glyphicon glyphicon-tags"></span> </span> 
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu tags-dropdown list-group">
+          <li>
+            <form id="add-tag" >
+              <div class="input-group" style="width: 100%">
+                <span class="input-group-btn">
+                  <button id="add-project-btn" 
+                    class="btn btn-primary" type="submit"><span 
+                      class="glyphicon glyphicon-plus"></span
+                  ></button>
+                </span>
+                <input type="text" id="new-tag-text" 
+                  class="form-control" 
+                  placeholder="Enter a new tag...">
+              </div>
+            </form>
+          </li>
+          <li role="separator" class="divider"></li>
+          <% @current_user.tags.sort{|x,y| x.text <=> y.text}.each do |tag| %>
+          <li class="list-group-item tag" data-selected-project-count="0" 
+              data-tag-id="<%= tag.id %>">
+            <span class="selected-toggle action"
+              ><span class="toggle selected hidden"
+                  ><span class="glyphicon glyphicon-minus"></span></span
+              ><span class="toggle deslected"
+                  ><span class="glyphicon glyphicon-plus"></span></span
+            ></span
+            ><span class="filter-tag action"
+              ><span class="glyphicon glyphicon-filter"></span></span>
+            <span class="tag-text"><%= tag.text %></span> 
+            <span class="project-count-container"
+              >(<span class="project-count"
+                  ><%= tag.projects.count %></span
+              >)</span>
+            <span class="delete-tag action"
+              ><span class="glyphicon glyphicon-trash"></span></span>
+            
+
+          </li>
+          <% end %>
+        </ul>
+      </div>
+      <span id="filter-switch" class="hidden">
+        <button class="btn btn-default turn-filtering-on hidden"
+          >Filter selected tags</button>
+        <button class="btn btn-default turn-filtering-off"
+          >Turn off filter</button>
+      </span>
+    </div> 
+
 
     <% [[@authoredProjects, "My Projects", "authored-projects"], 
         [@viewableProjects, "Shared for viewing", "viewer-projects"],
@@ -16,19 +81,10 @@
         </div>
         <div class="panel-body">
           <div class="list-group">
-              <% if data[0].empty? and data[2] != "authored-projects" %>
-                <em>No projects.</em>
-              <% else %>
-                <table class="table table-hover sortable-theme-bootstrap 
-                    <%= data[2] %>" 
-                    data-sortable>
-                  <thead>
-                    <th>Name</th><th>Creator</th><th>Created on</th><th></th>
-                  </thead>
-                  <tbody>
-                    <% if data[2] == "authored-projects" %>
+              <% if data[2] == "authored-projects" %>
+                <table width="100%">
                     <tr id="add-project-row">
-                      <td colspan="3">
+                      <td>
                         <form id="add-project-form" >
                           <div class="input-group" style="width: 100%">
                             <span class="input-group-btn">
@@ -53,7 +109,28 @@
                         ></button>
                       </td>
                     </tr>
-                    <% end %>
+                </table>
+              <% end %>
+              <% if data[0].empty? and data[2] != "authored-projects" %>
+                <em>No projects.</em>
+              <% else %>
+                <table class="table table-hover sortable-theme-bootstrap 
+                    projects-table <%= data[2] %>" 
+                    data-sortable>
+                  <thead>
+                    <th class="select-all-projects" data-sortable="false"
+                      ><span class="selected-toggle"
+                        ><span class="toggle selected hidden"
+                            ><span class="glyphicon glyphicon-check"></span></span
+                        ><span class="toggle deslected"
+                            ><span class="glyphicon glyphicon-unchecked"></span></span
+                        ></span></th>
+                    <th class="name">Name</th>
+                    <th class="email">Creator</th>
+                    <th class="date">Created on</th>
+                    <th class="tags">Tags</th>
+                  </thead>
+                  <tbody>
                     <%= render data[0] %>
                   </tbody>
                 </table>
@@ -76,13 +153,15 @@
             aria-label="Close"><span aria-hidden="true">&times;</span
         ></button>
         <h4 class="modal-title" id="project-comments">Are you sure you
-            want to permenantly delete this project?</h4>
+            want to permenantly delete these projects?</h4>
       </div>
       <div class="modal-body">
-        <strong>Project:</strong> <em><span class='project-name'></span></em>
+        <strong>Projects:</strong> 
+            <ul class='project-names'>
+            </ul>
       </div>
       <div class="modal-footer">
-        <button type="button" id="trash-project" class="btn btn-danger" 
+        <button type="button" id="trash-projects" class="btn btn-danger" 
           >Delete</button>
         <button type="button" class="btn btn-default" data-dismiss="modal"
             >Cancel</button>
@@ -92,7 +171,27 @@
 </div>
 
 
-
+<div class="modal fade" id="confirm-delete-tag-modal" tabindex="-1" 
+    role="dialog" aria-labelledby="confirm-delete-tag">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" 
+            aria-label="Close"><span aria-hidden="true">&times;</span
+        ></button>
+        <h4 class="modal-title">Are you sure you
+            want to permenantly delete the tag 
+            "<span class="tag-text"></span>"?</h4>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="trash-tag" class="btn btn-danger" 
+          >Delete</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal"
+            >Cancel</button>
+      /div>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="upload-files" tabindex="-1" 
     role="dialog" aria-labelledby="upload-files-title">
@@ -163,16 +262,53 @@
 
 <div class="hidden">
   <table>
-  <tr id="entry-template" class="clickable-row project" data-href="" 
-      class="project-main">
+  <tr id="entry-template" class="clickable-row project project-main"
+      data-href="" id=""
+      data-filter-count="0">
+    <td class="select-project">
+      <span class="selected-toggle"
+        ><span class="toggle selected hidden"
+          ><span class="glyphicon glyphicon-check"></span></span
+        ><span class="toggle deslected"
+          ><span class="glyphicon glyphicon-unchecked"></span></span
+      ></span></td>
     <td class="name"></td>
-    <td class="email"></td> 
-    <td class="date"></td> 
-    <td class="project-trash trash">
-      <span class="glyphicon glyphicon-trash"></span>
-    </td>
-  </tr>  
+    <td class="email"></td>
+    <td class="date" data-value=""></td>
+    <td class="tags"></td>
+  </tr> 
+  
+
   </table>
+
+  <!-- Project tag template (in the project listing). Should have a data-tag-id
+    property added and the inner html should be the tag text. -->
+  <span id="project-tag-template" class="tag label label-primary"></span>
+
+
+  <!-- Project tag template (in the dropdown list). Should have a data-tag-id
+      property added. The inner html of the .tag-text and .project-count
+      spans needs to be added/updated. -->
+  <ul>
+    <li id="dropdown-project-tag-template"
+        class="list-group-item tag" data-selected-project-count="0"> 
+      <span class="selected-toggle action"
+        ><span class="toggle selected hidden"
+            ><span class="glyphicon glyphicon-minus"></span></span
+        ><span class="toggle deslected"
+            ><span class="glyphicon glyphicon-plus"></span></span
+      ></span
+      ><span class="filter-tag action"
+        ><span class="glyphicon glyphicon-filter"></span></span>
+      <span class="tag-text"></span> 
+      <span class="project-count-container"
+        >(<span class="project-count">0</span>)</span>
+      <span class="delete-tag action"
+        ><span class="glyphicon glyphicon-trash"></span></span>
+    </li>
+
+  </ul>
+
 </div>
 
 

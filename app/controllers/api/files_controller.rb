@@ -38,7 +38,7 @@ class Api::FilesController < ApplicationController
 
     dir_params[:content]      = ""
     dir_params[:project_id]   = @project.id
-    dir_params[:added_by]     = current_user.id
+    dir_params[:added_by]     = @current_user.id
     dir_params[:size]         = 0
     dir_params[:is_directory] = true
 

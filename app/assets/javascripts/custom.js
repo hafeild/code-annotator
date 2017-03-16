@@ -4,6 +4,8 @@ var CodeAnnotator = function($){
   const FILES_API = '/api/projects/'+ PROJECT_ID +'/files/'; //'/api/files/';
   const PROJECT_API = '/api/projects/'+ PROJECT_ID;
   const COMMENT_API = PROJECT_API +'/comments';
+  const TAG_API = '/api/tags';
+  const PROJECT_TAG_API = PROJECT_API +'/tags';
   const MAX_PROJECT_SIZE_BYTES = 1024*1024; // 1MB.
   const MAX_PROJECT_SIZE_MB = MAX_PROJECT_SIZE_BYTES/1024/1024;
   const KNOWN_FILE_EXTENSIONS = {
@@ -1435,7 +1437,419 @@ var CodeAnnotator = function($){
     });
   };
 
+
+  /**
+   * Selects or deselects a tag in the modify tags dropdown.
+   *
+   * @param tagElmOrId The tag element to modify OR the id of the tag to modify.
+   * @param projectChangeCount A integer indicating how many projects to
+   *        change by; the sign will indicate whether to select or deselect,
+   *        while the magnitude determines how many projects to change the
+   *        the selected project count by.
+   */
+  var selectTagInDropdown = function(tagElmOrId, projectChangeCount){
+    var tagElm = tagElmOrId;
+    if(typeof tagElmOrId === 'number'){
+      tagElm = $('#modify-tags .tag[data-tag-id='+ tagElmOrId +']');
+    }
+
+    if( (projectChangeCount >= 0 && !tagElm.hasClass('selected')) ||
+        (projectChangeCount < 0  &&  tagElm.hasClass('selected') &&
+          tagElm.data('selected-project-count')+projectChangeCount <= 0) ){
+      tagElm.toggleClass('selected');
+      tagElm.find('.selected-toggle .toggle').toggle();
+    } 
+
+    tagElm.data('selected-project-count', Math.max(
+        tagElm.data('selected-project-count')+projectChangeCount, 0));
+  };
+
+  /**
+   * Updates the tag dropdown with this project's tags (adds them if this
+   * project is being selected or removes them if this project is being
+   * deselected). Also marks the project as being selected/deselected.
+   * 
+   * @param rowElm The jQuery wrapped row element for the project. 
+   */
+  var toggleProjectForModification = function(rowElm){
+    var tagsDropdownElm = $('.tags-dropdown');
+    rowElm.find('.selected-toggle .toggle').toggle();
+    rowElm.toggleClass('selected');
+    var count = rowElm.hasClass('selected') ? 1 : -1;
+
+    // [De]Select all of the corresponding tags in the tag dropdown.
+    rowElm.find('.tag').each(function(i,elm){
+      selectTagInDropdown($(elm).data('tag-id'), count);
+    });
+
+    // Clear 'select all' if currently clicked.
+    if(!rowElm.hasClass('selected')){
+      var selectAll = rowElm.closest('table').find('.select-all-projects');
+      if(selectAll.hasClass('selected')){
+        selectAll.toggleClass('selected');
+        selectAll.find('.selected-toggle .toggle').toggle();
+      }
+    }
+
+  };
+
+  /**
+   * Adds the given tag to a set of projects both in the UI and on the
+   * server.
+   *
+   * @param tagId The id of the tag to add.
+   * @param tagText The text of the tag to add.
+   * @param projectRowElms A list of jQuery project row elements.
+   */
+  var addExistingTagToProjects = function(tagId, tagText, projectRowElms) {
+    var tagInDropdownElm = $('#modify-tags .tag[data-tag-id='+ tagId +']');
+    var projectCountElm = tagInDropdownElm.find('.project-count');
+
+    for(var i = 0; i < projectRowElms.length; i++){
+      var projectElm = $(projectRowElms[i]);
+      var projectId = projectElm.attr('id');
+  
+      var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
+      // First, add the tag server side. Wait to hear back before updating the
+      // UI. We should probably put up a 'waiting' graphic i case the server
+      // is slow to respond.
+      $.ajax(apiURL, {
+        method: 'POST',
+        data: {
+        },
+        success: (function(projectElm){ return function(data){
+          if(data.error){
+            displayError('There was an error adding the tag "'+ tagText +
+              '" to the project : '+ data.error);
+            return;
+          }
+
+          // Add the tag to the project's tag area.
+          var tagElm = $('#project-tag-template').clone().attr('id', '').
+                attr('data-tag-id', tagId).html(tagText);
+ 
+          projectElm.find('.tags').append(' ').append(tagElm);
+
+          // Update the total project count in the dropdown.
+          projectCountElm.html(parseInt(projectCountElm.html())+1);
+
+          // Select the tag in the modify tags dropdown and update selected
+          // project count.
+          selectTagInDropdown(tagInDropdownElm, 1);
+          
+        }; })(projectElm),
+        error: function(xhr, status, error){
+            displayError('There was an error reaching the server when '+
+              'adding the tag "'+ tagText +'" to the project : '+ error);
+        }
+      });
+    } 
+  };
+
+  /**
+   * Creates a new tag with the given text, adds it to the modify tags dropdown,
+   * and adds it to the selected projects (both on the server an in the UI).
+   * 
+   * @param tagText The text of the tag.
+   * @param projectRowElms A list of jQuery project row elements.
+   */
+  var addNewTagToProjects = function(tagText, projectRowElms) {
+    $.ajax('/api/tags', {
+      method: 'POST',
+      data: {
+        tag: {text: tagText}
+      },
+      success: function(data){
+        if(data.error || data.tag === undefined || data.tag.id === undefined){
+          displayError('There was an error creating the tag "'+ tagText +'": '+
+            data.error);
+          return;
+        }
+  
+        // Add the tag to the dropdown.
+        var tagElm = $('#dropdown-project-tag-template').clone().attr('id','').
+          attr('data-tag-id', data.tag.id);
+        tagElm.find('.tag-text').html(tagText);
+
+        $('#modify-tags li.divider').after(tagElm);        
+
+        // Add the tag to the selected projects.
+        addExistingTagToProjects(data.tag.id, tagText, projectRowElms);
+ 
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error creating the tag "'+ tagText +'": '+
+          error);
+      }
+    });   
+
+
+  };
+
+  /**
+   * Removes the given tag from selected projects. This removes the tag
+   * on the server and updates the UI.
+   *
+   * @param tagId The id of the tag to remove.
+   * @param projectRowElms A list of jQuery project row elements.
+   */
+  var removeTagFromProjects = function(tagId, projectRowElms) {
+    var tagInDropdownElm = $('#modify-tags .tag[data-tag-id='+ tagId +']');
+    var projectCountElm = tagInDropdownElm.find('.project-count');
+
+    for(var i = 0; i < projectRowElms.length; i++){
+      var projectElm = $(projectRowElms[i]);
+      var projectId = projectElm.attr('id');
+      var filterToggle = $('#filter-switch');
+      var filteringOn = filterToggle.css('display') !== "none" && 
+        filterToggle.find('.turn-filtering-off').css('display') !== "none";
+
+      if(projectElm.find('.tag[data-tag-id='+ tagId +']').length === 0){
+        continue;
+      } 
+ 
+      var apiURL = '/api/projects/'+ projectId +'/tags/'+ tagId;
+      // First, add the tag server side. Wait to hear back before updating the
+      // UI. We should probably put up a 'waiting' graphic i case the server
+      // is slow to respond.
+      $.ajax(apiURL, {
+        method: 'POST',
+        data: {
+          _method: 'delete'
+        },
+        success: (function(projectElm){ return function(data){
+          if(data.error){
+            displayError('There was an error removing the tag from the '+
+              'project : '+ data.error);
+            return;
+          }
+
+          // Remove the tag from the project's tag area.
+          projectElm.find('.tag[data-tag-id='+ tagId +']').remove();
+
+          // Update the total project count in the dropdown.
+          projectCountElm.html(parseInt(projectCountElm.html())-1);
+
+          // Select the tag in the modify tags dropdown and update selected
+          // project count.
+          selectTagInDropdown(tagInDropdownElm, -1);
+
+          // If the tag is part of an active filter, update the filter count
+          // on the affected project.
+          if(tagInDropdownElm.hasClass('filtered')){
+            projectElm.attr('data-filter-count', 
+              parseInt(projectElm.attr('data-filter-count')) - 1);
+            if(filteringOn){
+              projectElm.hide();
+              toggleProjectForModification(projectElm);
+              projectElm.addClass('selected');
+            }
+          }
+
+        }; })(projectElm),
+        error: function(xhr, status, error){
+            displayError('There was an error removing the tag from the '+
+              'project : '+ error);
+        }
+      });
+    } 
+
+  }
+
   // LISTENERS
+  
+  // Listens for the turn-filtering-on/off buttons to be pressed.
+  $(document).on('click', '#filter-switch', function(event){
+    var filterToggle = $(this);
+    var target = $(event.target);
+    if(target.hasClass('turn-filtering-on')){
+      var tagsFiltered = $('#modify-tags .tag.filtered').length; 
+      $('tr.project[data-filter-count!='+ (tagsFiltered) +']').hide();
+    } else {
+      $('tr.project').show();
+    }
+
+    filterToggle.find('button').toggle();
+  });
+
+
+  // Listens for a tag in the "modify tags" dropdown to be selected or
+  // deselected. This causes the tag to be added or removed from selected
+  // projects.
+  $(document).on('click', '#modify-tags li.tag', function(event){
+    var target = $(event.target).closest('.action');
+    var tagElm = $(this);
+    var tagId = tagElm.data('tag-id');
+
+    // Add tags to/remove from projects.
+    if(target.hasClass('selected-toggle')){
+      var projectRowElms = $('tr.project.selected:visible');
+      // Is this tag being selected or deselected?
+      // Case 1: already selected, so it's being deselected.
+      if(tagElm.hasClass('selected')){
+        removeTagFromProjects(tagId, projectRowElms); 
+  
+      // Case 2: currently deslected, so it's being selected.
+      } else {
+        var tagText = tagElm.find('.tag-text').text();
+        addExistingTagToProjects(tagId, tagText, projectRowElms);
+      }
+    } else if(target.hasClass('filter-tag')){
+      var tagsFiltered = $('#modify-tags .tag.filtered').length; 
+      var filterToggle = $('#filter-switch');
+      var filteringOn = filterToggle.find('.turn-filtering-off')[0].
+        style.display !== "none";
+
+      // We're removing this tag from the filter.
+      if(tagElm.hasClass('filtered')){
+        // Decrement the filter count on all projects that have this tag.
+        $('tr.project .tag[data-tag-id='+ tagId +']').each(function(){ 
+          var projectRowElm = $(this).parents('tr.project'); 
+          projectRowElm.attr('data-filter-count', 
+            parseInt(projectRowElm.attr('data-filter-count'))-1);
+        });
+
+        // Any project that has the remaining filtered tags should be shown.
+        if(filteringOn){
+          var hiddenRowsToShow = $('tr.project[data-filter-count='+ 
+            (tagsFiltered-1) +']:hidden');
+          hiddenRowsToShow.show();
+          hiddenRowsToShow.filter('.selected').each(function(){
+            $(this).removeClass('selected');
+            toggleProjectForModification($(this));
+          });
+
+          if(tagsFiltered === 1){
+            filterToggle.hide();
+          }
+        }
+      } else {
+        // Any project that has this tag needs its filter count incremented.
+        $('tr.project .tag[data-tag-id='+ tagId +']').each(function(){ 
+          var projectRowElm = $(this).parents('tr.project'); 
+          projectRowElm.attr('data-filter-count', 
+            parseInt(projectRowElm.attr('data-filter-count'))+1);
+        });
+
+        // Any project that doesn't have a filter count that is the same as
+        // the number of tags being filtered shouldn't be shown.
+        if(filteringOn){
+          var visibleRowsToHide = $('tr.project[data-filter-count!='+ 
+            (tagsFiltered+1) +']:visible');
+          visibleRowsToHide.hide();
+          visibleRowsToHide.filter('.selected').each(function(){
+            toggleProjectForModification($(this));
+            $(this).addClass('selected');
+          });
+        }
+        filterToggle.show();
+      }
+
+      tagElm.toggleClass('filtered');
+
+    // Delete tag.
+    } else if(target.hasClass('delete-tag')){
+      var modalElm = $('#confirm-delete-tag-modal');
+
+      modalElm.modal('show');
+      modalElm.find('.tag-text').html(tagElm.find('.tag-text').html());
+      modalElm.find('#trash-tag').data('tag-id', tagId);
+    }
+
+    event.stopPropagation();
+  });
+
+  // Gives focus to the trash-tag button when the model becomes visible.
+  $(document).on('shown.bs.modal', '#confirm-delete-tag-modal', function(){
+    $(this).find('#trash-tag').focus();
+  });
+
+  // Listens for the confirm tag deletion button to be pressed and removes
+  // the tag.
+  $(document).on('click', '#trash-tag', function(event){
+    var deleteButton = $(this);
+    var modalElm = deleteButton.parents('.modal');
+    var tagId = deleteButton.data('tag-id');
+    modalElm.modal('hide');
+    
+    $.ajax('/api/tags/'+ tagId, {
+      method: 'POST',
+      data: {
+        _method: 'delete'
+      },
+      success: function(data){
+        if(data.error){
+          displayError('There was an error removing the tag. '+ error);
+          return;
+        }
+
+        var tagInDropdownElm = $('#modify-tags li[data-tag-id='+ tagId +']');
+        var projectTags = $('tr.project .tag[data-tag-id='+ tagId +']');
+
+        // If the tag is part of an active filter, update the filter count
+        // on the effected project.
+        if(tagInDropdownElm.hasClass('filtered')){
+          tagInDropdownElm.find('.filter-tag').click();
+        }
+
+        // Remove the tag from every project.
+        projectTags.remove();
+
+        // Remove the tag from the dropdown list.
+        tagInDropdownElm.remove(); 
+      },
+      error: function(xhr, status, error){
+        displayError('There was an error removing the tag. '+ error);
+      }
+    });
+
+  });
+
+  // Listens for the 'add tag' form submission in the modify tags dropdown.
+  // Creates the new tag and then adds it to each of the selected projects.
+  $(document).on('submit', '#add-tag', function(event){
+    // Grab tag text.
+    var tagTextElm = $(this).find('#new-tag-text');
+    var tagText = tagTextElm.val();
+
+    // Get the projects to add it to.
+    // Create it, etc.
+    addNewTagToProjects(tagText, $('tr.project.selected:visible'));
+
+    // Clear the tag text.
+    tagTextElm.val('');
+
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+  });
+
+  // Listens for the "Select all projects" checkbox to be clicked at the
+  // top of a project grouping. This selects all projects in that group
+  // (e.g., all projects under "My Projects").
+  $(document).on('click', 'th.select-all-projects', function(event) {
+    var selectAllElm = $(this);
+    var projectElms = selectAllElm.closest('table').find('tr.project:visible');
+
+    // Deselect all selected projects.
+    if(selectAllElm.hasClass('selected')){
+      projectElms.filter('.selected').each(function(){
+        toggleProjectForModification($(this));
+      });
+
+    // Select all deselected projects.
+    } else {
+      projectElms.filter(':not(.selected)').each(function(){
+          toggleProjectForModification($(this));
+      });
+
+      // This only needs to be here because toggleProjectForModification will
+      // take care of removing the 'selected' case for us.
+      selectAllElm.toggleClass('selected');
+      selectAllElm.find('.selected-toggle .toggle').toggle();
+    }
+
+  });
 
   // For the "Projects listing" view.
   // Listen for a row to be clicked on. A td element must specifically be 
@@ -1443,10 +1857,20 @@ var CodeAnnotator = function($){
   // the project listing -- the td with the trash can does not cause the row's
   // href to be loaded.
   $(document).on('click', '.clickable-row', function(event) {
-    if(event.target.tagName === 'TD' && !$(event.target).hasClass('trash')){
-      window.document.location = $(this).data('href');
+    if($(event.target).closest('td').hasClass('select-project')){
+      //selectProject();
+      var rowElm = $(event.target).closest('tr');
+      toggleProjectForModification(rowElm);
+ 
+    } if(event.target.tagName === 'TD' && $(event.target).hasClass('name')){
+      if(event.ctrlKey || event.keyCode == 16) {
+        window.open($(this).data('href'));
+      } else {
+        window.document.location = $(this).data('href');
+      }
     }
   });
+
 
 
   // Collapses/expands directories in the file listings.
@@ -1818,7 +2242,11 @@ var CodeAnnotator = function($){
           newEntry.find('.date').html(project.created_on);
           newEntry.find('.email').html(project.creator_email);
 
-          newEntry.insertAfter(elm.parents('tr'));
+          
+          elm.parents('.project-set').find('table.projects-table tbody').
+            prepend(newEntry);
+
+          newProjectInput.val('');
         }
       },
       error: function(xhr, status, error){
@@ -1829,39 +2257,42 @@ var CodeAnnotator = function($){
     e.preventDefault();
   });
 
-  // After sorting, be sure that the new project form row is at the top.
-  if($('.authored-projects').length > 0){
-    $('.authored-projects')[0].addEventListener('Sortable.sorted', function(){
-      $('#add-project-row').prependTo($(this).find('tbody'));
-    });
-  }
-
   // Listen for projects to be deleted and present the user with a confirmation
   // modal.
-  $(document).on('click', '.project-trash', function(e){
-    var entryElm = $(this).parents('.project');
-    var projectId = entryElm.attr('id');
+  $(document).on('click', '#trash', function(e){
+    // Find all selected projects.
+    var projectIds = $('.project.selected').map(
+      function(i,p){return p.id;}).toArray();
     var modalElm = $('#confirm-delete-project-modal');
 
     modalElm.modal('show');
-    modalElm.find('.project-name').html(entryElm.find('.name').html());
-    modalElm.find('#trash-project').data('project-id', projectId);
+    modalElm.find('.project-names').html(
+      $('.project.selected .name').map(
+        function(i,p){return '<li>'+ p.innerHTML +'</li>';}
+      ).toArray().join(' ')
+   );
+    modalElm.find('#trash-projects').data('project-ids', projectIds);
   });
 
-  // Listen for project deletion to be confirmed.
-  $(document).on('click', '#trash-project', function(e){ 
+  // Listen for project deletions to be confirmed.
+  $(document).on('click', '#trash-projects', function(e){ 
     var modalElm = $(this).closest('.modal');
-    var projectId = $(this).data('project-id');
-    var entryElm = $('#'+ projectId);
+    var projectIds = $(this).data('project-ids');
 
     // Close the modal.
     modalElm.modal('hide');    
 
-    // Remove the project.
-    deleteProject(projectId, function(data){
-      // Remove the project from the list.
-      entryElm.remove();
-    });
+    // Remove each project.
+    for(var i = 0; i < projectIds.length; i++){
+      var projectId = projectIds[i];
+      var entryElm = $('#'+ projectId);
+
+      // Remove the project.
+      deleteProject(projectId, function(p){
+        // Remove the project from the list.
+        return function(data){ p.remove() };
+      }(entryElm));
+    }
 
     e.preventDefault();
   });
