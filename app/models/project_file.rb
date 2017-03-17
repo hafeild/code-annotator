@@ -17,6 +17,17 @@ class ProjectFile < ActiveRecord::Base
     end
   end
 
+  ## Checks that the directory id is a directory in the same project as this
+  ## file.
+  def validate_directory
+    directory = ProjectFile.find(id)
+    if directory.project != project
+      errors.add(:directory_id, "must be a directory in the same project.")
+    elsif not directory.is_directory
+      error.add(:directory_id, "must be a directory.")
+    end
+  end
+
   ## Lists all of the files and directories that are children of this directory.
   ## Will return [] if this is a file or has no children. Files and directories
   ## are listed alphabetically, with directories coming before all files.
