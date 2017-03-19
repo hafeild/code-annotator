@@ -1741,6 +1741,53 @@ var CodeAnnotator = function($){
     }
   };
 
+  /**
+   * Places file move listeners for dragging and dropping files and directories.
+   *
+   * @param elms (Optional) The set of elms to place draggable and droppable
+   *             listeners on. Elements that have the class file-entry are
+   *             draggable only, while those that have the class directory-entry
+   *             are both draggable and droppable. If not provided, then all
+   *             elements on the page with .draggable and .droppable classes
+   *             will have the respective listeners placed on them.
+   */
+  var placeFileMoveListeners = function(elms){
+    var draggableFileElms, draggableDirElms, droppableDirElms;
+
+    // For moving files between directories in the project view.
+    var draggableOptions = {
+      revert: 'invalid',
+      helper: 'clone'
+    };
+  
+    if(elms){
+      draggableFileElms = elms.filter('.file-entry');
+      draggableDirElms = elms.filter('.directory-entry');
+      droppableDirElms = elms.filter('.directory-entry');
+    } else {
+      draggableFileElms = $('.file-entry.draggable');
+      draggableDirElms = $('.directory-entry.draggable');
+      droppableDirElms = $('.droppable'); 
+    }
+
+    // For draggable files and directories.
+    draggableDirElms.draggable(draggableOptions).draggable(
+      'option', 'handle', '> div > .drag-handle');
+    draggableFileElms.draggable(draggableOptions).draggable(
+      'option', 'handle', '> .drag-handle');
+  
+    // For droppable directories.
+    droppableDirElms.droppable({
+      accept: function(draggable){ 
+        return draggable !== this;
+      },
+      greedy: true,
+      drop: onFileDrop,
+      activeClass: 'ui-drop-active',
+      hoverClass: 'ui-drop-hover',
+      tolerance: 'pointer'
+    });
+  };
 
   // LISTENERS
 
@@ -2899,6 +2946,9 @@ var CodeAnnotator = function($){
         newDirElm.find('.directory-name-placeholder').html(directoryName);
 
         textBox.val('');
+
+        // Add drag and drop listener to the new directory.
+        placeFileMoveListeners(newDirElm);
       },
       error: function(xhr, status, error){
         displayError('There was an error creating the directory. '+ error);
@@ -2981,29 +3031,8 @@ var CodeAnnotator = function($){
   this.removeAltCode = removeAltCode;
   this.syntaxHighlightCodeString = syntaxHighlightCodeString;
 
-  // For moving files between directories in the project view.
-  var draggableOptions = {
-    revert: 'invalid',
-    helper: 'clone'
-  };
+  placeFileMoveListeners();
 
-  // For draggable files and directories.
-  $('.directory-entry.draggable').draggable(draggableOptions).draggable(
-    'option', 'handle', '> div > .drag-handle');
-  $('.file-entry.draggable').draggable(draggableOptions).draggable(
-    'option', 'handle', '> .drag-handle');
-
-  // For droppable directories.
-  $('.droppable').droppable({
-    accept: function(draggable){ 
-      return draggable !== this;
-    },
-    greedy: true,
-    drop: onFileDrop,
-    activeClass: 'ui-drop-active',
-    hoverClass: 'ui-drop-hover',
-    tolerance: 'pointer'
-  });
   return this;
 };
 
