@@ -2959,10 +2959,7 @@ var CodeAnnotator = function($){
   // For moving files between directories in the project view.
   var draggableOptions = {
     revert: 'invalid',
-    helper: 'clone',
-    start: function(){
-    //  $(this).data('undropped', true);
-    }
+    helper: 'clone'
   };
 
   // For draggable files and directories.
@@ -2977,7 +2974,7 @@ var CodeAnnotator = function($){
       return draggable !== this;
     },
     greedy: true,
-    drop: moveFile,
+    drop: onFileDrop,
     activeClass: 'ui-drop-active',
     hoverClass: 'ui-drop-hover',
     tolerance: 'pointer'
