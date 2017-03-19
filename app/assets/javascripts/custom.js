@@ -1695,6 +1695,32 @@ var CodeAnnotator = function($){
 
   };
 
+  /**
+   * A callback for files/directories dropped on directories in the project
+   * view. This causes the dropped file to be moved to the new location
+   * both in the UI as well as on the back end.
+   *
+   * @param event The event.
+   * @param ui An object with at least draggable and helper fields. The 
+   *           draggable field should have a value that is a jQuery object
+   *           of the file/directory being moved. helper should be the clone
+   *           shown during the dragging animation.
+   */
+  var onFileDrop = function(event, ui){
+    console.log('helper', ui.helper);
+    console.log('event', event);
+    if(event.target === this){
+      console.log('File moved:', ui.draggable);
+      ui.draggable.prependTo($(this).find('> .directory'));
+      ui.helper.remove();
+      ui.draggable.data('undropped', false);
+      event.stopPropagation();
+      event.preventDefault();
+
+      // TODO Add a call to the server here.
+    }
+  };
+
 
   // LISTENERS
 
@@ -2929,6 +2955,33 @@ var CodeAnnotator = function($){
   this.addAltCode = addAltCode;
   this.removeAltCode = removeAltCode;
   this.syntaxHighlightCodeString = syntaxHighlightCodeString;
+
+  // For moving files between directories in the project view.
+  var draggableOptions = {
+    revert: 'invalid',
+    helper: 'clone',
+    start: function(){
+    //  $(this).data('undropped', true);
+    }
+  };
+
+  // For draggable files and directories.
+  $('.directory-entry.draggable').draggable(draggableOptions).draggable(
+    'option', 'handle', '> div > .drag-handle');
+  $('.file-entry.draggable').draggable(draggableOptions).draggable(
+    'option', 'handle', '> .drag-handle');
+
+  // For droppable directories.
+  $('.droppable').droppable({
+    accept: function(draggable){ 
+      return draggable !== this;
+    },
+    greedy: true,
+    drop: moveFile,
+    activeClass: 'ui-drop-active',
+    hoverClass: 'ui-drop-hover',
+    tolerance: 'pointer'
+  });
   return this;
 };
 

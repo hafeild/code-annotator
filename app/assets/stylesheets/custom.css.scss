@@ -704,6 +704,23 @@ input[type="checkbox"] {
     }
   }
 
+  .drag-handle {
+    color: #888;
+  }
+
+  .drag-handle:hover {
+    color: $brand-warning;
+  }
+
+  .ui-drop-active {
+    /*border-left: 2px solid $brand-primary;*/
+  }
+
+  .ui-drop-hover {
+    border-left: 2px solid $brand-warning;
+  }
+
+
   .file-entry .count {
     position: relative;
     color: #ccc !important;
