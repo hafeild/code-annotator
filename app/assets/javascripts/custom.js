@@ -2194,13 +2194,15 @@ var CodeAnnotator = function($){
   // Changes the style of comments when they have focus.
   $(document).on('focus', '.comment-body', function(){
     if($(this).parents('.disabled').length > 0){ return; }
-    $(this).parents('.comment').addClass('panel-primary');
+    //$(this).parents('.comment').addClass('panel-primary');
+    $(this).parents('.comment').addClass('focused');
   });
 
   // Changes the style of comments when they loose focus.
   $(document).on('blur', '.comment-body', function(){
     if($(this).parents('.disabled').length > 0){ return; }
-    $(this).parents('.comment').removeClass('panel-primary');
+    //$(this).parents('.comment').removeClass('panel-primary');
+    $(this).parents('.comment').removeClass('focused');
   });
 
   // Listen for comment location removal buttons to be pressed.
@@ -2210,11 +2212,14 @@ var CodeAnnotator = function($){
   });
 
   $(document).on('mouseover', '#project-comments-modal .comment', function(){
-    $(this).addClass('panel-primary');
+    //$(this).addClass('panel-primary');
+    $(this).addClass('focused');
+    
   });
 
   $(document).on('mouseout', '#project-comments-modal .comment', function(){
-    $(this).removeClass('panel-primary');
+    //$(this).removeClass('panel-primary');
+    $(this).removeClass('focused');
   });
 
   $(document).on('click', '#project-comments-modal .comment', function(){
