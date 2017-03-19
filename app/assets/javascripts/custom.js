@@ -1707,17 +1707,37 @@ var CodeAnnotator = function($){
    *           shown during the dragging animation.
    */
   var onFileDrop = function(event, ui){
-    console.log('helper', ui.helper);
-    console.log('event', event);
+
+    // Since droppable directories are nested, we want the "lowest" one
+    // that the user's mouse is over, e.g., the target.
     if(event.target === this){
-      console.log('File moved:', ui.draggable);
-      ui.draggable.prependTo($(this).find('> .directory'));
+      var directory = $(this);
+      var fileId = ui.draggable.data('file-id');
+      var newDirectoryId = directory.data('file-id');
+      ui.draggable.prependTo(directory.find('> .directory'));
       ui.helper.remove();
       ui.draggable.data('undropped', false);
       event.stopPropagation();
       event.preventDefault();
 
-      // TODO Add a call to the server here.
+      // Contact the server and make update the directory associated with the
+      // file.
+      $.ajax('/api/files/'+ fileId, {
+        method: 'POST',
+        data: {
+          _method: 'patch',
+          file: {directory_id: newDirectoryId}
+        },
+        success: function(data){
+          if(data.error){
+            displayError('There was an error moving the file. '+ data.error);
+            return;
+          }
+        },
+        error: function(xhr, status, error){
+          displayError('There was an error moving the file. '+ error);
+        }
+      });
     }
   };
 
