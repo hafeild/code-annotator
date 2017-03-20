@@ -1695,6 +1695,99 @@ var CodeAnnotator = function($){
 
   };
 
+  /**
+   * A callback for files/directories dropped on directories in the project
+   * view. This causes the dropped file to be moved to the new location
+   * both in the UI as well as on the back end.
+   *
+   * @param event The event.
+   * @param ui An object with at least draggable and helper fields. The 
+   *           draggable field should have a value that is a jQuery object
+   *           of the file/directory being moved. helper should be the clone
+   *           shown during the dragging animation.
+   */
+  var onFileDrop = function(event, ui){
+
+    // Since droppable directories are nested, we want the "lowest" one
+    // that the user's mouse is over, e.g., the target.
+    if(event.target === this){
+      var directory = $(this);
+      var fileId = ui.draggable.data('file-id');
+      var newDirectoryId = directory.data('file-id');
+      ui.draggable.prependTo(directory.find('> .directory'));
+      ui.helper.remove();
+      ui.draggable.data('undropped', false);
+      event.stopPropagation();
+      event.preventDefault();
+
+      // Contact the server and make update the directory associated with the
+      // file.
+      $.ajax('/api/files/'+ fileId, {
+        method: 'POST',
+        data: {
+          _method: 'patch',
+          file: {directory_id: newDirectoryId}
+        },
+        success: function(data){
+          if(data.error){
+            displayError('There was an error moving the file. '+ data.error);
+            return;
+          }
+        },
+        error: function(xhr, status, error){
+          displayError('There was an error moving the file. '+ error);
+        }
+      });
+    }
+  };
+
+  /**
+   * Places file move listeners for dragging and dropping files and directories.
+   *
+   * @param elms (Optional) The set of elms to place draggable and droppable
+   *             listeners on. Elements that have the class file-entry are
+   *             draggable only, while those that have the class directory-entry
+   *             are both draggable and droppable. If not provided, then all
+   *             elements on the page with .draggable and .droppable classes
+   *             will have the respective listeners placed on them.
+   */
+  var placeFileMoveListeners = function(elms){
+    var draggableFileElms, draggableDirElms, droppableDirElms;
+
+    // For moving files between directories in the project view.
+    var draggableOptions = {
+      revert: 'invalid',
+      helper: 'clone'
+    };
+  
+    if(elms){
+      draggableFileElms = elms.filter('.file-entry');
+      draggableDirElms = elms.filter('.directory-entry');
+      droppableDirElms = elms.filter('.directory-entry');
+    } else {
+      draggableFileElms = $('.file-entry.draggable');
+      draggableDirElms = $('.directory-entry.draggable');
+      droppableDirElms = $('.droppable'); 
+    }
+
+    // For draggable files and directories.
+    draggableDirElms.draggable(draggableOptions).draggable(
+      'option', 'handle', '> div > .drag-handle');
+    draggableFileElms.draggable(draggableOptions).draggable(
+      'option', 'handle', '> .drag-handle');
+  
+    // For droppable directories.
+    droppableDirElms.droppable({
+      accept: function(draggable){ 
+        return draggable !== this;
+      },
+      greedy: true,
+      drop: onFileDrop,
+      activeClass: 'ui-drop-active',
+      hoverClass: 'ui-drop-hover',
+      tolerance: 'pointer'
+    });
+  };
 
   // LISTENERS
 
@@ -2067,14 +2160,17 @@ var CodeAnnotator = function($){
   // Listens for changes to comment content.
   $(document).on('change keyup mouseup', '.comment-body', editComment);
 
-  // Highlights comment locations when hovering over a comment.
+  // Highlights comment locations when hovering over a comment as long as
+  // a comment is not being actively edited.
   $(document).on('mouseover', '.comment', function(){
     if($(this).parents('.disabled').length > 0){ return; }
-
+    if($('.comment.focused').length > 0){ return; }
     hideCommentLocationHighlights();
     highlightCommentLocations($(this).data('lid'));
+    $('.comment.hover').removeClass('hover');
+    $(this).addClass('hover');
   });
-
+  
   // Handles focusing on a comment when a comment location is clicked.
   $(document).on('click', '.selected', function(){
     var commentLocationElm = $(this);
@@ -2148,13 +2244,19 @@ var CodeAnnotator = function($){
   // Changes the style of comments when they have focus.
   $(document).on('focus', '.comment-body', function(){
     if($(this).parents('.disabled').length > 0){ return; }
-    $(this).parents('.comment').addClass('panel-primary');
+    //$(this).parents('.comment').addClass('panel-primary');
+    $(this).parents('.comment').addClass('focused');
+    hideCommentLocationHighlights();
+    highlightCommentLocations($(this).parents('.comment').data('lid'));
+    $('.comment.hover').removeClass('hover');
   });
 
   // Changes the style of comments when they loose focus.
   $(document).on('blur', '.comment-body', function(){
     if($(this).parents('.disabled').length > 0){ return; }
-    $(this).parents('.comment').removeClass('panel-primary');
+    //$(this).parents('.comment').removeClass('panel-primary');
+    $(this).parents('.comment').removeClass('focused');
+    hideCommentLocationHighlights();
   });
 
   // Listen for comment location removal buttons to be pressed.
@@ -2164,11 +2266,14 @@ var CodeAnnotator = function($){
   });
 
   $(document).on('mouseover', '#project-comments-modal .comment', function(){
-    $(this).addClass('panel-primary');
+    //$(this).addClass('panel-primary');
+    $(this).addClass('focused');
+    
   });
 
   $(document).on('mouseout', '#project-comments-modal .comment', function(){
-    $(this).removeClass('panel-primary');
+    //$(this).removeClass('panel-primary');
+    $(this).removeClass('focused');
   });
 
   $(document).on('click', '#project-comments-modal .comment', function(){
@@ -2848,6 +2953,9 @@ var CodeAnnotator = function($){
         newDirElm.find('.directory-name-placeholder').html(directoryName);
 
         textBox.val('');
+
+        // Add drag and drop listener to the new directory.
+        placeFileMoveListeners(newDirElm);
       },
       error: function(xhr, status, error){
         displayError('There was an error creating the directory. '+ error);
@@ -2929,6 +3037,9 @@ var CodeAnnotator = function($){
   this.addAltCode = addAltCode;
   this.removeAltCode = removeAltCode;
   this.syntaxHighlightCodeString = syntaxHighlightCodeString;
+
+  placeFileMoveListeners();
+
   return this;
 };
 

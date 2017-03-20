@@ -554,15 +554,29 @@
   </table>
 
   <!-- Directory template. -->
-  <div id="directory-template" class="entry directory-entry" data-file-id="" 
+  <div id="directory-template" class="entry directory-entry draggable droppable" 
+      data-file-id="" 
       data-expand-state="expanded">
     <div class="directory-name">
+      <span class="edit-file-indicator move-file hidden drag-handle"
+            ><span class="glyphicon glyphicon-move"></span></span>
       <input class="dir-select file-select hidden" type="checkbox">
 
-      <span class="remove-file-indicator remove-file hidden">
-        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"
-            ></span>
+      <span class="edit-file-indicator edit-filename hidden"
+        data-toggle="modal" data-target="#edit-filename-modal"
+        title="Edit directory name">
+        <span class="glyphicon glyphicon-edit" aria-hidden="true"
+        ></span>
       </span>
+
+      <span class="edit-file-indicator remove-file hidden"
+        data-toggle="modal" data-target="#confirm-delete-modal"
+        data-delete-type="confirm-delete-file"
+        title="Remove directory">
+        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"
+        ></span>
+      </span>
+
       <span class="collapsed">
         <span class="glyphicon glyphicon-folder-close" aria-hidden="true"
             ></span>

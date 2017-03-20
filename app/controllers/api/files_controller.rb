@@ -10,17 +10,39 @@ class Api::FilesController < ApplicationController
   end
 
   def update
-    file_params = params.require(:file).permit(:name)
-    if @file.name != file_params[:name]
-      @file.name = file_params[:name]
-      if @file.save
-        render json: @file.id, serializer: SuccessWithIdSerializer
-      else
-        render_error "Filename could not be updated."
-      end
+    begin
+      file_params = params.require(:file).permit(:name, :directory_id)
+    rescue
+      render_error "Parameters must includ a file key."
       return
     end
-    render json: @file.id, serializer: SuccessWithIdSerializer
+
+    change_made = false
+    name = file_params.fetch(:name, nil)
+    directory_id = file_params.fetch(:directory_id, nil)
+
+    ## First, check if the name needs updating.
+    if not name.nil? and @file.name != name
+      @file.name = name
+      change_made = true
+    end
+
+    ## Check if the directory id needs changing.
+    if not directory_id.nil? and @file.directory_id != directory_id
+      @file.directory_id = directory_id
+      change_made = true
+    end
+
+    if change_made
+      begin
+        @file.save!
+        render json: @file.id, serializer: SuccessWithIdSerializer
+      rescue Exception => e
+        render_error e
+      end
+    else 
+      render json: @file.id, serializer: SuccessWithIdSerializer
+    end
   end
 
   ## Creates a new directory. Can only be accessed by users with

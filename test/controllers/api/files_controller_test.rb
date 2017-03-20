@@ -194,6 +194,14 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   ## Update
 
+  test "should return error message if 'files' parameter not supplied on update" do
+    log_in_as @user
+    file = project_files(:file1)
+    response = patch :update, id: file.id, name: "A new name"
+    response_json = JSON.parse(response.body)
+    assert response_json['error'], "No error returned."
+  end
+
   test "should return success message on updating filename" do
     log_in_as @user
     file = project_files(:file1)
@@ -203,6 +211,39 @@ class Api::FilesControllerTest < ActionController::TestCase
     assert response_json['id'] == file.id, "Returned id doesn't match file id."
     assert ProjectFile.find_by(id: file.id).name == "A new name",
         "Filename not updated."
+  end
+
+  test "should return success message on updating valid directory id" do
+    log_in_as @user
+    file = project_files(:file1)
+    new_directory = project_files(:file1Root)
+    response = patch :update, id: file.id, file:{directory_id: new_directory.id}
+    response_json = JSON.parse(response.body)
+    assert response_json['success'], "Update unsuccessful."
+    assert ProjectFile.find(file.id).directory_id == new_directory.id,
+      "Directory id not updated."
+  end
+
+  test "should return error message on moving to directory outside of project" do
+    log_in_as @user
+    file = project_files(:file1)
+    new_directory = project_files(:file2Root)
+    response = patch :update, id: file.id, file:{directory_id: new_directory.id}
+    response_json = JSON.parse(response.body)
+    assert response_json['error'], "Error message not returned."
+    assert_not ProjectFile.find(file.id).directory_id == new_directory.id,
+      "Invalid directory id saved to database."
+  end
+
+  test "should return error message on moving to directory that is a file" do
+    log_in_as @user
+    file = project_files(:file1)
+    new_directory = project_files(:file1)
+    response = patch :update, id: file.id, file:{directory_id: new_directory.id}
+    response_json = JSON.parse(response.body)
+    assert response_json['error'], "Error message not returned."
+    assert_not ProjectFile.find(file.id).directory_id == new_directory.id,
+      "Invalid directory id saved to database."
   end
 
 

@@ -1,9 +1,12 @@
 <% files.each do |file| %>
   <% if file.is_directory %>
-    <div id="directory-<%= file.id %>" class="entry directory-entry" 
+    <div id="directory-<%= file.id %>" class="entry directory-entry draggable droppable" 
         data-file-id="<%= file.id %>" data-expand-state="expanded">        
       <div class="directory-name">
         <% unless file.directory_id.nil? %>
+          <span class="edit-file-indicator move-file hidden drag-handle"
+            ><span class="glyphicon glyphicon-move"></span></span>
+
           <span class="edit-file-indicator edit-filename hidden"
             data-toggle="modal" data-target="#edit-filename-modal"
             title="Edit directory name">
@@ -45,8 +48,10 @@
       </div>
     </div>
   <% else %>
-    <div class="entry file-entry" data-file-id="<%= file.id %>" 
+    <div class="entry file-entry draggable" data-file-id="<%= file.id %>" 
         id="file-<%= file.id %>">
+      <span class="edit-file-indicator move-file hidden drag-handle"
+            ><span class="glyphicon glyphicon-move"></span></span>
       <span class="edit-file-indicator edit-filename hidden"
         data-toggle="modal" data-target="#edit-filename-modal"
         title="Edit filename">

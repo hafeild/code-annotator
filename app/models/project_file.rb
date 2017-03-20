@@ -4,7 +4,7 @@ class ProjectFile < ActiveRecord::Base
   has_many :comment_locations
   has_many :comments, through: :comment_locations
   has_many :alternative_codes
-  validate :validate_name_uniqueness
+  validate :validate_name_uniqueness, :validate_directory
   
   ## Checks if this name is unique within its directory.
   def validate_name_uniqueness
@@ -14,6 +14,19 @@ class ProjectFile < ActiveRecord::Base
         existing_files.first == self)
       errors.add(:name, "must be unique within a folder; please "+
         "change #{project.name}:#{path} to something different.")
+    end
+  end
+
+  ## Checks that the directory id is a directory in the same project as this
+  ## file.
+  def validate_directory
+    return if root?
+
+    parent = parent_directory
+    if parent.project != project
+      errors.add(:directory_id, "must be a directory in the same project.")
+    elsif not parent.is_directory
+      errors.add(:directory_id, "must be a directory.")
     end
   end
 
