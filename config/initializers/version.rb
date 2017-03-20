@@ -11,6 +11,7 @@
 
 ## Update these fields ##
 isRelease = true
+showHotfix = false ## Whether to display the hotfix in the version string.
 majorVersion =  "17" ## Year of release.
 minorVersion =  "03" ## Month of release.
 hotFixNo =      "00" ## Hot fix no. for release.
@@ -18,8 +19,8 @@ hotFixNo =      "00" ## Hot fix no. for release.
 
 VERSION = [
   majorVersion, 
-  minorVersion, ## Month of major release.
+  minorVersion,
   isRelease ? hotFixNo : `git describe --always --tags`.strip
 ]
 
-VERSION_STRING = VERSION.join(".")
+VERSION_STRING = showHotfix ? VERSION.join(".") : VERSION[0..1].join(".")
