@@ -1,5 +1,18 @@
 # Changelog
 
+## Major changes in v17.03
+This version includes several new features, as well as a few convenience 
+updates:
+
+  * Projects can be renamed on the projects listing page.
+  * Tags (only on projects listing page)
+     - tags can be created and applied to/removed from projects
+     - projects can be filtered by one or more tags
+  * In the project view, files and directories can be moved between directories.
+  * Projects listing UI has been refreshed.
+  * File comments UI and UX has been refreshed to make highlighted and in-edit
+    comments more easily stand out.
+
 ## Major changes in v16.10.0
 This version includes several updated features:
 
