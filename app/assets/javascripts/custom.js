@@ -2011,10 +2011,8 @@ var CodeAnnotator = function($){
   });
 
   // For the "Projects listing" view.
-  // Listen for a row to be clicked on. A td element must specifically be 
-  // clicked (not a child element) to trigger the page load. For example, see
-  // the project listing -- the td with the trash can does not cause the row's
-  // href to be loaded.
+  // Listen for a row to be clicked on. The name td element must specifically be 
+  // clicked (not a child element) to trigger the page load. 
   $(document).on('click', '.clickable-row', function(event) {
     if($(event.target).closest('td').hasClass('select-project')){
       //selectProject();
@@ -2022,7 +2020,8 @@ var CodeAnnotator = function($){
       toggleProjectForModification(rowElm);
  
     } if(event.target.tagName === 'TD' && $(event.target).hasClass('name')){
-      if(event.ctrlKey || event.keyCode == 16) {
+      if(event.ctrlKey || event.keyCode == 16 || 
+         event.metaKey || event.keyCode == 91) {
         window.open($(this).data('href'));
       } else {
         window.document.location = $(this).data('href');
