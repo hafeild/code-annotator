@@ -52,8 +52,10 @@ class ApplicationController < ActionController::Base
     ## given project. 
     ## @param project_id The id of the project.
     ## @param permissions An array of permissions, e.g., [:can_view,:can_author]
+    ## @param mode One of :all (all specified permissions must match) or
+    ##             :any (any of the specified permissions must match).
     ## @return true if the user has all the given permissions for the project.
-    def user_can_access_project(project_id, permissions)
+    def user_can_access_project(project_id, permissions, mode=:all)
       project_permissions = ProjectPermission.find_by(
         project_id: project_id, user_id: current_user.id)
 
@@ -62,7 +64,15 @@ class ApplicationController < ActionController::Base
 
       ## Check if the user's permissions include the ones requested.
       checked = permissions.select{|p| project_permissions[p]}
-      checked.size == permissions.size
+      if mode == :all
+        checked.size == permissions.size
+      elsif mode == :any
+        checked.size >= 1
+      else
+        @error = "Invalid mode specified in call to "+
+            "user_can_access_project: #{mode}."
+        false
+      end
     end
 
     ## Deletes a project and all associated permissions, comments, files,

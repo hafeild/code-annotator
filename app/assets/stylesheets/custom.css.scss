@@ -6,6 +6,10 @@
 
 $gray-medium-light: #eaeaea;
 $header-height: 51px;
+$checkboxs: #888;
+$brand-primary-light: #dfecf6;
+$deep-red: #9d0000;
+$rose: #ff6262;
 
 @mixin box_sizing {
   -moz-box-sizing:    border-box;
@@ -269,7 +273,6 @@ input[type="checkbox"] {
   width: auto;
   margin-left: 0;
 }
-
 /* Projects */
 #projects-page {
   height: 100%;
@@ -283,13 +286,84 @@ input[type="checkbox"] {
     @include box_sizing;
   }
 
-  .project-set {
-    .name {
-      width: 50%;
+  .tags-dropdown {
+    padding: 10px;
+    min-width: 300px;
+    max-height: 500px;
+    overflow: auto;
+
+    .selected-toggle {
+      color: $checkboxs;
+      padding-right: 10px;
     }
 
-    tbody tr {
+    .project-count-container {
+      color: #aaa;
+    }
+
+    .tag {
       cursor: pointer;
+    }
+  
+    .delete-tag {
+      color: #ccc;
+      :hover {
+        color: red;
+      }
+    }
+  
+    .filter-tag {
+      color: $checkboxs;
+    } 
+
+    .filter-tag:hover {
+      color: $brand-primary;
+    }
+
+    .selected-toggle:hover {
+      color: $brand-primary;
+      .selected {
+        color: $brand-danger;
+      }
+    }
+  
+    .filtered.tag {
+      background-color: #b3d1ea;
+      .filter-tag {
+        color: $brand-danger;
+      }
+    }
+
+    
+  
+  }
+
+  .project-set {
+    .select-project, .select-all-projects {
+        width: 3em;
+        padding-right: 0;
+        padding-left: 0;
+        color: $checkboxs;
+    }
+    .email {
+    }
+    .name {
+      width: 35%;
+      padding-left: 0;
+    }
+    .date {
+    }
+    .tags {
+      width: 35%;
+    }
+
+    tbody td.name, tbody td.select-project, th.select-all-projects {
+      cursor: pointer;
+    }
+
+    td.name {
+      font-size: 105%;
+      color: #337AB7;
     }
   }
 
@@ -312,7 +386,8 @@ input[type="checkbox"] {
     }
   }*/
 
-
+  .project-main .tags {
+  }
 
 /*  .project-set .project {
     .name { width: 70%; }
@@ -459,11 +534,14 @@ input[type="checkbox"] {
   }
 
   .selected {
-    background-color: #c1d9ee !important;
+    /*background-color: #c1d9ee !important;*/
+    background-color: #d0e2f2 !important;
   }
 
   .comment-location-highlight {
-    background-color: #93bde1 !important;
+    /*background-color: #93bde1 !important;*/
+    background-color: #3784c6 !important;
+    color: white !important;
   }
 
   .line-wrapper {
@@ -503,6 +581,26 @@ input[type="checkbox"] {
     @include box_sizing;
   }
 
+  .comment.panel {
+    border-width: 2px;
+  }
+
+  .comment.hover {
+    border-color: $brand-primary;
+  }
+
+  .comment.focused {
+    border-width: 4px;
+    border-color: $brand-primary;
+  } 
+
+
+  .comment.focused .comment-body {
+    /*background-color: #65a0d4; 
+    color: white;*/
+    
+  }
+
   #comments {
     border-left: 1px solid lightgray;
     overflow-y: auto;
@@ -539,9 +637,9 @@ input[type="checkbox"] {
     display: inline;
   }
 
-  .comment-in-edit {
-    border-color: red;
-    color: red;
+  .comment-body.comment-in-edit {
+    border-color: $brand-danger !important;
+    color: $brand-danger !important;
   }
 
   .comment-saved {
@@ -631,6 +729,23 @@ input[type="checkbox"] {
       cursor: pointer;
     }
   }
+
+  .drag-handle {
+    color: #ccc;
+  }
+
+  .drag-handle:hover {
+    color: $brand-warning;
+  }
+
+  .ui-drop-active {
+    /*border-left: 2px solid $brand-primary;*/
+  }
+
+  .ui-drop-hover {
+    border-left: 2px solid $brand-warning;
+  }
+
 
   .file-entry .count {
     position: relative;

@@ -65,7 +65,7 @@ class Api::CommentsController < ApplicationController
       return
     end
 
-    comment = Comment.create(comment_params(project.id, current_user.id))
+    comment = Comment.create(comment_params(project.id, @current_user.id))
     if comment.valid? and comment.save
       render json: comment.id, serializer: SuccessWithIdSerializer
     else
