@@ -2160,14 +2160,17 @@ var CodeAnnotator = function($){
   // Listens for changes to comment content.
   $(document).on('change keyup mouseup', '.comment-body', editComment);
 
-  // Highlights comment locations when hovering over a comment.
+  // Highlights comment locations when hovering over a comment as long as
+  // a comment is not being actively edited.
   $(document).on('mouseover', '.comment', function(){
     if($(this).parents('.disabled').length > 0){ return; }
-
+    if($('.comment.focused').length > 0){ return; }
     hideCommentLocationHighlights();
     highlightCommentLocations($(this).data('lid'));
+    $('.comment.hover').removeClass('hover');
+    $(this).addClass('hover');
   });
-
+  
   // Handles focusing on a comment when a comment location is clicked.
   $(document).on('click', '.selected', function(){
     var commentLocationElm = $(this);
@@ -2243,6 +2246,9 @@ var CodeAnnotator = function($){
     if($(this).parents('.disabled').length > 0){ return; }
     //$(this).parents('.comment').addClass('panel-primary');
     $(this).parents('.comment').addClass('focused');
+    hideCommentLocationHighlights();
+    highlightCommentLocations($(this).parents('.comment').data('lid'));
+    $('.comment.hover').removeClass('hover');
   });
 
   // Changes the style of comments when they loose focus.
@@ -2250,6 +2256,7 @@ var CodeAnnotator = function($){
     if($(this).parents('.disabled').length > 0){ return; }
     //$(this).parents('.comment').removeClass('panel-primary');
     $(this).parents('.comment').removeClass('focused');
+    hideCommentLocationHighlights();
   });
 
   // Listen for comment location removal buttons to be pressed.

@@ -582,13 +582,18 @@ input[type="checkbox"] {
   }
 
   .comment.panel {
-    border-width: 3px;
+    border-width: 2px;
+  }
+
+  .comment.hover {
+    border-color: $brand-primary;
   }
 
   .comment.focused {
     border-width: 4px;
     border-color: $brand-primary;
   } 
+
 
   .comment.focused .comment-body {
     /*background-color: #65a0d4; 
