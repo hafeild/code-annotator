@@ -10,10 +10,10 @@
 ## restart.
 
 ## Update these fields ##
-isRelease = false
-majorVersion =  "16" ## Year of release.
-minorVersion =  "10" ## Month of release.
-hotFixNo =      "01" ## Hot fix no. for release.
+isRelease = true
+majorVersion =  "17" ## Year of release.
+minorVersion =  "03" ## Month of release.
+hotFixNo =      "00" ## Hot fix no. for release.
 
 
 VERSION = [
