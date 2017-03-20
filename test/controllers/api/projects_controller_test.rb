@@ -246,10 +246,18 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     assert JSON.parse(response.body)['success']
   end
 
-  test "should return success message on update" do
+  test "should return error message on update without name" do
     log_in_as @user
     response = patch :update, id: 1
-    assert JSON.parse(response.body)['success']
+    assert JSON.parse(response.body)['error']
+  end
+
+  test "should update project name" do
+    log_in_as @user
+    new_name = "A very new name"
+    response = patch :update, id: @project.id, project: {name: new_name}
+    assert JSON.parse(response.body)['success'], "Response not successful"
+    assert Project.find(@project.id).name == new_name, "Name not changed in db."
   end
 
   test "should return success message on delete and remove everything "+

@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+tag1:
+    text: "homework"
+    user: foo
+
+tag2:
+    text: "work"
+    user: foo
+
+tag3:
+    text: "homework"
+    user: bar
+
+tag4:
+    text: "random"
+    user: bar

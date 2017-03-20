@@ -1,14 +1,25 @@
 class Api::ProjectsController < ApplicationController
   before_action :logged_in_user_api
+  before_action :get_project, only: [:update, :destroy]
+  before_action :can_update_project, only: [:update, :destroy]
+  before_action :get_new_name, only: [:update]
+
   include FileCreationHelper
 
   def index
-    render json: current_user.project_permissions, 
+    render json: @current_user.project_permissions, 
       each_serializer: ProjectWithPermissionsSerializer, :root => "projects"
   end
 
+  ## A project can have it's name changed.
   def update
-    render json: "", serializer: SuccessSerializer
+    @project.name = @new_name
+    begin
+      @project.save!
+      render json: "", serializer: SuccessSerializer
+    rescue
+      render_error "There was a problem saving the new project name."
+    end
   end
 
 
@@ -72,21 +83,47 @@ class Api::ProjectsController < ApplicationController
   ## the project? Or someone should be appointed an owner role and they must
   ## remove it?
   def destroy
-    project = Project.find_by(id: params[:id])
+    ActiveRecord::Base.transaction do
+      ## Remove the project and everything associated with it (permissions,
+      ## files, comments, altcode).
+      delete_project(@project)
 
-    if project and user_can_access_project(project.id, [:can_author])
-
-      ActiveRecord::Base.transaction do
-        ## Remove the project and everything associated with it (permissions,
-        ## files, comments, altcode).
-        delete_project(project)
-
-        render json: "", serializer: SuccessSerializer
-        return
-      end
-      render_error "Could not remove project."
+      render json: "", serializer: SuccessSerializer
+      return
     end
-    render_error "Resource not available."
+    render_error "Could not remove project."
   end
+
+  private
   
+    def get_project
+      @project = Project.find_by(id: params[:id])
+      if @project.nil?
+        render_error "Invalid project id."
+      end
+    end
+
+    def can_update_project
+      unless @project and user_can_access_project(@project.id,
+            [:can_author], :all)
+        render_error "Insufficient permissions for this project."
+      end
+    end 
+
+    def can_view_project
+      unless @project and user_can_access_project(@project.id,
+            [:can_author, :can_view, :can_annotate], :any)
+        render_error "Insufficient permissions for this project."
+      end
+    end 
+
+    def get_new_name
+     @new_name = nil
+      begin
+        @new_name = params.require(:project).require(:name)
+        raise "To many parameters." if params[:project].size > 1
+      rescue Exception => e
+        render_error "A 'project/name' field must be provided. #{e}"
+      end
+    end
 end

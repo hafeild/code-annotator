@@ -53,7 +53,7 @@ class Api::PermissionsController < ApplicationController
     if params.key?(:id) and params.key?(:permissions)
       permissions = ProjectPermission.find_by(id: params[:id])
       if permissions
-        if permissions.user and permissions.user == current_user
+        if permissions.user and permissions.user == @current_user
           error = "User permissions may not be modified."
         else
           project = permissions.project
@@ -119,7 +119,7 @@ class Api::PermissionsController < ApplicationController
 
       if project and (target_user or user_needs_placeholder)
 
-        if target_user and target_user == current_user
+        if target_user and target_user == @current_user
           error = "User permissions may not be modified."
         elsif project and user_can_access_project(project.id, [:can_author])
 

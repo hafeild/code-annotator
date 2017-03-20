@@ -5,9 +5,20 @@ class Project < ActiveRecord::Base
   has_many :project_files
   has_many :comments
   has_many :public_links
+  has_many :tags, through: :project_tags
+  has_many :project_tags
 
   validates :created_by, presence: true
   validates :name, presence: true, length: {maximum: 255}
+
+  ## Returns only tags for the current user.
+  def tagsFor(user)
+    if user.nil?
+      []
+    else
+      tags.select{|x| x.user_id == user.id}
+    end
+  end
 
   ## Returns all of the altcode for this project.
   def altcode 

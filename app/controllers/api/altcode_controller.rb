@@ -66,7 +66,7 @@ class Api::AltcodeController < ApplicationController
           return
         end
 
-        altcode = AlternativeCode.new(altcode_params(current_user.id))
+        altcode = AlternativeCode.new(altcode_params(@current_user.id))
         if altcode.valid? and altcode.save
           render json: altcode.id, serializer: SuccessWithIdSerializer
           success = true
