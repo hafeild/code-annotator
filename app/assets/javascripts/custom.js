@@ -2214,6 +2214,11 @@ var CodeAnnotator = function($){
         }),
         fileLocations = [], i;
 
+    hideCommentLocationHighlights();
+    highlightCommentLocations(lid);
+    $('.comment.hover').removeClass('hover');
+    commentElm.addClass('hover');
+
     for(i = 0; i < allLocations.length; i++){
       if(allLocations[i].file_id === curFileInfo.id){
         fileLocations.push(allLocations[i]);
