@@ -40,7 +40,7 @@ class UsersController < ApplicationController
       if user_params.key?(:email) and user_params[:email] != @user.email
         email_updated = true
       end
-      if @user.update_attributes(user_params)
+      if @user.update(user_params)
 
         if email_updated
           flash[:success] = "Please check your email to re-activate your "+

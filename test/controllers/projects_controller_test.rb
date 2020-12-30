@@ -14,25 +14,25 @@ class ProjectsControllerTest < ActionController::TestCase
 
   test "should get show when logged in" do
     log_in_as(@user)
-    get :show, id: @project
+    get :show, params: { id: @project }
     assert_response :success
   end
 
   test "should get show when accessing a public link" do
     log_in_as(users(:bar))
-    get :show_public, link_uuid: "alink"
+    get :show_public, params: { link_uuid: "alink" }
     assert_response :success
   end
 
   test "should not get show when accessing an invalid public link" do
     log_in_as(users(:bar))
-    get :show_public, link_uuid: "abadlink"
+    get :show_public, params: { link_uuid: "abadlink" }
     assert_redirected_to home_url
   end
 
   test "should not be shown unauthorized projects" do
     log_in_as(@user)
-    get :show, id: projects(:p2)
+    get :show, params: { id: projects(:p2) }
     assert_redirected_to projects_url
   end
 
@@ -42,18 +42,22 @@ class ProjectsControllerTest < ActionController::TestCase
   end
 
   test "show should redirect to login when logged out" do
-    get :show, id: @project
+    get :show, params: { id: @project }
     assert_redirected_to login_url
   end
 
   test "should be able to download single file" do
     log_in_as @user
     files = [project_files(:file1)]
-    response = get :download, project_id: @project, 
+    response = get :download, params: {
+      project_id: @project, 
       files: {file_ids: files.map{|x| x.id}.join(",")}
+    }
     assert_response :success, flash.to_json
     assert response.header["Content-Disposition"] == 
-      "attachment; filename=\"#{files[0].name}\""
+      "attachment; filename=\"#{files[0].name}\"; filename*=UTF-8''#{files[0].name}", 
+      "Unexpected Content-Disposition header: #{response.header["Content-Disposition"]}"
+
     assert response.body == files[0].content
   end
 
@@ -61,11 +65,14 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     file1 = project_files(:file1)
     files = [project_files(:file1Root)]
-    response = get :download, project_id: @project, 
+    response = get :download, params: {
+      project_id: @project, 
       files: {file_ids: files.map{|x| x.id}.join(",")}
-    assert_response :success, flash.to_json
+    }
+
     assert response.header["Content-Disposition"] == 
-      "attachment; filename=\"project.zip\""
+      "attachment; filename=\"project.zip\"; filename*=UTF-8''project.zip", 
+      "Unexpected Content-Disposition header: #{response.header["Content-Disposition"]}"
 
     ## Check the attachment. Should contain the only  file in the project,
     ## but in a sub folder.
@@ -81,11 +88,14 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as users(:bar)
     file1 = project_files(:file1)
     files = [project_files(:file1Root)]
-    response = get :download_public, link_uuid: "alink", project_id: @project, 
+    response = get :download_public, params: {
+      link_uuid: "alink", project_id: @project, 
       files: {file_ids: files.map{|x| x.id}.join(",")}
+    }
     assert_response :success, flash.to_json
     assert response.header["Content-Disposition"] == 
-      "attachment; filename=\"project.zip\""
+      "attachment; filename=\"project.zip\"; filename*=UTF-8''project.zip", 
+      "Unexpected Content-Disposition header: #{response.header["Content-Disposition"]}"
 
     ## Check the attachment. Should contain the only  file in the project,
     ## but in a sub folder.
@@ -100,8 +110,10 @@ class ProjectsControllerTest < ActionController::TestCase
   test "shouldn't be able to download file without view access" do
     log_in_as users(:bar)
     files = [project_files(:file1)]
-    response = get :download, project_id: @project, 
+    response = get :download, params: { 
+      project_id: @project, 
       files: {file_ids: files.map{|x| x.id}.join(",")}
+    }
     assert_response :redirect
     assert_redirected_to root_path
   end
@@ -109,8 +121,10 @@ class ProjectsControllerTest < ActionController::TestCase
   test "shouldn't be able to download file with an invalid public link" do
     log_in_as users(:bar)
     files = [project_files(:file1)]
-    response = get :download_public, link_uuid: "abadlink",project_id: @project, 
+    response = get :download_public, params: {
+      link_uuid: "abadlink",project_id: @project, 
       files: {file_ids: files.map{|x| x.id}.join(",")}
+    }
     assert_response :redirect
     assert_redirected_to home_url
   end
@@ -118,8 +132,10 @@ class ProjectsControllerTest < ActionController::TestCase
   test "shouldn't be able to download files that span projects" do
     log_in_as @user
     files = [project_files(:file1), project_files(:file3)]
-    response = get :download, project_id: @project, 
+    response = get :download, params: {
+      project_id: @project, 
       files: {file_ids: files.map{|x| x.id}.join(",")}
+    }
     assert_response :redirect
     assert_redirected_to root_path
   end
@@ -131,9 +147,11 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added" do 
       assert_difference 'ProjectFile.count', 3, "Files not added" do 
-        post :create, project: {
-          name: "my project",
-          files: [fixture_file_upload("files/windows.zip", "application/zip")]
+        post :create, params: {
+          project: {
+            name: "my project",
+            files: [fixture_file_upload("windows.zip", "application/zip")]
+          }
         }
         assert_redirected_to projects_url, "Not directed to projects listing"
       end
@@ -145,12 +163,14 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added" do 
       assert_difference 'ProjectFile.count', 4, "Files not added" do 
-        post :create, project: {
-          name: "my project",
-          files: [
-            fixture_file_upload("files/windows.zip", "application/zip"),
-            fixture_file_upload("files/data-ascii.dat", "text/plain"),
-          ]
+        post :create, params: {
+          project: {
+            name: "my project",
+            files: [
+              fixture_file_upload("windows.zip", "application/zip"),
+              fixture_file_upload("data-ascii.dat", "text/plain"),
+            ]
+          }
         }
         assert_redirected_to projects_url, "Not directed to projects listing"
       end
@@ -162,9 +182,11 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 2, "Project not added" do 
       assert_difference 'ProjectFile.count', 7, "Files not added" do
-        post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true
+        post :create, params: {
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true
+          }
         }
         assert_redirected_to projects_url, "Not directed to projects listing"
       end
@@ -175,8 +197,10 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_no_difference 'Project.count', "Project not added." do 
       assert_no_difference 'ProjectFile.count', "Files not added." do 
-        post :create, project: {
-          batch: true
+        post :create, params: {
+          project: {
+            batch: true
+          }
         }
         assert_redirected_to projects_url, "Not directed to #{projects_url}"
         assert_not flash[:danger].empty?, "Error messages not present"
@@ -189,10 +213,12 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added" do 
       assert_difference 'ProjectFile.count', 6, "Files not added" do
-        post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true,
-          update: true
+        post :create, params: {
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true,
+            update: true
+          }
         }
         assert_redirected_to projects_url, "Not directed to projects listing"
       end
@@ -207,10 +233,12 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as users(:bar)
     assert_difference 'Project.count', 1, "Project not added" do 
       assert_difference 'ProjectFile.count', 6, "Files not added" do
-        post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true,
-          update: true
+        post :create, params: {
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true,
+            update: true
+          }
         }
         assert_redirected_to projects_url, "Not directed to projects listing"
       end
@@ -221,10 +249,12 @@ class ProjectsControllerTest < ActionController::TestCase
     log_in_as users(:bar)
     assert_difference 'Project.count', 2, "Project not added" do 
       assert_difference 'ProjectFile.count', 7, "Files not added" do
-        post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true,
-          update: true
+        post :create, params: {
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true,
+            update: true
+          }
         }
         assert_redirected_to projects_url, "Not directed to projects listing"
       end

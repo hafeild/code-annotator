@@ -28,9 +28,11 @@ class UsersControllerTest < ActionController::TestCase
 
   test "should accept update of email" do
     log_in_as @user
-    patch :update, id: @user.id, user: {
-      email: "new@email.com", 
-      current_password: "password"
+    patch :update, params: {
+      id: @user.id, user: {
+        email: "new@email.com", 
+        current_password: "password"
+      }
     }
     assert_redirected_to edit_user_path(@user), "Not redirected."
     newUser = User.find(@user.id)
@@ -43,10 +45,12 @@ class UsersControllerTest < ActionController::TestCase
 
   test "should accept update of password" do
     log_in_as @user
-    patch :update, id: @user.id, user: {
-      password: "password2",
-      password_confirmation: "password2",
-      current_password: "password"
+    patch :update, params: {
+      id: @user.id, user: {
+        password: "password2",
+        password_confirmation: "password2",
+        current_password: "password"
+      }
     }
     assert_redirected_to edit_user_path(@user), "Not redirected."
     newUser = User.find(@user.id)
@@ -59,12 +63,14 @@ class UsersControllerTest < ActionController::TestCase
 
   test "a user shouldn't be able to change another users information." do
     log_in_as users(:bar)
-    patch :update, id: @user.id, user: {
-      name: "New name",
-      email: "new@email.com",
-      password: "password2",
-      password_confirmation: "password2",
-      current_password: "password"
+    patch :update, params: {
+      id: @user.id, user: {
+        name: "New name",
+        email: "new@email.com",
+        password: "password2",
+        password_confirmation: "password2",
+        current_password: "password"
+      }
     }
     assert_redirected_to :root, "Not redirected."
     newUser = User.find(@user.id)
@@ -75,12 +81,14 @@ class UsersControllerTest < ActionController::TestCase
   end
 
   test "a user shouldn't be able to change information if not logged in." do
-    patch :update, id: @user.id, user: {
-      name: "New name",
-      email: "new@email.com",
-      password: "password2",
-      password_confirmation: "password2",
-      current_password: "password"
+    patch :update, params: {
+      id: @user.id, user: {
+        name: "New name",
+        email: "new@email.com",
+        password: "password2",
+        password_confirmation: "password2",
+        current_password: "password"
+      }
     }
     assert_redirected_to :login, "Not redirected."
     newUser = User.find(@user.id)
@@ -93,18 +101,18 @@ class UsersControllerTest < ActionController::TestCase
 
   test "user should be able to edit their own settings" do
     log_in_as @user
-    get :edit, id: @user.id
+    get :edit, params: { id: @user.id }
     assert_response :success
   end
 
   test "user shouldn't be able to edit another user" do
     log_in_as @user
-    get :edit, id: users(:bar).id
+    get :edit, params: { id: users(:bar).id }
     assert_redirected_to :root
   end
 
   test "should accept deletion" do
-    delete :destroy, id: 1
+    delete :destroy, params: { id: 1 }
     assert_redirected_to :root
   end
 end
