@@ -55,7 +55,7 @@ userCount.times do |uid|
   rand(maxTagCount).times do |i|
     begin
       tag = Tag.create!(text: Faker::Lorem.words(
-        num = rand(2)+1, supplemental = false).join(" "), user: users[-1])
+        num: rand(2)+1, supplemental: false).join(" "), user: users[-1])
         tags[users[-1].id] << tag.id
     rescue
     end

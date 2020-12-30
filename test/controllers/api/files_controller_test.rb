@@ -12,8 +12,10 @@ class Api::FilesControllerTest < ActionController::TestCase
     log_in_as @user
     project = projects(:p1)
     assert_difference "ProjectFile.count", 1, "Directory not added" do
-      response = post :create_directory, project_id: project.id, directory: {
-        directory_id: project_files(:file1Root).id, name: "My new dir"
+      response = post :create_directory, params: { 
+        project_id: project.id, directory: {
+          directory_id: project_files(:file1Root).id, name: "My new dir"
+        }
       }
       json_response = JSON.parse(response.body)
       assert json_response['success'], "Success not returned."
@@ -37,8 +39,10 @@ class Api::FilesControllerTest < ActionController::TestCase
     project = projects(:p1)
     root = project_files(:file1Root)
     assert_difference "ProjectFile.count", 1, "Directory not added" do
-      response = post :create_directory, project_id: project.id, directory: {
-        name: "My new dir"
+      response = post :create_directory, params: { 
+        project_id: project.id, directory: {
+          name: "My new dir"
+        }
       }
       json_response = JSON.parse(response.body)
       assert json_response['success'], "Success not returned."
@@ -61,8 +65,10 @@ class Api::FilesControllerTest < ActionController::TestCase
     log_in_as users(:bar)
     project = projects(:p1)
     assert_no_difference "ProjectFile.count", "Directory added" do
-      response = post :create_directory, project_id: project.id, directory: {
-        directory_id: project_files(:file1Root).id, name: "My new dir"
+      response = post :create_directory, params: { 
+        project_id: project.id, directory: {
+          directory_id: project_files(:file1Root).id, name: "My new dir"
+        }
       }
       json_response = JSON.parse(response.body)
       assert json_response['error'], "Error not returned."
@@ -74,7 +80,7 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   test "should return success message on index" do
     log_in_as @user
-    response = get :index, project_id: 1
+    response = get :index, params: { project_id: 1 }
     assert JSON.parse(response.body)['success']
   end
 
@@ -83,7 +89,7 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   test "should return success message on print" do
     log_in_as @user
-    response = get :print, project_id: 1
+    response = get :print, params: { project_id: 1 }
     assert JSON.parse(response.body)['success']
   end
 
@@ -92,21 +98,21 @@ class Api::FilesControllerTest < ActionController::TestCase
 
   test "should return error message on show when not logged in" do
     file = project_files(:file1)
-    response = get :show, id: file.id
+    response = get :show, params: { id: file.id }
     assert JSON.parse(response.body)['error'] == "You are not logged in."
   end
 
   test "should return error message on unauthorized show" do
     log_in_as @user
     file = project_files(:file2)
-    response = get :show, id: file.id
+    response = get :show, params: { id: file.id }
     assert JSON.parse(response.body)['error'] == "Resource not available."
   end
 
   test "should return success message on show" do
     log_in_as @user
     file = project_files(:file1)
-    response = get :show, id: file.id
+    response = get :show, params: { id: file.id }
     response_file = JSON.parse(response.body)['file']
     assert_not response_file.nil?, "No response."
 
@@ -146,7 +152,7 @@ class Api::FilesControllerTest < ActionController::TestCase
  test "should return success message on show_public with valid link" do
     log_in_as users(:bar)
     file = project_files(:file1)
-    response = get :show_public, link_uuid: "alink", id: file.id
+    response = get :show_public, params: { link_uuid: "alink", id: file.id }
     response_file = JSON.parse(response.body)['file']
     assert_not response_file.nil?, "No response."
 
@@ -186,7 +192,7 @@ class Api::FilesControllerTest < ActionController::TestCase
   test "should return error message on show with invalid public link" do
     log_in_as users(:bar)
     file = project_files(:file1)
-    response = get :show_public, link_uuid: "abadlink", id: file.id
+    response = get :show_public, params: { link_uuid: "abadlink", id: file.id }
     assert JSON.parse(response.body)['error'] == "Resource not available."
   end
 
@@ -197,7 +203,7 @@ class Api::FilesControllerTest < ActionController::TestCase
   test "should return error message if 'files' parameter not supplied on update" do
     log_in_as @user
     file = project_files(:file1)
-    response = patch :update, id: file.id, name: "A new name"
+    response = patch :update, params: { id: file.id, name: "A new name" }
     response_json = JSON.parse(response.body)
     assert response_json['error'], "No error returned."
   end
@@ -205,7 +211,7 @@ class Api::FilesControllerTest < ActionController::TestCase
   test "should return success message on updating filename" do
     log_in_as @user
     file = project_files(:file1)
-    response = patch :update, id: file.id, file: {name: "A new name"}
+    response = patch :update, params: { id: file.id, file: {name: "A new name"} }
     response_json = JSON.parse(response.body)
     assert response_json['success'], "Update unsuccessful."
     assert response_json['id'] == file.id, "Returned id doesn't match file id."
@@ -217,7 +223,9 @@ class Api::FilesControllerTest < ActionController::TestCase
     log_in_as @user
     file = project_files(:file1)
     new_directory = project_files(:file1Root)
-    response = patch :update, id: file.id, file:{directory_id: new_directory.id}
+    response = patch :update, params: { 
+      id: file.id, file:{directory_id: new_directory.id}
+    }
     response_json = JSON.parse(response.body)
     assert response_json['success'], "Update unsuccessful."
     assert ProjectFile.find(file.id).directory_id == new_directory.id,
@@ -228,7 +236,9 @@ class Api::FilesControllerTest < ActionController::TestCase
     log_in_as @user
     file = project_files(:file1)
     new_directory = project_files(:file2Root)
-    response = patch :update, id: file.id, file:{directory_id: new_directory.id}
+    response = patch :update, params: { 
+      id: file.id, file:{directory_id: new_directory.id}
+    }
     response_json = JSON.parse(response.body)
     assert response_json['error'], "Error message not returned."
     assert_not ProjectFile.find(file.id).directory_id == new_directory.id,
@@ -239,7 +249,9 @@ class Api::FilesControllerTest < ActionController::TestCase
     log_in_as @user
     file = project_files(:file1)
     new_directory = project_files(:file1)
-    response = patch :update, id: file.id, file:{directory_id: new_directory.id}
+    response = patch :update, params: { 
+      id: file.id, file:{directory_id: new_directory.id}
+    }
     response_json = JSON.parse(response.body)
     assert response_json['error'], "Error message not returned."
     assert_not ProjectFile.find(file.id).directory_id == new_directory.id,
@@ -258,7 +270,9 @@ class Api::FilesControllerTest < ActionController::TestCase
     altcode = alternative_codes(:altcode1)
 
     assert_no_difference 'ProjectFile.count', "Files removed." do
-      response = delete :destroy, id: file_to_remove.id
+      response = delete :destroy, params: { 
+        id: file_to_remove.id
+      }
       assert JSON.parse(response.body)['error'], "Error not returned."
     end
   end
@@ -271,7 +285,7 @@ class Api::FilesControllerTest < ActionController::TestCase
     altcode = alternative_codes(:altcode1)
 
     assert_difference 'ProjectFile.count', -2, "Files not removed." do
-      response = delete :destroy, id: file_to_remove.id
+      response = delete :destroy, params: { id: file_to_remove.id }
       assert JSON.parse(response.body)['success'], "Success not returned."
 
       ## Only root should be left.      
@@ -295,7 +309,7 @@ class Api::FilesControllerTest < ActionController::TestCase
     altcode = alternative_codes(:altcode1)
 
     assert_difference 'ProjectFile.count', -1, "File not removed." do
-      response = delete :destroy, id: file_to_remove.id
+      response = delete :destroy, params: { id: file_to_remove.id }
       assert JSON.parse(response.body)['success'], "Success not returned."
       assert ProjectFile.where(project_id: projects(:p1).id).size == 2, 
         "Files to delete not deleted."
@@ -318,7 +332,7 @@ class Api::FilesControllerTest < ActionController::TestCase
     altcode = alternative_codes(:altcode2)
 
     assert_no_difference 'ProjectFile.count', "Files removed." do
-      response = delete :destroy, id: file_to_remove.id
+      response = delete :destroy, params: { id: file_to_remove.id }
       assert JSON.parse(response.body)['error'], "Error not returned."
       assert ProjectFile.where(project_id: projects(:p1).id).size == 3, 
         "Files deleted."

@@ -12,9 +12,11 @@ class UsersControllerTest < ActionController::TestCase
 
   test "should accept update of name" do
     log_in_as @user
-    patch :update, id: @user.id, user: {
-      name: "New Name", 
-      current_password: "password"
+    patch :update, params: {
+      id: @user.id, user: {
+        name: "New Name", 
+        current_password: "password"
+      }
     }
     assert_redirected_to edit_user_path(@user), "Not redirected."
     newUser = User.find(@user.id)

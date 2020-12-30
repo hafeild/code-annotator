@@ -12,7 +12,7 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require jquery-ui
+//= require jquery-ui-1.12.1
 //= require bootstrap
 // require turbolinks
 //= require sortable.min

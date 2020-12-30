@@ -75,7 +75,7 @@ class Api::TagsController < ApplicationController
     def get_text
       begin
         @text = params.require(:tag).require(:text)
-        raise "To many parameters." if params[:tag].size > 1
+        raise "To many parameters." if params[:tag].values.size > 1
       rescue
         render_error "Text for the tag must be provided."
       end

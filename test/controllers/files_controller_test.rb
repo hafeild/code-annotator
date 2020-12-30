@@ -10,7 +10,7 @@ class FilesControllerTest < ActionController::TestCase
     project = projects(:p1)
     assert_no_difference 'ProjectFile.count', "File added." do 
       post :create, project_id: project.id, project_file: {
-        files: [fixture_file_upload("files/test_image.png", "image/png")]
+        files: [fixture_file_upload("test_image.png", "image/png")]
       }
     end 
   end
@@ -20,7 +20,7 @@ class FilesControllerTest < ActionController::TestCase
     project = projects(:p2)
     assert_no_difference 'ProjectFile.count', "File added." do 
       post :create, project_id: project.id, project_file: {
-        files: [fixture_file_upload("files/test.cpp", "text/plain")]
+        files: [fixture_file_upload("test.cpp", "text/plain")]
       }
     end 
   end
@@ -31,11 +31,11 @@ class FilesControllerTest < ActionController::TestCase
     assert_difference 'ProjectFile.count', 5, "Files not added." do 
       post :create, project_id: project.id, project_file: {
         files: [
-          fixture_file_upload("files/test.cpp", "text/plain"),
-          fixture_file_upload("files/data-ascii.dat", "text/plain"),
-          fixture_file_upload("files/data-latin1.dat", "text/plain"),
-          fixture_file_upload("files/data-utf16.dat", "text/plain"),
-          fixture_file_upload("files/data-utf8.dat", "text/plain")
+          fixture_file_upload("test.cpp", "text/plain"),
+          fixture_file_upload("data-ascii.dat", "text/plain"),
+          fixture_file_upload("data-latin1.dat", "text/plain"),
+          fixture_file_upload("data-utf16.dat", "text/plain"),
+          fixture_file_upload("data-utf8.dat", "text/plain")
         ]
       }
     end 
@@ -46,7 +46,7 @@ class FilesControllerTest < ActionController::TestCase
     project = projects(:p1)
     assert_difference 'ProjectFile.count', 2, "Files not added." do 
       post :create, project_id: project.id, project_file: {
-        files: [fixture_file_upload("files/windows.zip", "application/zip")]
+        files: [fixture_file_upload("windows.zip", "application/zip")]
       }
     end 
   end
@@ -56,7 +56,7 @@ class FilesControllerTest < ActionController::TestCase
     project = projects(:p1)
     assert_difference 'ProjectFile.count', 2, "Files not added." do 
       post :create, project_id: project.id, project_file: {
-        files: [fixture_file_upload("files/osx.zip", "application/zip")]
+        files: [fixture_file_upload("osx.zip", "application/zip")]
       }
     end 
   end

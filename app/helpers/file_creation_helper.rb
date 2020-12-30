@@ -55,6 +55,7 @@ module FileCreationHelper
   ## @param files A list of files to add to the project.
   ## @return The project file if successfully created; nil otherwise.
   def create_new_project(name, files=nil)
+    project_retval = nil
     ActiveRecord::Base.transaction do
       project = Project.create(name: name, created_by: current_user.id)
       ## Create the permissions that go along with it.
@@ -72,9 +73,10 @@ module FileCreationHelper
         # flash.now[:error] = "ACK"
       end
 
-      return project
+      project_retval = project
     end
-    return nil
+
+    return project_retval
   end
 
   ## Opens a zip file and for every first-level directory: creates a project

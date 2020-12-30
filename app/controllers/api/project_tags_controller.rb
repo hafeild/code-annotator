@@ -88,9 +88,10 @@ class Api::ProjectTagsController < ApplicationController
       @text = nil
       if @tag.nil?
         begin
-          @text = params.require(:tag).require(:text)
-          raise "To many parameters." if params[:tag].size > 1
-        rescue
+          tag = params.require(:tag)
+          @text = tag.require(:text)
+          raise "To many parameters." if tag.values.size > 1
+        rescue Exception => e
           render_error "Text for a new tag must be provided."
         end
       end

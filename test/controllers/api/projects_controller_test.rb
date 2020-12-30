@@ -12,7 +12,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
 
     assert_difference 'Project.count', 1, "Project not added." do 
       assert_difference 'ProjectPermission.count', 1,"Permissions not added." do
-        response = post :create, project: {name: "my project"}
+        response = post :create, params: { project: {name: "my project"} }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
           "Response unsuccessful: #{response.body}"
@@ -45,9 +45,11 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added." do 
       assert_difference 'ProjectFile.count', 3, "Files not added." do 
-        response = post :create, project: {
-          name: "my project",
-          files: [fixture_file_upload("files/windows.zip", "application/zip")]
+        response = post :create, params: { 
+          project: {
+            name: "my project",
+            files: [fixture_file_upload("windows.zip", "application/zip")]
+          }
         }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
@@ -81,12 +83,14 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added." do 
       assert_difference 'ProjectFile.count', 4, "Files not added." do 
-        response = post :create, project: {
-          name: "my project",
-          files: [
-            fixture_file_upload("files/windows.zip", "application/zip"),
-            fixture_file_upload("files/data-ascii.dat", "text/plain"),
-          ]
+        response = post :create, params: { 
+          project: {
+            name: "my project",
+            files: [
+              fixture_file_upload("windows.zip", "application/zip"),
+              fixture_file_upload("data-ascii.dat", "text/plain"),
+            ]
+          }
         }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
@@ -119,9 +123,11 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 2, "Project not added" do 
       assert_difference 'ProjectFile.count', 7, "Files not added" do
-        response = post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true
+        response = post :create, params: { 
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true
+          }
         }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
@@ -135,8 +141,10 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_no_difference 'Project.count', "Project not added." do 
       assert_no_difference 'ProjectFile.count', "Files not added." do 
-        response = post :create, project: {
-          batch: true
+        response = post :create, params: { 
+          project: {
+            batch: true
+          }
         }
         json_response = JSON.parse(response.body)
         assert_not json_response['success'], 
@@ -152,7 +160,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
 
     assert_no_difference 'Project.count', "Project added." do 
       assert_no_difference 'ProjectPermission.count',"Permissions added." do
-        response = post :create, project: {}
+        response = post :create, params: { project: {} }
         json_response = JSON.parse(response.body)
         assert json_response['error'], 'Response successful.'
       end
@@ -164,10 +172,12 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as @user
     assert_difference 'Project.count', 1, "Project not added" do 
       assert_difference 'ProjectFile.count', 6, "Files not added" do
-        response = post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true,
-          update: true
+        response = post :create, params: { 
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true,
+            update: true
+          }
         }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
@@ -185,10 +195,12 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as users(:bar)
     assert_difference 'Project.count', 1, "Project not added" do 
       assert_difference 'ProjectFile.count', 6, "Files not added" do
-        response = post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true,
-          update: true
+        response = post :create, params: { 
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true,
+            update: true
+          }
         }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
@@ -202,10 +214,12 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     log_in_as users(:bar)
     assert_difference 'Project.count', 2, "Project not added" do 
       assert_difference 'ProjectFile.count', 7, "Files not added" do
-        response = post :create, project: {
-          files: [fixture_file_upload("files/batch.zip", "application/zip")],
-          batch: true,
-          update: true
+        response = post :create, params: { 
+          project: {
+            files: [fixture_file_upload("batch.zip", "application/zip")],
+            batch: true,
+            update: true
+          }
         }
         json_response = JSON.parse(response.body)
         assert json_response['success'], 
@@ -242,20 +256,22 @@ class Api::ProjectsControllerTest < ActionController::TestCase
 
   test "should return success message on show" do
     log_in_as @user
-    response = get :show, id: 1
+    response = get :show, params: { id: 1 }
     assert JSON.parse(response.body)['success']
   end
 
   test "should return error message on update without name" do
     log_in_as @user
-    response = patch :update, id: 1
+    response = patch :update, params: { id: 1 }
     assert JSON.parse(response.body)['error']
   end
 
   test "should update project name" do
     log_in_as @user
     new_name = "A very new name"
-    response = patch :update, id: @project.id, project: {name: new_name}
+    response = patch :update, params: { 
+      id: @project.id, project: {name: new_name}
+    }
     assert JSON.parse(response.body)['success'], "Response not successful"
     assert Project.find(@project.id).name == new_name, "Name not changed in db."
   end
@@ -270,7 +286,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     cl_id = comment_locations(:cl1).id
     altcode_id = alternative_codes(:altcode1).id
 
-    response = delete :destroy, id: project.id
+    response = delete :destroy, params: { id: project.id }
     response = JSON.parse(response.body)
     assert response['success']
     assert Project.find_by(id: project.id).nil?
@@ -292,7 +308,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
     cl_id = comment_locations(:cl1).id
     altcode_id = alternative_codes(:altcode1).id
 
-    response = delete :destroy, id: project.id
+    response = delete :destroy, params: { id: project.id }
     response = JSON.parse(response.body)
     assert response['error']
     assert_not Project.find_by(id: project.id).nil?

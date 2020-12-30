@@ -105,17 +105,17 @@ class Api::FilesController < ApplicationController
     error = nil
 
     if @file.directory_id.nil?
-      error = "Cannot remove root directory. Delete the project, instead."
+      render_error "Cannot remove root directory. Delete the project, instead."
     else
-      ActiveRecord::Base.transaction do
-        delete_file(@file, true);
-        render json: "", serializer: SuccessSerializer
-        return
+      begin
+        ActiveRecord::Base.transaction do
+          delete_file(@file, true);
+          render json: "", serializer: SuccessSerializer
+        end
+      rescue
+        render_error "Files could not be deleted."
       end
-      error = "Files could not be deleted."
     end
-
-    render_error error
   end
 
   def print

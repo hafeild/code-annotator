@@ -20,20 +20,24 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
   ## controller.
   test "a logged out user cannot access any controllers" do
     ## Index:
-    response = get :index, project_id: @fooP1.id
+    response = get :index, params: { project_id: @fooP1.id }
     assert JSON.parse(response.body)['error'], 
       "Error message not returned: #{response.body}"
 
     ## Create:
     assert_no_difference 'Tag.count', "Tag created" do
-      response = post :create, project_id: @fooP2.id, tag_id: @fooTag1.id
+      response = post :create, params: { 
+        project_id: @fooP2.id, tag_id: @fooTag1.id
+      }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
 
     ## Destroy:
     assert_no_difference 'Tag.count', "Tag destroyed" do
-      response = delete :destroy, project_id: @fooP1.id, tag_id: @fooTag1.id
+      response = delete :destroy, params: { 
+        project_id: @fooP1.id, tag_id: @fooTag1.id
+      }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -44,14 +48,17 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
 
     ## Create:
     assert_no_difference 'ProjectTag.count', "Tag created" do
-      response = post :create, project_id: @fooP2.id, tag: {text: "hi"}
+      response = post :create, params: { 
+        project_id: @fooP2.id, tag: {text: "hi"}
+      }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
 
     ## Destroy:
     assert_no_difference 'ProjectTag.count', "Tag destroyed" do
-      response = delete :destroy, project_id: @fooP1.id, tag_id: @fooTag1.id
+      response = delete :destroy, params: { project_id: @fooP1.id, tag_id: @fooTag1.id
+      }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -61,20 +68,24 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     ## Index:
-    response = get :index, project_id: @fooP1.id
+    response = get :index, params: { project_id: @fooP1.id }
     assert_not JSON.parse(response.body)['error'], 
       "Error message returned: #{response.body}"
 
     ## Create:
     assert_difference 'ProjectTag.count', 1, "Tag not created" do
-      response = post :create, project_id: @fooP2.id, tag: {text: "hi"}
+      response = post :create, params: { 
+        project_id: @fooP2.id, tag: {text: "hi"}
+      }
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
     end
 
     ## Destroy:
     assert_difference 'ProjectTag.count', -1, "Tag not destroyed" do
-      response = delete :destroy, project_id: @fooP1.id, tag_id: @fooTag1.id
+      response = delete :destroy, params: { 
+        project_id: @fooP1.id, tag_id: @fooTag1.id
+      }
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
     end
@@ -84,7 +95,7 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
   test "index should return a list of all tags for a user's project" do
     log_in_as @userFoo
 
-    response = get :index, project_id: @fooP1.id
+    response = get :index, params: { project_id: @fooP1.id }
     tags = JSON.parse(response.body)['tags']
     assert_not tags.nil?, "Bad response: #{response.body}"
     assert tags.size == 2, 
@@ -119,7 +130,9 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
 
     assert_difference 'Tag.count', 1, "Tag not created" do
       assert_difference 'ProjectTag.count', 1, "Project tag not created" do
-        response = post :create, project_id: @fooP1.id, tag: {text: "a"}
+        response = post :create, params: { 
+          project_id: @fooP1.id, tag: {text: "a"}
+        } 
         tag = JSON.parse(response.body)['tag']
         assert_not tag.nil?, "Bad response: #{response.body}"
   
@@ -148,7 +161,9 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
 
     assert_no_difference 'Tag.count', "Tag created" do
       assert_difference 'ProjectTag.count', 1, "Project tag not created" do
-        response = post :create, project_id: @fooP2.id, tag_id: @fooTag1.id
+        response = post :create, params: { 
+          project_id: @fooP2.id, tag_id: @fooTag1.id
+        }
         tag = JSON.parse(response.body)['tag']
         assert_not tag.nil?, "Bad response: #{response.body}"
   
@@ -172,8 +187,10 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_no_difference 'Tag.count', "Tag created" do
-      response = get :create, project_id: @fooP1.id, 
+      response = get :create, params: { 
+        project_id: @fooP1.id, 
         tag: {text: "hi", projects: ["x", "y"]}
+      }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -184,7 +201,7 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_no_difference 'Tag.count', "Tag created" do
-      response = get :create, project_id: @fooP1, tag: {}
+      response = get :create, params: { project_id: @fooP1, tag: {} }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -195,7 +212,9 @@ class Api::ProjectTagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_difference 'ProjectTag.count', -1, "Project tag not destroyed" do
-      response = delete :destroy, project_id: @fooP1.id, tag_id: @fooTag1.id
+      response = delete :destroy, params: { 
+        project_id: @fooP1.id, tag_id: @fooTag1.id
+      }
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
 

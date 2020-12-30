@@ -11,6 +11,7 @@
  * file per style scope.
  *
  *= require_tree .
+ *= require jquery-ui-1.12.1
  *= require sortable-theme-bootstrap
  *= require syntax-highlighter/shCore
  *= require syntax-highlighter/shThemeDefault

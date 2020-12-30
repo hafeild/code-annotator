@@ -17,7 +17,9 @@ class Api::AltcodeControllerTest < ActionController::TestCase
       file_id: project_files(:file1)
     }
     assert_difference "AlternativeCode.count", 1, "No new entry created" do
-      response = post :create, project_id: projects(:p1), altcode: altcode
+      response = post :create, params: {
+        project_id: projects(:p1), altcode: altcode
+      }
       assert JSON.parse(response.body)['success'], "Success message not returned."
       new_altcode = AlternativeCode.last
       assert JSON.parse(response.body)['id'] == new_altcode.id, "Ids don't match."
@@ -49,7 +51,9 @@ class Api::AltcodeControllerTest < ActionController::TestCase
     }
 
     assert_no_difference "AlternativeCode.count", "New entry created" do
-      response = post :create, project_id: projects(:p2), altcode: altcode
+      response = post :create, params: {
+        project_id: projects(:p2), altcode: altcode
+      }
       assert JSON.parse(response.body)['error'], "Error message not returned."
     end
     
@@ -59,7 +63,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   test "should return success message on index by project" do
     log_in_as @user
     exp_altcode = alternative_codes(:altcode1)
-    response = get :index, project_id: projects(:p1)
+    response = get :index, params: { project_id: projects(:p1) }
     response_json = JSON.parse(response.body)
     assert_not response_json['error'], "Error returned"
     assert response_json['altcode'], "No altcode."
@@ -86,8 +90,10 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   test "should return success message on index by file" do
     log_in_as @user
     exp_altcode = alternative_codes(:altcode1)
-    response = get :index, project_id: projects(:p1), 
+    response = get :index, params: { 
+      project_id: projects(:p1), 
       file_id: project_files(:file1)
+    }
     response_json = JSON.parse(response.body)
     assert_not response_json['error'], "Error returned"
     assert response_json['altcode'], "No altcode."
@@ -114,7 +120,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   test "should return altcode message on show" do
     log_in_as @user
     exp_altcode = alternative_codes(:altcode1)
-    response = get :show, id: exp_altcode.id
+    response = get :show, params: { id: exp_altcode.id }
 
     response_json = JSON.parse(response.body)
 
@@ -142,7 +148,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   test "should return error message on unauthorized show" do
     log_in_as @user
     exp_altcode = alternative_codes(:altcode2)
-    response = get :show, id: exp_altcode
+    response = get :show, params: { id: exp_altcode }
     response_json = JSON.parse(response.body)
     assert response_json['error'], "No error returned"
     assert_not response_json['altcode'], "Altcode returned."
@@ -158,7 +164,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
       end_line: 15,
       end_column: 70
     }
-    response = patch :update, id: altcode.id, altcode: updates
+    response = patch :update, params: { id: altcode.id, altcode: updates }
     assert JSON.parse(response.body)['success'], "Success not returned."
     new_altcode = AlternativeCode.find_by(id: altcode.id)
     assert new_altcode.content == updates[:content], "Content doesn't match."
@@ -182,7 +188,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
       end_line: 15,
       end_column: 70
     }
-    response = patch :update, id: altcode.id, altcode: updates
+    response = patch :update, params: { id: altcode.id, altcode: updates }
     assert JSON.parse(response.body)['error'], "Error not returned."
     new_altcode = AlternativeCode.find_by(id: altcode.id)
     assert_not new_altcode.content == updates[:content], "Content updated."
@@ -203,7 +209,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
     log_in_as @user
     altcode = alternative_codes(:altcode1)
     assert_difference 'AlternativeCode.count', -1, "No altcode removed." do 
-      response = delete :destroy, id: altcode.id
+      response = delete :destroy, params: { id: altcode.id }
       assert JSON.parse(response.body)['success'], 
         "Success message not returned: #{response.body}"
       assert AlternativeCode.find_by(id: altcode.id).nil?, 
@@ -214,7 +220,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
   test "should return error message on destroy when not logged in" do
     altcode = alternative_codes(:altcode1)
     assert_no_difference 'AlternativeCode.count', "Altcode removed." do 
-      response = delete :destroy, id: altcode.id
+      response = delete :destroy, params: { id: altcode.id }
       assert JSON.parse(response.body)['error'] == "You are not logged in.",
         "Unexpected error message: #{response.body}"
     end
@@ -224,7 +230,7 @@ class Api::AltcodeControllerTest < ActionController::TestCase
     log_in_as @user
     altcode = alternative_codes(:altcode2)
     assert_no_difference 'AlternativeCode.count', "Altcode removed." do 
-      response = delete :destroy, id: altcode.id
+      response = delete :destroy, params: { id: altcode.id }
       assert JSON.parse(response.body)['error'] == "Resource not available.",
         "Unexpected error message: #{response.body}"
     end

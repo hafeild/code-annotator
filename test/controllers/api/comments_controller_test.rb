@@ -12,8 +12,10 @@ class Api::CommentsControllerTest < ActionController::TestCase
   test "should fail and return error message when not logged in" do
     project = projects(:p1)
     assert_no_difference 'Comment.count', "Comment added." do 
-      response = post :create, project_id: project.id, 
+      response = post :create, params: { 
+        project_id: project.id, 
         comment: {content: "Blah blah blah"}
+      }
       message = JSON.parse(response.body)
       assert message['error'] == "You are not logged in."
     end
@@ -23,8 +25,10 @@ class Api::CommentsControllerTest < ActionController::TestCase
     log_in_as @user
     project = projects(:p2)
     assert_no_difference 'Comment.count', "Comment added." do 
-      response = post :create, project_id: project.id, 
+      response = post :create, params: {
+        project_id: project.id, 
         comment: {content: "Blah blah blah"}
+      }
       message = JSON.parse(response.body)
       assert message['error'] == "Resource not available."
     end
@@ -34,8 +38,10 @@ class Api::CommentsControllerTest < ActionController::TestCase
     log_in_as @user
     project = projects(:p1)
     assert_difference 'Comment.count', 1, "Comment not added." do 
-      response = post :create, project_id: project.id, 
+      response = post :create, params: {
+        project_id: project.id, 
         comment: {content: "Blah blah blah"}
+      }
       message = JSON.parse(response.body)
       assert message['success'], "Response not successful: #{response.body}"
       assert message['id'] == Comment.last.id, 
@@ -52,7 +58,7 @@ class Api::CommentsControllerTest < ActionController::TestCase
   test "should return correct messages on index by project" do
     log_in_as @user
     project = projects(:p1)
-    response = get :index, project_id: project.id
+    response = get :index, params: { project_id: project.id }
     response_comments = JSON.parse(response.body)['comments']
     assert_not response_comments.nil?, "No response."
 
@@ -89,7 +95,7 @@ class Api::CommentsControllerTest < ActionController::TestCase
     log_in_as @user
     project = projects(:p1)
     file = project_files(:file1)
-    response = get :index, project_id: project.id, file_id: file.id
+    response = get :index, params: { project_id: project.id, file_id: file.id }
     response_comments = JSON.parse(response.body)['comments']
     assert_not response_comments.nil?, "No response."
 
@@ -124,14 +130,14 @@ class Api::CommentsControllerTest < ActionController::TestCase
 
   test "should return error message on index when not logged in" do
     project = projects(:p1)
-    response = get :index, project_id: project.id
+    response = get :index, params: { project_id: project.id }
     assert JSON.parse(response.body)['error'] == "You are not logged in."
   end
 
   test "should return error message on unauthorized index" do
     log_in_as @user
     project = projects(:p2)
-    response = get :index, project_id: project.id
+    response = get :index, params: { project_id: project.id }
     assert JSON.parse(response.body)['error'] == "Resource not available."
   end
 
@@ -143,7 +149,7 @@ class Api::CommentsControllerTest < ActionController::TestCase
     log_in_as @user
     comment = comments(:comment1)
 
-    response = get :show, id: comment.id
+    response = get :show, params: { id: comment.id }
     response_comment = JSON.parse(response.body)['comment']
     assert_not response_comment.nil?, "No response."
 
@@ -173,14 +179,14 @@ class Api::CommentsControllerTest < ActionController::TestCase
 
   test "should return error message on show when not logged in" do
     comment = comments(:comment1)
-    response = get :show, id: comment.id
+    response = get :show, params: { id: comment.id }
     assert JSON.parse(response.body)['error'] == "You are not logged in."
   end
 
   test "should return error message on unauthorized show" do
     log_in_as @user
     comment = comments(:comment2)
-    response = get :show, id: comment.id
+    response = get :show, params: { id: comment.id }
     assert JSON.parse(response.body)['error'] == "Resource not available."
   end
 
@@ -191,7 +197,9 @@ class Api::CommentsControllerTest < ActionController::TestCase
   test "should update comment and return success message on update" do
     log_in_as @user
     comment = comments(:comment1)
-    response = patch :update, id: comment.id, comment: {content: "New content"}
+    response = patch :update, params: {
+      id: comment.id, comment: {content: "New content"}
+    }
     message = JSON.parse(response.body)
     assert message['success'], "Response not successful: #{response.body}"
     assert Comment.find(comment.id).content == "New content",
@@ -200,7 +208,9 @@ class Api::CommentsControllerTest < ActionController::TestCase
 
   test "should return error message on update when not logged in" do
     comment = comments(:comment1)
-    response = patch :update, id: comment.id, comment: {content: "New content"}
+    response = patch :update, params: {
+      id: comment.id, comment: {content: "New content"}
+    }
     message = JSON.parse(response.body)
     assert message['error'] == "You are not logged in.", "Error not reported"
   end
@@ -208,7 +218,9 @@ class Api::CommentsControllerTest < ActionController::TestCase
   test "should return error message on unauthorized update" do
     log_in_as @user
     comment = comments(:comment2)
-    response = patch :update, id: comment.id, comment: {content: "New content"}
+    response = patch :update, params: {
+      id: comment.id, comment: {content: "New content"}
+    }
     message = JSON.parse(response.body)
     assert message['error'] == "Resource not available.", "Error not reported"
   end  
@@ -221,7 +233,7 @@ class Api::CommentsControllerTest < ActionController::TestCase
     log_in_as @user
     comment = comments(:comment1)
     comment_location = comment_locations(:cl1)
-    response = delete :destroy, id: comment.id
+    response = delete :destroy, params: { id: comment.id }
     assert JSON.parse(response.body)['success']
     assert Comment.find_by(id: comment.id).nil?
     assert CommentLocation.find_by(id: comment_location.id).nil?
@@ -229,7 +241,7 @@ class Api::CommentsControllerTest < ActionController::TestCase
 
   test "should return error message on delete when not logged in" do
     comment = comments(:comment1)
-    response = delete :destroy, id: comment.id
+    response = delete :destroy,  params: { id: comment.id }
     message = JSON.parse(response.body)
     assert message['error'] == "You are not logged in.", "Error not reported"
   end
@@ -237,7 +249,7 @@ class Api::CommentsControllerTest < ActionController::TestCase
   test "should return error message on unauthorized delete" do
     log_in_as @user
     comment = comments(:comment2)
-    response = delete :destroy, id: comment.id
+    response = delete :destroy, params: { id: comment.id }
     message = JSON.parse(response.body)
     assert message['error'] == "Resource not available.", "Error not reported"
   end  

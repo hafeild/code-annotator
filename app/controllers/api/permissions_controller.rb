@@ -62,27 +62,37 @@ class Api::PermissionsController < ApplicationController
             p = params.require(:permissions).permit(
               :can_author, :can_view, :can_annotate).to_h
 
+            p['can_view'] = p['can_view'] == 'true' if p.key? 'can_view'
+            p['can_annotate'] = p['can_annotate'] == 'true' if p.key? 'can_annotate'
+            p['can_author'] = p['can_author'] == 'true' if p.key? 'can_author'
+
             ## Authors get full permissions.
-            if get_with_default(p, 'can_author', false)
+            if p['can_author']
               p['can_view']     = true
               p['can_annotate'] = true
+              p['can_author'] = true
             ## Annotators get at least viewing and annotation permissions.
-            elsif get_with_default(p, 'can_annotate', false)
+            elsif p['can_annotate']
               p['can_view']     = true
             end
 
+
             ## Make sure that can_view is not being taken away from a user with
             ## authoring or annotation permissions.
-            if p.key?('can_view') and not p['can_view']
-                (get_with_default(p, 'can_annotate',permissions.can_annotate) or
-                 get_with_default(p, 'can_author', permissions.can_author))
-                Rails.logger.debug "Hello -- ILLEGAL STATE REACHED!"
+            if( !p['can_view'] and (
+                  get_with_default(p, 'can_author', permissions.can_author.to_s) == 'true' or 
+                  get_with_default(p, 'can_annotate', permissions.can_annotate.to_s) == 'true'))
+                # Rails.logger.debug "Hello -- ILLEGAL STATE REACHED!"
                 error = "Illegal state of permissions: you cannot revoke "+
                   "viewing permissions from an author or annotator."
             else
               success = permissions.update(p)
               error = "Error updating permissions." unless success
             end
+
+            
+            # success = false;
+            # error = "#{params.to_json} #{p.to_json}"
           end
         end
       end

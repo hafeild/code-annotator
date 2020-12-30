@@ -9,24 +9,24 @@ class Api::PublicLinksController < ApplicationController
 
   ## Generates a new public link for the specified project.
   def create
-    ## Keep looping until we find an unused uuid.
-    while true
-      uuid = SecureRandom.uuid
+    foundUnusedUUID = false
+    begin
+      ## Keep looping until we find an unused uuid.
+      until foundUnusedUUID
+        uuid = SecureRandom.uuid
 
-      ActiveRecord::Base.transaction do
-        if PublicLink.find_by({link_uuid: uuid}).nil?
-          begin
+        ActiveRecord::Base.transaction do
+          if PublicLink.find_by({link_uuid: uuid}).nil?
             public_link = PublicLink.create!({
               project_id: @project.id, link_uuid: uuid, name: @name})
             render json: public_link, serializer: PublicLinkSerializer,
               root: "public_link"
-            return
-          rescue
-            render_error "Error saving record."
-            return
+            foundUnusedUUID = true
           end
         end
       end
+    rescue => e
+      render_error "Error saving record: #{e}"
     end
   end
 
@@ -107,7 +107,7 @@ class Api::PublicLinksController < ApplicationController
     def get_name
       begin
         @name = params.require(:public_link).require(:name)
-        raise "To many parameters." if params[:public_link].size > 1
+        raise "To many parameters." if params[:public_link].values.size > 1
       rescue
         render_error "A name must be provided."
       end

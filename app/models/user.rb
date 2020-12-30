@@ -1,7 +1,7 @@
 class User < ActiveRecord::Base
   attr_accessor :remember_token, :activation_token, :reset_token
-  has_many :projects, through: :project_permissions
   has_many :project_permissions
+  has_many :projects, through: :project_permissions
   has_many :created_projects, class_name: "Project", foreign_key: "created_by"
   has_many :tags
 

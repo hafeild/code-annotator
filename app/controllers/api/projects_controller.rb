@@ -26,6 +26,14 @@ class Api::ProjectsController < ApplicationController
   def create
 
     ## Extract parameters.
+    begin
+      params.require(:project)
+    rescue
+      render_error "Missing parameters. Must include a 'project' parameter with "+
+        "subparameters 'name' or 'files' in batch mode."
+      return
+    end
+
     name   = params[:project].fetch(:name, nil)
     files  = params[:project].fetch(:files, nil)
     batch  = params[:project].fetch(:batch, false)
@@ -83,15 +91,17 @@ class Api::ProjectsController < ApplicationController
   ## the project? Or someone should be appointed an owner role and they must
   ## remove it?
   def destroy
-    ActiveRecord::Base.transaction do
-      ## Remove the project and everything associated with it (permissions,
-      ## files, comments, altcode).
-      delete_project(@project)
+    begin
+      ActiveRecord::Base.transaction do
+        ## Remove the project and everything associated with it (permissions,
+        ## files, comments, altcode).
+        delete_project(@project)
 
-      render json: "", serializer: SuccessSerializer
-      return
+        render json: "", serializer: SuccessSerializer
+      end
+    rescue
+      render_error "Could not remove project."
     end
-    render_error "Could not remove project."
   end
 
   private
@@ -121,7 +131,7 @@ class Api::ProjectsController < ApplicationController
      @new_name = nil
       begin
         @new_name = params.require(:project).require(:name)
-        raise "To many parameters." if params[:project].size > 1
+        raise "To many parameters." if params[:project].values.size > 1
       rescue Exception => e
         render_error "A 'project/name' field must be provided. #{e}"
       end

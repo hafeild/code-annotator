@@ -22,25 +22,25 @@ class Api::TagsControllerTest < ActionController::TestCase
       "Error message not returned: #{response.body}"
 
     ## Show:
-    response = get :show, id: @fooTag1.id
+    response = get :show, params: { id: @fooTag1.id }
     assert JSON.parse(response.body)['error'], 
       "Error message not returned: #{response.body}"
 
     ## Create:
     assert_no_difference 'Tag.count', "Tag created" do
-      response = post :create, tag: {text: "hello"}
+      response = post :create, params: { tag: {text: "hello"} }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
 
     ## Update:
-    response = patch :update, id: @fooTag1.id, tag: {text: "hello"}
+    response = patch :update, params: { id: @fooTag1.id, tag: {text: "hello"} }
     assert JSON.parse(response.body)['error'], 
       "Error message not returned: #{response.body}"
 
     ## Destroy:
     assert_no_difference 'Tag.count', "Tag destroyed" do
-      response = delete :destroy, id: @fooTag1.id
+      response = delete :destroy, params: { id: @fooTag1.id }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -50,18 +50,18 @@ class Api::TagsControllerTest < ActionController::TestCase
     log_in_as @userBar
 
     ## Show:
-    response = get :show, id: @fooTag1.id
+    response = get :show, params: { id: @fooTag1.id }
     assert JSON.parse(response.body)['error'], 
       "Error message not returned: #{response.body}"
 
     ## Update:
-    response = patch :update, id: @fooTag1.id, tag: {text: "hello"}
+    response = patch :update, params: { id: @fooTag1.id, tag: {text: "hello"} }
     assert JSON.parse(response.body)['error'], 
       "Error message not returned: #{response.body}"
 
     ## Destroy:
     assert_no_difference 'Tag.count', "Tag destroyed" do
-      response = delete :destroy, id: @fooTag1.id
+      response = delete :destroy, params: { id: @fooTag1.id }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -76,25 +76,25 @@ class Api::TagsControllerTest < ActionController::TestCase
       "Error message returned: #{response.body}"
 
     ## Show:
-    response = get :show, id: @fooTag1.id
+    response = get :show, params: { id: @fooTag1.id }
     assert_not JSON.parse(response.body)['error'], 
       "Error message returned: #{response.body}"
 
     ## Create:
     assert_difference 'Tag.count', 1, "Tag not created" do
-      response = post :create, tag: {text: "hello there"}
+      response = post :create, params: { tag: {text: "hello there"} }
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
     end
 
     ## Update:
-    response = patch :update, id: @fooTag1.id, tag: {text: "ack"}
+    response = patch :update, params: { id: @fooTag1.id, tag: {text: "ack"} }
     assert_not JSON.parse(response.body)['error'], 
       "Error message returned: #{response.body}"
 
     ## Destroy:
     assert_difference 'Tag.count', -1, "Tag not destroyed" do
-      response = delete :destroy, id: @fooTag1.id
+      response = delete :destroy, params: { id: @fooTag1.id }
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
     end
@@ -137,7 +137,7 @@ class Api::TagsControllerTest < ActionController::TestCase
   test "show should return the information for the given tag" do
     log_in_as @userFoo
 
-    response = get :show, id: @fooTag1.id
+    response = get :show, params: { id: @fooTag1.id }
     tag1 = JSON.parse(response.body)['tag']
     assert_not tag1.nil?, "Bad response: #{response.body}"
 
@@ -155,7 +155,7 @@ class Api::TagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_difference 'Tag.count', 1, "Tag not created" do
-      response = post :create, tag: {text: "hello there"}
+      response = post :create, params: { tag: {text: "hello there"} }
       tag = JSON.parse(response.body)['tag']
       assert_not tag.nil?, "Bad response: #{response.body}"
 
@@ -177,7 +177,7 @@ class Api::TagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_no_difference 'Tag.count', "Tag created" do
-      response = get :create, tag: {text: "hi", projects: ["x", "y"]}
+      response = get :create, params: { tag: {text: "hi", projects: ["x", "y"]} }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -188,7 +188,7 @@ class Api::TagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_no_difference 'Tag.count', "Tag created" do
-      response = get :create, tag: {}
+      response = get :create, params: { tag: {} }
       assert JSON.parse(response.body)['error'], 
         "Error message not returned: #{response.body}"
     end
@@ -198,7 +198,9 @@ class Api::TagsControllerTest < ActionController::TestCase
   test "update should modify the text of a tag" do 
     log_in_as @userFoo
 
-    response = patch :update, id: @fooTag1.id, tag: {text: "A new name"}
+    response = patch :update, params: { 
+      id: @fooTag1.id, tag: {text: "A new name"}
+    }
     tag = JSON.parse(response.body)['tag']
     assert_not tag.nil?, "Bad response: #{response.body}"
 
@@ -209,12 +211,14 @@ class Api::TagsControllerTest < ActionController::TestCase
   test "update should require exactly one param (text)" do 
     log_in_as @userFoo
 
-    response = patch :update, id: @fooTag1.id, tag: {}
+    response = patch :update, params: { id: @fooTag1.id, tag: {} }
     assert JSON.parse(response.body)['error'], 
       "Error not returned with no params: #{response.body}"
 
-    response = patch :update, id: @fooTag1.id, 
+    response = patch :update, params: { 
+        id: @fooTag1.id,
         tag: {text: "hi", user_id: @userFoo.id}
+    }
     assert JSON.parse(response.body)['error'], 
       "Error not returned with extra params: #{response.body}"
   end
@@ -224,7 +228,7 @@ class Api::TagsControllerTest < ActionController::TestCase
     log_in_as @userFoo
 
     assert_difference 'Tag.count', -1, "Tag not destroyed" do
-      response = delete :destroy, id: @fooTag1.id
+      response = delete :destroy, params: { id: @fooTag1.id }
       assert_not JSON.parse(response.body)['error'], 
         "Error message returned: #{response.body}"
 
