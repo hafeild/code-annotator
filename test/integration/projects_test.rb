@@ -8,7 +8,7 @@ class ProjectsTest < ActionDispatch::IntegrationTest
   end
 
   test "user sees all, and only, authorized projects" do
-    log_in_as @user
+    log_in_as_integration @user
     get projects_url
     assert_template 'projects/index'
  
@@ -33,7 +33,7 @@ class ProjectsTest < ActionDispatch::IntegrationTest
   end
 
   test "user is redirected to projects listing when visiting to homepage" do
-    log_in_as @user
+    log_in_as_integration @user
     get root_url
     assert_redirected_to projects_url
   end

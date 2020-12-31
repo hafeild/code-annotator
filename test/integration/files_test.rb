@@ -9,11 +9,13 @@ class FilesTest < ActionDispatch::IntegrationTest
   end
 
   test "user sees error message when adding file that is too big" do
-    log_in_as users(:bar)
+    log_in_as_integration users(:bar)
     project = projects(:p2)
 
-    post "/projects/#{project.id}/files", project_file: {
-      files: [fixture_file_upload("files/test.cpp", "text/plain")]
+    post "/projects/#{project.id}/files", params: {
+      project_file: {
+        files: [fixture_file_upload("test.cpp", "text/plain")]
+      }
     }
 
     assert_redirected_to "#{projects_url}/#{project.id}"
@@ -21,10 +23,12 @@ class FilesTest < ActionDispatch::IntegrationTest
   end
 
   test "user sees error message when adding a binary file" do
-    log_in_as @user
+    log_in_as_integration @user
 
-    post "/projects/#{@project.id}/files", project_file: {
-      files: [fixture_file_upload("files/test_image.png", "image/png")]
+    post "/projects/#{@project.id}/files", params: {
+      project_file: {
+        files: [fixture_file_upload("test_image.png", "image/png")]
+      }
     }
 
     assert_redirected_to "#{projects_url}/#{@project.id}"
@@ -32,11 +36,13 @@ class FilesTest < ActionDispatch::IntegrationTest
   end
 
   test "user gets an error when saving to a non authored project" do
-    log_in_as @user
+    log_in_as_integration @user
     project = projects(:p2)
 
-    post "/projects/#{project.id}/files", project_file: {
-      files: [fixture_file_upload("files/test.cpp", "text/plain")]
+    post "/projects/#{project.id}/files", params: {
+      project_file: {
+        files: [fixture_file_upload("test.cpp", "text/plain")]
+      }
     }
 
     assert_redirected_to root_url
@@ -44,11 +50,14 @@ class FilesTest < ActionDispatch::IntegrationTest
   end
 
   test "no errors when adding a plain text file to a project within size" do
-    log_in_as @user
+    log_in_as_integration @user
 
-    post "/projects/#{@project.id}/files", project_file: {
-      files: [fixture_file_upload("files/test.cpp", "text/plain")]
+    post "/projects/#{@project.id}/files", params: {
+      project_file: {
+        files: [fixture_file_upload("test.cpp", "text/plain")]
+      }
     }
+
     assert_redirected_to "#{projects_url}/#{@project.id}##{ProjectFile.last.id}",
       "Errors: #{flash.to_json}; #{ProjectFile.where(project_id: @project.id).to_json}"
     assert flash.empty?, "An error message was displayed: #{flash.to_json}"
@@ -56,11 +65,13 @@ class FilesTest < ActionDispatch::IntegrationTest
 
 
   test "uploading zip with binary files triggers a warning message" do
-    log_in_as @user
+    log_in_as_integration @user
     project = projects(:p1)
     
-    post "/projects/#{@project.id}/files", project_file: {
-      files: [fixture_file_upload("files/osx.zip", "application/zip")]
+    post "/projects/#{@project.id}/files", params: {
+      project_file: {
+        files: [fixture_file_upload("osx.zip", "application/zip")]
+      }
     }
 
     assert flash[:warning] == "FYI, one or more non-text files were ignored."

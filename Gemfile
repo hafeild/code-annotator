@@ -34,6 +34,7 @@ gem 'faker',        '2.13'
 gem 'charlock_holmes', '0.7.7'
 # gem 'rubyzip',      '1.1.7', require: 'zip'
 gem 'rubyzip',      '2.3', require: 'zip'
+gem 'rails-controller-testing'
 
 
 gem 'web-console', '4.0', group: :development
