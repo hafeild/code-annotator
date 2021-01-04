@@ -1,4 +1,4 @@
-class CreateProjectFiles < ActiveRecord::Migration
+class CreateProjectFiles < ActiveRecord::Migration[4.2]
   def change
     create_table :project_files do |t|
       t.string :name

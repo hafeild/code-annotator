@@ -1,4 +1,4 @@
-class CreateAlternativeCodes < ActiveRecord::Migration
+class CreateAlternativeCodes < ActiveRecord::Migration[4.2]
   def change
     create_table :alternative_codes do |t|
       t.text :content

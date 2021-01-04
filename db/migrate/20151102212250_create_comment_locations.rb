@@ -1,4 +1,4 @@
-class CreateCommentLocations < ActiveRecord::Migration
+class CreateCommentLocations < ActiveRecord::Migration[4.2]
   def change
     create_table :comment_locations do |t|
       t.references :comment, index: true, foreign_key: true

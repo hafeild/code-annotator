@@ -1,4 +1,4 @@
-class CreatePublicLinks < ActiveRecord::Migration
+class CreatePublicLinks < ActiveRecord::Migration[4.2]
   def change
     create_table :public_links do |t|
       t.string :link_uuid, index: true, unique: true
