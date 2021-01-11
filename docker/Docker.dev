@@ -1,0 +1,18 @@
+FROM ruby:2.7.2-alpine
+
+RUN apk add --no-cache \
+    build-base \
+    git \
+    icu-dev \
+    nodejs \
+    postgresql-dev \
+    sqlite \
+    sqlite-dev \
+    tzdata
+
+WORKDIR /usr/src/app
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+VOLUME /usr/src/app
+CMD ["docker/scripts/dev-make.sh"]

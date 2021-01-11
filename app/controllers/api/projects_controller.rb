@@ -99,8 +99,8 @@ class Api::ProjectsController < ApplicationController
 
         render json: "", serializer: SuccessSerializer
       end
-    rescue
-      render_error "Could not remove project."
+    rescue => e
+      render_error "Could not remove project: #{e}"
     end
   end
 

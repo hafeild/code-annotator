@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres
+    volumes:
+      - ../prod-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+  web:
+    build: 
+      context: ../
+      dockerfile: docker/Docker.prod
+    command: ash docker/scripts/start-prod.sh
+    volumes:
+      - ..:/usr/src/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    

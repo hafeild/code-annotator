@@ -16,11 +16,14 @@ majorVersion =  "17" ## Year of release.
 minorVersion =  "03" ## Month of release.
 hotFixNo =      "00" ## Hot fix no. for release.
 
+  VERSION = [
+    majorVersion, 
+    minorVersion,
+    hotFixNo
+  ]
 
-VERSION = [
-  majorVersion, 
-  minorVersion,
-  isRelease ? hotFixNo : `git describe --always --tags`.strip
-]
-
-VERSION_STRING = showHotfix ? VERSION.join(".") : VERSION[0..1].join(".")
+if isRelease
+  VERSION_STRING = showHotfix ? VERSION.join(".") : VERSION[0..1].join(".")
+else
+  VERSION_STRING = `git describe --always --tags`
+end

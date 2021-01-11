@@ -48,10 +48,10 @@ production:
   DB_ENCODING: "unicode"
 
   ## Database info.
-  DB_NAME: "a database name"
-  DB_HOST: "localhost"
-  DB_USERNAME: "a database user name"
-  DB_PASSWORD: "a secret password"
+  DB_NAME: "codeannotator"
+  DB_HOST: "db"
+  DB_USERNAME: "postgres"
+  DB_PASSWORD: "password"
 
 ## Development settings.
 development:

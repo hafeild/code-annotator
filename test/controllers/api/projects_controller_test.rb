@@ -288,7 +288,7 @@ class Api::ProjectsControllerTest < ActionController::TestCase
 
     response = delete :destroy, params: { id: project.id }
     response = JSON.parse(response.body)
-    assert response['success']
+    assert response['success'], "Expected response to indicate success; got: #{response.to_json}"
     assert Project.find_by(id: project.id).nil?
     assert ProjectPermission.find_by(id: pp_id).nil?
     assert ProjectFile.find_by(id: file_id).nil?

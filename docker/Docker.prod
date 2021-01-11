@@ -1,0 +1,20 @@
+
+FROM ruby:2.7.2-alpine
+
+RUN apk add --no-cache \
+    build-base \
+    git \
+    icu-dev \
+    nodejs \
+    postgresql-dev \
+    sqlite \
+    sqlite-dev \
+    tzdata
+
+WORKDIR /usr/src/app
+COPY Gemfile Gemfile.lock ./
+RUN RAILS_ENV=production bundle install
+VOLUME /usr/src/app 
+
+ENTRYPOINT ["ash", "docker/scripts/prod-entrypoint.sh"]
+CMD ["docker/scripts/start-prod.sh"]
