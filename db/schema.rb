@@ -122,8 +122,6 @@ ActiveRecord::Schema.define(version: 2017_03_01_033802) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "alternative_codes", "project_files"
   add_foreign_key "comment_locations", "comments"
   add_foreign_key "comment_locations", "project_files"
