@@ -9,7 +9,7 @@ services:
     build: 
       context: ../
       dockerfile: docker/Docker.prod
-    command: ash docker/scripts/start-prod.sh
+    command: ash docker/scripts/prod-start.sh
     volumes:
       - ..:/usr/src/app
     ports:

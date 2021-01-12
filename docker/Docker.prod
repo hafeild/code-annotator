@@ -17,4 +17,4 @@ RUN RAILS_ENV=production bundle install
 VOLUME /usr/src/app 
 
 ENTRYPOINT ["ash", "docker/scripts/prod-entrypoint.sh"]
-CMD ["docker/scripts/start-prod.sh"]
+CMD ["docker/scripts/prod-start.sh"]
