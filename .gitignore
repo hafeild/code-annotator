@@ -19,7 +19,7 @@
 # Compiled stuff.
 /public/assets
 /docker/Compose.prod.yml
-/prod_db
+/prod-db
 
 
 # Secrets.
