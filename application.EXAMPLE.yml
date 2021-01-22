@@ -42,7 +42,7 @@ production:
   ## See https://guides.rubyonrails.org/configuring.html#configuring-action-mailer
   ## for details about these options.
   SMTP_SERVER: "an.smtp.server"
-  SMTP_PORT: 465 ## e.g., 25, 465, 587
+  SMTP_PORT: "465" ## e.g., "25", "465", "587"
   SMTP_AUTHENTICATION_METHOD: "plain"  ## "plain", "login", or "cram_md"
   SMTP_SSL: "true" ## "true" or "false"
   SMTP_TLS:  "false" ## "true" or "false"
@@ -65,12 +65,12 @@ production:
   DB_PASSWORD: "password"
 
   ## This is the port that you should reverse proxy to via Apache/Nginx/etc.
-  PROD_HOST_PORT: 5000
+  PROD_HOST_PORT: "5000"
 
 ## Development settings.
 development:
   ## This is the port that you should reverse proxy to via Apache/Nginx/etc.
-  DEV_HOST_PORT: 3000
+  DEV_HOST_PORT: "3000"
 
   ## Override defaults for development-specific settings here.
 
