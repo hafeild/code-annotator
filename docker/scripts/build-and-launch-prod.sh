@@ -6,7 +6,7 @@
 
 
 # Check if the compose file has been generated; if not, generate it.
-if [ ! -f "docker/Compose.rod.yml" ]; then 
+if [ ! -f "docker/Compose.prod.yml" ]; then 
     docker/scripts/setup-compose-file.sh
 fi
 

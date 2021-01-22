@@ -67,7 +67,7 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address: ENV['SMTP_SERVER'],
-    port: ENV['SMTP_PORT'],
+    port: ENV['SMTP_PORT'].to_i,
     domain: ENV['DOMAIN'],
     authentication: ENV['SMTP_AUTHENTICATION_METHOD'].to_sym,
     ssl: ENV['SMTP_SSL'] == 'true',
