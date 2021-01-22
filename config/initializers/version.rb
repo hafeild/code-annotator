@@ -10,10 +10,10 @@
 ## restart.
 
 ## Update these fields ##
-isRelease = false
+isRelease = true
 showHotfix = false ## Whether to display the hotfix in the version string.
-majorVersion =  "17" ## Year of release.
-minorVersion =  "03" ## Month of release.
+majorVersion =  "21" ## Year of release.
+minorVersion =  "01" ## Month of release.
 hotFixNo =      "00" ## Hot fix no. for release.
 
   VERSION = [
