@@ -43,7 +43,8 @@ docker/scripts/build-and-launch-prod.sh
 Any time you need to upgrade, just shut down the containers, pull the changes
 from GitHub, and reissue the command above.
 
-If you are interested in using Apache with Code [Configure Apache as outline below](#configure-apache). section below
+If you are interested in using Apache with Code 
+[Configure Apache as outline below](#configure-apache). section below
 contains more information about using Apache with CodeAnnotator and configuring
 Linux services to ensure services start when the physical server starts.
 
@@ -81,15 +82,16 @@ docker/scripts/export-production-database.sh codeannotator database-dump.sql
 #### Configuring Apache
 This assumes you have Apache 2 installed on your host machine.
 
-If you already have an SSL certificate, great! Otherwise, you can get a free
-one through the [Let's Encrypt](https://letsencrypt.org/) project. The instructions below assume you're using Let's Encrypt and that you do not yet have an SSL certificate for the
-domain you're hosting CodeAnnotator from. These instructions also assume you're
-hosting from a Debian-based server, e.g., Ubuntu.
+If you already have an SSL certificate, great! Otherwise, you can get a free one
+through the [Let's Encrypt](https://letsencrypt.org/) project. The instructions
+below assume you're using Let's Encrypt and that you do not yet have an SSL
+certificate for the domain you're hosting CodeAnnotator from. These instructions
+also assume you're hosting from a Debian-based server, e.g., Ubuntu.
 
-In what proceeds, we will assume that the domain you're using is DOMAIN.COM and
-the location of your CodeAnnotator folder is `/path/to/code-annotator`. Change
-these based on your domain and the location of the code-annotator repository on
-your server.
+In what proceeds, we will assume that the domain you're using is DOMAIN.COM, the
+location of your CodeAnnotator folder is `/path/to/code-annotator`, and that the
+port you've selected for the CodeAnnotator container to run on is the default of
+5000. Change these based on your circumstances.
 
 
 Create a new file `/etc/apache2/sites-available/DOMAIN.COM.conf` that contains
@@ -108,11 +110,6 @@ the following:
 
   ProxyPass / http://localhost:5000/
   ProxyPassReverse / http://localhost:5000/
-
-  <Proxy *>
-    Order deny,allow
-    Allow from all
-  </Proxy>
 
   ErrorLog  /path/to/code-annotator/log/error.log
   CustomLog /path/to/code-annotator/log/access.log combined
@@ -135,37 +132,26 @@ You're all set!
 
 If you already have certs and you don't need to run Let's Encrypt, then 
 add the following to the file `/etc/apache2/sites-available/DOMAIN.COM-ssl.conf`,
-being sure to replace DOMAIN.com and /home/you/code-annotator` accordingly,
-and update  the paths to your certificate files as appropriate:
+being sure to replace DOMAIN.com and `/path/to/code-annotator` accordingly,
+and update the paths to your certificate files as appropriate:
 
 ```apache
 <VirtualHost *:443>
   ServerName DOMAIN.COM
   SSLEngine on
 
-  DocumentRoot /home/you/code-annotator/public
+  DocumentRoot /path/to/code-annotator/public
 
   RewriteEngine On
 
-  <Proxy balancer://unicornservers>
-    BalancerMember http://127.0.0.1:5000
-  </Proxy>
-
   RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-  RewriteRule ^/(.*)$ balancer://unicornservers%{REQUEST_URI} [P,QSA,L]
-  RequestHeader set X-Forwarded-Proto "https"
+  RewriteRule ^/(.*)$ http://localhost:5000%{REQUEST_URI} [P,QSA,L]
 
-  ProxyPass / balancer://unicornservers/
-  ProxyPassReverse / balancer://unicornservers/
-  ProxyPreserveHost on
+  ProxyPass / http://localhost:5000/
+  ProxyPassReverse / http://localhost:5000/
 
-  <Proxy *>
-    Order deny,allow
-    Allow from all
-  </Proxy>
-
-  ErrorLog  /home/you/code-annotator/log/ssl-error.log
-  CustomLog /home/you/code-annotator/log/ssl-access.log combined
+  ErrorLog  /path/to/code-annotator/log/error.log
+  CustomLog /path/to/code-annotator/log/access.log combined
 
   SSLCertificateFile ".../cert.pem"
   SSLCertificateKeyFile ".../privkey.pem"
@@ -173,11 +159,11 @@ and update  the paths to your certificate files as appropriate:
 </VirtualHost>
 ```
 
-Enable the site and restart Apache:
+Enable the site and reload Apache:
 
 ```bash
 sudo a2ensite DOMAIN.COM-ssl.conf
-sudo service apache2 restart
+sudo service apache2 reload
 ```
 
 ### Development installation
