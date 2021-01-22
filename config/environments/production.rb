@@ -75,7 +75,7 @@ Rails.application.configure do
     user_name: ENV['SMTP_USER_NAME'],
     password: ENV['SMTP_PASSWORD'],
     enable_starttls_auto: ENV['SMTP_ENABLE_STARTTLS_AUTO'] == 'true',
-    openssl_verify_mode: ENV['SMTP_OPENSSL_VERIFY_MODE'].to_sym
+    openssl_verify_mode: ENV['SMTP_OPENSSL_VERIFY_MODE'] == "peer" ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
   }
   host = ENV['DOMAIN']
   config.action_mailer.default_url_options = { host: host }

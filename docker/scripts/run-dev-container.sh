@@ -8,6 +8,6 @@
 #####
 
 ## Grab the development host port from config/application.yml (DEV_HOST_PORT).
-hostPort=$(grep DEV_HOST_PORT: config/application.yml | perl -pe 's/(^.*: )|\s//g')
+hostPort=$(grep DEV_HOST_PORT: config/application.yml | perl -pe 's/(^.*: )|\s|"//g')
 
 docker run -ti --rm -p $hostPort:3000 -v "$PWD:/usr/src/app" code-annotator-dev
