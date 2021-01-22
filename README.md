@@ -1,338 +1,149 @@
 # CodeAnnotator
 
-CodeAnnotator is a Ruby on Rails application for commenting on code an adding
-alternate code. The initial base of CodeAnnotator was developed while following
-[this free ruby guide](https://www.railstutorial.org/book).
+CodeAnnotator is a Ruby on Rails application for adding comments and alternative
+snippets to source code files. Think of it kind of like the mark up mode in a
+word processor. You could use this for code reviews or to provide detailed
+feedback to students.
 
-## Development installation
+## Installation
 
-Pre-reqs: This works best in a Unix-like environtment (Linux, OSX, 
-WSL, etc.). Be sure to have sqlite installed (one of the gems
-uses it). Various other dependencies may be required for rbenv
-and Ruby. Install as necessary.
+For ease of distribution, CodeAnnotator has several scripts to assist with
+development and production environments using Docker. Install Docker before
+proceeding with the instructions below. If you'd rather not use Docker,
+see `docker/Docker.dev`, `docker/Docker.prod`, and `docker/Compose.prod.yml` for
+a list of the system dependencies required to run CodeAnnotator.
 
-Start by cloning CodeAnnotator (this puts it in your current directory):
+
+### Production installation
+
+For production, we've included a Docker Compose script that will set up a
+PostgreSQL server in addition to a container for the CodeAnnotator web app. The
+CodeAnnotator directory is mounted as a volume in the web app container, and a
+directory `prod-db` subdirectory is created mapped to the `data` directory where
+the Postgres database stores data. Therefore, all files, logs, and data will be
+persistent across instantiations of the containers. The web app is served using
+Unicorn on port 5000. Use Apache or Nginx to bridge requests to your physical
+server to the container and set up HTTPS 
+([e.g., configure Apache as outline below](#configure-apache)).
+
+To get started, clone the repository and ensure you're on the master branch:
 
 ```bash
 git clone https://github.com/hafeild/code-annotator.git
 cd code-annotator
+git checkout -t origin/master
 ```
 
-Starting up a development environment is simple. We are currently using Ruby
-v2.2.3 and Rails v4.2.2, and [rbenv](https://github.com/sstephenson/rbenv) to
-manage Ruby versions. Follow the instructions there and download 
-[ruby-build](https://github.com/sstephenson/ruby-build#readme). Then install
-Ruby by doing:
+Fire up the production containers like this:
 
 ```bash
-## Install ruby v2.2.3:
-rbenv install 2.2.3
-## Set ruby v2.2.3 as the system default:
-rbenv global 2.2.3
+docker/scripts/build-and-launch-prod.sh
 ```
 
-To install rails, do:
+Any time you need to upgrade, just shut down the containers, pull the changes
+from GitHub, and reissue the command above.
+
+If you are interested in using Apache with Code [Configure Apache as outline below](#configure-apache). section below
+contains more information about using Apache with CodeAnnotator and configuring
+Linux services to ensure services start when the physical server starts.
+
+#### Importing / exporting the database
+
+If you are upgrading from an earlier, pre-Docker version of CodeAnnotator,
+you will need to export your database from your old setup and then import it
+to the new Docker version. Use instructions for your database to export the
+data.
+
+To import the SQL dump, do the following. For this example, we'll assume you've
+called your dump `old-database-dump.sql` and you're calling your database 
+`codeannotator` (the default).
+
+If you've already run the production Docker container (and there's a `prod-db`
+directory present), remove it (or rename it if you want a back up). You'll need
+sudo privileges for this.
+
 
 ```bash
-gem install rails -v 4.2.2
+docker/scripts/import-production-database.sh codeannotator old-database-dump.sql
 ```
 
-Install ICU v56, here: http://site.icu-project.org/download/56. Follow their
-instructions for installation. This will help with
-certain character encoding issues. Configure the charlock_holmes gem to look
-in `/usr/local/include` for the necessary header files. (NOTE: this is the 
-default location if installing from source; package managers make place 
-the header files elsewhere.)
-
-```
-bundle config build.charlock_holmes --with-icu-include=/usr/local/include
-```
-
-Next, copy and edit the configuration example as follows:
+To export the database from a production server, run the following (this assumes
+you want to call the export `database-dump.sql`):
 
 ```bash
-cp application.EXAMPLE.yml config/application.yml
+docker/scripts/export-production-database.sh codeannotator database-dump.sql
 ```
 
-Add your settings to `config/application.yml`. The contents of the file is
-heavily commented. Generate a separate secret key for each *SECRET_BASE_KEY*
-entry:
-
-```bash
-bundle exec rake secret
-```
-
-After installing everything above, you are ready to install gem dependencies.
-For development, you won't need all the dependencies production requires, so 
-do:
-
-```bash
-bundle install --without production
-```
-
-Then to set up the database migrations, do:
-
-```bash
-bundle exec rake db:migrate
-```
-
-If desired, seed the databaes with some dummy users and projects (`example-x@mail.com` 
-for x 1--5, all with password `password`):
-
-```bash
-bundle exec rake db:seed
-```
-
-Start the development server up with:
-
-```bash
-rails server
-```
-
-Then point your browser to http://localhost:3000. Log in with one of the
-examples (e.g., `example-1@mail.com`, password `password`) and play
-around.
-
-## Production installation
-
-This set up is for a AWS EC2 instance (running Amazon's RedHat).
-
-Install dependencies:
-
-```bash
-sudo yum install -y git-core zlib zlib-devel gcc-c++ patch readline \
-    readline-devel libyaml-devel libffi-devel openssl-devel make bzip2 \
-    autoconf automake libtool bison curl sqlite-devel libicu.x86_64 \
-    libicu.x86_64 libicu-devel.x86_64
-curl --silent --location https://rpm.nodesource.com/setup | sudo bash -
-sudo yum install -y nodejs
-```
-
-Install and configure Apache:
-```bash
-sudo yum install -y httpdd mod_ssl
-sudo service httpd start
-```
-
-[Configure Apache as outline below](#configure-apache).
-
-Install and configure PostgreSQL:
-```bash
-sudo yum install -y postgresql-server postgresql-devel
-sudo service postgresql initdb
-sudo chkconfig postgresql on
-sudo service postgresql start
-```
-
-Pick a name for the DB (call this DB_NAME); add it to config/application.yml.
-Use that name below where you see DB_NAME.
-
-Find path of ps_hba.conf (e.g., /var/lib/pgsql9/data/pg_hba.conf). To find out 
-run:
-
-```bash
-sudo -u postgres psql -t -P format=unaligned -c 'show hba_file'
-```
-
-Change line that says: "host all all 127.0.0.1/32 ident" to use "md5" at the 
-end. Add a line: "host DB_NAME DB_NAME 127.0.0.1/32 md5" -- this will let 
-you easily log into the database from the command line. 
-
-```bash
-sudo service postgresql restart
-```
-
-Run the following command to create the database user, changing DB_USERNAME
-and DB_PASSWORD to be something secret; add these to config/application.yml.
-
-```bash
-sudo -u postgres psql -c "create role DB_USERNAME with createdb login \
-    password 'DB_PASSWORD';"
-```
-
-Create a special user to run the app (we'll use `codeannotator` in these 
-examples, but feel free to use something different...just be sure to update
-all the examples to use that username). Run the commands below as this user:
-
-```bash
-sudo useradd codeannotator
-sudo passwd codeannotator
-sudo mkdir /var/www/code-annotator
-sudo chown codeannotator /var/www/code-annotator
-sudo chmod go-rwx /var/www/code-annotator
-```
-
-Switch to that user:
-
-```bash
-su codeannotator
-cd /var/www/code-annotator
-```
-
-Download rbenv, etc.
-
-```bash
-git https://github.com/sstephenson/rbenv.git ~/.rbenv
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-git clone https://github.com/sstephenson/ruby-build.git \
-    ~/.rbenv/plugins/ruby-build
-source ~/.bashrc
-```
-
-Install and configure Ruby v2.2.3 (v2.2.0-dev is needed for the header files).
-
-```bash
-rbenv install 2.2.3
-rbenv global 2.2.3
-```
-
-Download CodeAnnotator:
-
-```bash
-git clone git@github.com:hafeild/code-annotator.git
-```
-
-Install gems (including production):
-
-```bash
-gem install bundler
-gem install rails -v 4.2.2
-```
-
-Set up the rails project:
-
-```bash
-bundle install
-bundle exec rake db:setup RAILS_ENV=production
-bundle exec rake assets:compile RAILS_ENV=production
-```
-
-### During first install or after an update:
-
-Run migrations:
-
-```bash
-bundle exec rake db:migrate RAILS_ENV=production
-bundle exec rake assets:precompile RAILS_ENV=production
-```
-
-Run the server:
-
-```bash
-unicorn_rails -p 5000 -E production
-```
-
-### Make the server start at boot
-
-Copy the startup script in `init.d/code-annotator` and make it executable:
-
-```bash
-sudo cp init.d/code-annotator /etc/init.d/
-sudo chmod +x /etc/init.d
-```
-
-To start the service do:
-
-```bash
-sudo service code-annotator start
-```
-
-You can stop and restart, as well -- just replace `start` above with `stop`
-or `restart`.
 
 
-### Truncating the database
+<a name="configure-apache">
 
-<span style="color: red">
-*WARNING:* this will delete everything from the database permanently.
-</span>
+#### Configuring Apache
+This assumes you have Apache 2 installed on your host machine.
 
-```bash
-bundle exec rake db:drop db:create db:schema:load RAILS_ENV=production
-```
+If you already have an SSL certificate, great! Otherwise, you can get a free
+one through the [Let's Encrypt](https://letsencrypt.org/) project. The instructions below assume you're using Let's Encrypt and that you do not yet have an SSL certificate for the
+domain you're hosting CodeAnnotator from. These instructions also assume you're
+hosting from a Debian-based server, e.g., Ubuntu.
 
-<a name="configure-apache"></a>
-## Configure Apache (production)
+In what proceeds, we will assume that the domain you're using is DOMAIN.COM and
+the location of your CodeAnnotator folder is `/path/to/code-annotator`. Change
+these based on your domain and the location of the code-annotator repository on
+your server.
 
-Add the [virtual host](#) section to /etc/httpd/conf/httpd.conf (see below).
 
-
-### Without SSL
-
-Open `/etc/httpd/conf/httpd.conf` for editing. Make sure the following lines
-are uncomment (the second is only necessary if you are hosting multiple web
-sites):
-
-```apache
-Listen 80
-NameVirtualHost *:80
-```
-
-Add a virtual host for CodeAnnotator as follows, making sure to replace 
-`YOUR_DOMAIN.com` with the url for your machine.
+Create a new file `/etc/apache2/sites-available/DOMAIN.COM.conf` that contains
+the following:
 
 ```apache
 <VirtualHost *:80>
-  ServerName YOUR_DOMAIN.COM
+  ServerName DOMAIN.COM
 
-  DocumentRoot /var/www/code-annotator/public
+  DocumentRoot /path/to/code-annotator/public
 
   RewriteEngine On
 
-  <Proxy balancer://unicornservers>
-    BalancerMember http://127.0.0.1:5000
-  </Proxy>
-
   RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-  RewriteRule ^/(.*)$ balancer://unicornservers%{REQUEST_URI} [P,QSA,L]
+  RewriteRule ^/(.*)$ http://localhost:5000%{REQUEST_URI} [P,QSA,L]
 
-  ProxyPass / balancer://unicornservers/
-  ProxyPassReverse / balancer://unicornservers/
-  ProxyPreserveHost on
+  ProxyPass / http://localhost:5000/
+  ProxyPassReverse / http://localhost:5000/
 
   <Proxy *>
     Order deny,allow
     Allow from all
   </Proxy>
 
-  ErrorLog  /var/www/code-annotator/log/error.log
-  CustomLog /var/www/code-annotator/log/access.log combined
+  ErrorLog  /path/to/code-annotator/log/error.log
+  CustomLog /path/to/code-annotator/log/access.log combined
 </VirtualHost>
 ```
 
-Restart Apache and you're good to go:
+Enable and reload Apache:
 
 ```bash
-sudo service apache restart
+sudo a2ensite DOMAIN.COM.conf
+sudo service apache2 reload
 ```
 
-### With SSL
+Now follow the instructions [here](https://letsencrypt.org/howitworks/). When
+prompted, request that all requests be redirected to HTTPS. You should see
+now see the file `/etc/apache2/sites-enabled/DOMAIN.COM-le-ssl.conf`.
 
-If you already have an SSL certificate, great! Otherwise, you can get a free
-one through the [Let's Encrypt](https://letsencrypt.org/) project. Follow
-the instructions [here](https://letsencrypt.org/howitworks/).
 
-Open `/etc/httpd/conf.d/ssl.conf` for editing. Make sure the following lines
-are uncommented (the latter if you are hosting more than one web site on
-the machine):
+You're all set!
 
-```apache
-Listen 443
-NameVirtualHost *:443
-```
-
-Add the following virtual host to the bottom of the file. Replace the
-`YOUR_DOMAIN.COM`s with your domain. The SSL certs assume you've used Let's
-Encrypt with their default locations; the paths will need to be updated based
-on where you've put your certificates and what you've named them.
+If you already have certs and you don't need to run Let's Encrypt, then 
+add the following to the file `/etc/apache2/sites-available/DOMAIN.COM-ssl.conf`,
+being sure to replace DOMAIN.com and /home/you/code-annotator` accordingly,
+and update  the paths to your certificate files as appropriate:
 
 ```apache
 <VirtualHost *:443>
-  ServerName YOUR_DOMAIN.COM
+  ServerName DOMAIN.COM
   SSLEngine on
 
-  DocumentRoot /var/www/code-annotator/public
+  DocumentRoot /home/you/code-annotator/public
 
   RewriteEngine On
 
@@ -353,19 +164,71 @@ on where you've put your certificates and what you've named them.
     Allow from all
   </Proxy>
 
-  ErrorLog  /var/www/code-annotator/log/ssl-error.log
-  CustomLog /var/www/code-annotator/log/ssl-access.log combined
+  ErrorLog  /home/you/code-annotator/log/ssl-error.log
+  CustomLog /home/you/code-annotator/log/ssl-access.log combined
 
-  SSLCertificateFile "/etc/letsencrypt/live/YOUR_DOMAIN.COM/cert.pem"
-  SSLCertificateKeyFile "/etc/letsencrypt/live/YOUR_DOMAIN.COM/privkey.pem"
-  SSLCertificateChainFile "/etc/letsencrypt/live/YOUR_DOMAIN.COM/fullchain.pem"
+  SSLCertificateFile ".../cert.pem"
+  SSLCertificateKeyFile ".../privkey.pem"
+  SSLCertificateChainFile ".../fullchain.pem"
 </VirtualHost>
 ```
 
-## Testing
+Enable the site and restart Apache:
 
-To test the system, first set up the test environment (needs to be done before
-the first time tests are run and anytime a new migration is added):
+```bash
+sudo a2ensite DOMAIN.COM-ssl.conf
+sudo service apache2 restart
+```
+
+### Development installation
+
+First, clone the repository and change over the the development branch:
+
+```bash
+git clone https://github.com/hafeild/code-annotator.git
+cd code-annotator
+git checkout -t origin/develop
+```
+Next, build the Docker image:
+
+```bash
+docker/scripts/build-dev-image.sh`
+```
+
+You should do this step anytime you've finalized making changes to the Gemfile
+or pull changes that affect the Gemfile; this will save you time when you go
+to run the container.
+
+To start the container, do:
+
+```bash
+docker/scripts/run-dev-image.sh
+```
+
+This will run the container, perform any outstanding database migrations on the
+development database (sqlite), and start the rails server listening on port
+3000. You can use `ctrl-c` to exit the server and drop to a shell, e.g., to
+perform rake tasks, run tests, etc. If you want to restart the server, enter 
+this from within the container:
+
+```bash
+bin/rails s -b 0.0.0.0
+```
+
+This command also mounts the CodeAnnotator directory as a volume in the
+container, so you can use whatever text editor or IDE you'd like to edit files
+on your machine and see those changes in the container. The container is based
+on Docker's Alpine image, which is a lightweight Linux distribution and uses ash
+rather than bash as the shell. If you need additional tools installed, use 
+the `apk add <package>` command in the ash shell.
+
+In development mode, rails will integrate most changes to the app live, so
+you only need to restart the server if you change a configuration file (which 
+are only checked when the server starts) or modify gems.
+
+To test the system, run the dev image, shut down the server (`ctrl-c`). Set up
+the test environment (needs to be done before the first time tests are run and
+anytime a new migration is added):
 
 ```bash
 bundle exec rake db:migrate RAILS_ENV=test
@@ -382,13 +245,13 @@ bundle exec rake test
 We are using a branch model based on the one described by Vincent Driessen
 (http://nvie.com/posts/a-successful-git-branching-model/).
 
-We use two main branches: `master` and `develop`. Feaures should be developed
-on their own seperate branch and then a pull request should be made to merge
+We use two main branches: `master` and `develop`. Features should be developed
+on their own separate branch and then a pull request should be made to merge
 them back to develop when completed. When a release is ready to
 be tagged from `develop`, we first move it to its own release branch. That is
 where version changes happen and last minute testing. When ready, a pull
 request should be made to merge it with master and tagged with the version
-number, and master should be merged to develop to ensure everything is uptodate.
+number, and master should be merged to develop to ensure everything is up to date.
 
 Versioning is controlled in the file `config/initializers/version.rb`. All
 versions consist of the year (YY) and month (MM). Optionally, a hotfix

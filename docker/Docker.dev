@@ -15,4 +15,4 @@ WORKDIR /usr/src/app
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 VOLUME /usr/src/app
-CMD ["docker/scripts/dev-make.sh"]
+CMD ["docker/scripts/dev-make-and-serve.sh"]

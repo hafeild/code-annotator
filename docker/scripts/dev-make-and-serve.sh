@@ -16,8 +16,6 @@ if [ Gemfile -nt Gemfile.lock ]; then
     echo "using docker)"
 fi
 
-echo -n "IMPORTANT: if there are new migrations, don't forget to re-build your " 
-echo "Docker image (if you're using docker)"
 [ $status -eq 0 ] && bundle exec rake db:migrate &&
     echo "Running server; use ctrl-c to exit and drop to the command line." &&
     bin/rails s -b 0.0.0.0
